@@ -19,4 +19,8 @@ public class Bid {
     public LocalDateTime getTime() {
         return time;
     }
+    @Override
+    public String toString() {
+        return bidder.getName() + " bid " + amount + " at " + time;
+    }
 }
