@@ -9,7 +9,7 @@ public class Admin extends User {
         System.out.println("Admin dang thuc hien " + action + "voi nguoi dung " + user.getName());
     }
     public void cancelAuction(Item item){
-        System.out.println("Admin da huy phirn dau gia cho san pham " + item.getName() + "do vi pham");
+        System.out.println("Admin da huy phien dau gia cho san pham " + item.getName() + "do vi pham");
         item.setStatus("CANCELED");//sau se phai xu li loi neu bidder co tinh dat gia vao canceled item
     }
 }
