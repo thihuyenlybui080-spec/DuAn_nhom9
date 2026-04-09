@@ -1,12 +1,15 @@
+import jdk.javadoc.internal.html.Entity;
+
 import java.time.LocalDateTime;
-public abstract class Item {
+public abstract class Item extends Entity {
     private String itemName;
     private String description;
     private double startingPrice;
     private double currentPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    public Item(String itemName, String description, double startingPrice, double currentPrice, LocalDateTime startTime, LocalDateTime endTime){
+    public Item(String id, String itemName, String description, double startingPrice, double currentPrice, LocalDateTime startTime, LocalDateTime endTime){
+        super(id);
         this.itemName = itemName;
         this.description = description;
         this.startingPrice = startingPrice;
