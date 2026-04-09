@@ -6,10 +6,10 @@ public class AuctionManager {
     
      private static volatile AuctionManager instance;
      private Map<String, Auction> activeAuctions;
-     
      //Scheduler để đếm ngược thời gian 
      private ScheduledExecutorService scheduler;
 
+     
      private AuctionManager() {
           activeAuctions = new ConcurrentHashMap<>();
           // Khởi tạo Thread Pool để xử lý nhiều phiên đấu giá đếm ngược cùng lúc
@@ -19,8 +19,8 @@ public class AuctionManager {
      public static AuctionManager getInstance() {
           if (instance == null) {
                synchronized (AuctionManager.class) {
-                    if (instance == null) {
-                         instance = new AuctionManager();
+               if (instance == null) {
+               instance = new AuctionManager();
                     }
                }
           }
@@ -28,8 +28,9 @@ public class AuctionManager {
      }
 
      
-     public void startAuction(String auctionId, Item item, long durationInSeconds) {
+     public void startAuction(String auctionId, Item item,long durationInSeconds) {
           if (!activeAuctions.containsKey(auctionId)) {
+            
                Auction newAuction = new Auction(auctionId, item);
                newAuction.setStatus("RUNNING");
                activeAuctions.put(auctionId, newAuction);
@@ -40,11 +41,10 @@ public class AuctionManager {
           }
      }
 
-     private synchronized void endAuction(String auctionId) {
+     private synchronized void endAuction(String auctionId){
           Auction auction = activeAuctions.get(auctionId);
-          if (auction != null && auction.getStatus().equals("RUNNING")) {
-               // Chuyển trạng thái phiên đấu giá: RUNNING -> FINISHED 
-               auction.setStatus("FINISHED"); 
+          if (auction != null ) {
+               auction.setStatus("FINISHED");
                
                //Xác định người thắng cuộc 
                User winner = auction.getCurrentWinner();
@@ -54,22 +54,20 @@ public class AuctionManager {
                     System.out.println("Phiên " + auctionId + " kết thúc! Không có ai đặt giá.");
                }
                
-               // Dọn dẹp bộ nhớ
+               // Xóa auction khi đã xong
                activeAuctions.remove(auctionId);
           }
      }
      
           // Xử lý đấu giá đồng thời 
-          
+         
      public synchronized boolean placeBid(String auctionId, User user, double amount) {
           Auction auction = activeAuctions.get(auctionId);
           
-          //  Xử lý ngoại lệ - Đấu giá khi phiên đã đóng
           if (auction == null || !auction.getStatus().equals("RUNNING")) {
                System.err.println("Lỗi: Phiên đấu giá không tồn tại hoặc đã kết thúc!");
                return false; 
           }
-
           // Logic xử lý giá bên trong lớp Auction
           boolean success = auction.processBid(user, amount);
 
