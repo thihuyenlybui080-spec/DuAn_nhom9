@@ -1,3 +1,8 @@
+package factories;
+
+import base.Item;
+import models.Art;
+
 import java.time.LocalDateTime;
 
 public class ArtFactory extends ItemFactory {

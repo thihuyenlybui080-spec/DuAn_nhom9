@@ -1,5 +1,4 @@
-import jdk.javadoc.internal.html.Entity;
-
+package base;
 import java.time.LocalDateTime;
 public abstract class Item extends Entity {
     private String itemName;
