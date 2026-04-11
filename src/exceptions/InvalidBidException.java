@@ -1,4 +1,4 @@
-package model.exception;
+package exceptions;
 
 public class InvalidBidException extends Exception {
     public InvalidBidException(String message) {

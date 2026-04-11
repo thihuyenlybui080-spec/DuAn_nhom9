@@ -1,6 +1,4 @@
-package model;
-import base.User;
-import models.Bidder;
+package models;
 
 import java.time.LocalDateTime;
 

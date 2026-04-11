@@ -1,10 +1,8 @@
 package models;
 
-import base.Item;
 import base.User;
 
 import exceptions.AuthenticationException;
-import model.Auction;
 
 public class Admin extends User {
     public Admin(String userName, String id, String password, String email, String fullName) {

@@ -1,12 +1,10 @@
-package model;
+package models;
 
 import base.Item;
-import base.User;
-import models.Bidder;
 import observer.Subject;
 import observer.Observer;
-import model.exception.InvalidBidException;
-import model.exception.AuctionClosedException;
+import exceptions.InvalidBidException;
+import exceptions.AuctionClosedException;
 
 import java.util.ArrayList;
 import java.util.List;
