@@ -1,16 +1,19 @@
 package model;
+import base.User;
+import models.Bidder;
+
 import java.time.LocalDateTime;
 
 public class Bid {
-    private User bidder;
+    private Bidder bidder;
     private double amount;
     private LocalDateTime time;
-    public Bid(User bidder, double amount) {
+    public Bid(Bidder bidder, double amount) {
         this.bidder = bidder;
         this.amount = amount;
         this.time = LocalDateTime.now();
     }
-    public User getBidder() {
+    public Bidder getBidder() {
         return bidder;
     }
     public double getAmount() {

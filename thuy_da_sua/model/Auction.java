@@ -1,5 +1,8 @@
 package model;
 
+import base.Item;
+import base.User;
+import models.Bidder;
 import observer.Subject;
 import observer.Observer;
 import model.exception.InvalidBidException;
@@ -9,14 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
-
-
 public class Auction implements Subject {
 
     private String id;
     private Item item;
     private double currentPrice;
-    private User highestBidder;
+    private Bidder highestBidder;
 
     private List<Observer> observers = new ArrayList<>();
     private List<Bid> bids = new ArrayList<>();
@@ -28,7 +29,7 @@ public class Auction implements Subject {
     private static final String CANCELED = "CANCELED";
 
     private String status = OPEN;
-    private long endTimeMillis;           // dùng để tính getSecondsRemaining()
+    private long endTimeMillis;           // used to calculate getSecondsRemaining()
 
     // ===== CONSTRUCTOR =====
     public Auction(String id, Item item, long durationInSeconds) {
@@ -54,36 +55,37 @@ public class Auction implements Subject {
     @Override
     public void notifyObservers() {
         for (Observer o : observers) {
-            o.update(id,currentPrice,highestBidder != null ? highestBidder.getName() : "None");
+            o.update(id, currentPrice, highestBidder != null ? highestBidder.getName() : "None");
         }
     }
 
-    // ===== ĐẤU GIÁ (THREAD-SAFE) =====
-    public boolean processBid(User user, double amount) {
+    // ===== BIDDING (THREAD-SAFE) =====
+    public boolean processBid(Bidder user, double amount) {
         try {
-            if (user == null) throw new IllegalArgumentException("User không hợp lệ!");
+            if (user == null) throw new IllegalArgumentException("Invalid user!");
 
-            Bid bid = new Bid(user, amount);           // Tạo Bid ở đây
+            Bid bid = new Bid(user, amount);           // Create Bid here
 
-            placeBid(bid);                             // Gọi method synchronized
+            placeBid(bid);                             // Call synchronized method
             return true;
         } catch (Exception e) {
-            System.err.println("Lỗi đặt giá: " + e.getMessage());
+            System.err.println("Bidding error: " + e.getMessage());
             return false;
         }
     }
-    public synchronized void placeBid(Bid bid)throws InvalidBidException, AuctionClosedException {
+
+    public synchronized void placeBid(Bid bid) throws InvalidBidException, AuctionClosedException {
 
         if (bid == null) {
-            throw new IllegalArgumentException("Bid khong hop le!");
+            throw new IllegalArgumentException("Invalid bid!");
         }
 
-        if (FINISHED.equals(status)|| CANCELED.equals(status)) {
-            throw new AuctionClosedException("Auction da dong!");
+        if (FINISHED.equals(status) || CANCELED.equals(status)) {
+            throw new AuctionClosedException("Auction is already closed!");
         }
 
         if (bid.getAmount() <= currentPrice) {
-            throw new InvalidBidException("Gia phai lon hon gia hien tai!");
+            throw new InvalidBidException("Bid amount must be greater than current price!");
         }
 
         currentPrice = bid.getAmount();
@@ -95,12 +97,12 @@ public class Auction implements Subject {
         notifyObservers();
     }
 
-    // =====GIA HẠN ĐẤU GIÁ  =====
-    private ScheduledFuture<?> currentTimer;   // để cancel timer cũ
+    // ===== AUCTION EXTENSION =====
+    private ScheduledFuture<?> currentTimer;   // to cancel old timer
 
     public void extendEndTime(long additionalSeconds) {
         this.endTimeMillis += additionalSeconds * 1000;
-        System.out.println("Gia hạn phiên " + id + " thêm " + additionalSeconds + " giây");
+        System.out.println("Extended auction " + id + " by " + additionalSeconds + " seconds");
     }
 
     public void setTimer(ScheduledFuture<?> timer) {
@@ -108,15 +110,15 @@ public class Auction implements Subject {
         this.currentTimer = timer;
     }
 
-    // ===== KẾT THÚC =====
+    // ===== FINISH =====
     public void finishAuction() {
-        if (!FINISHED.equals(status)&& !CANCELED.equals(status)) {
+        if (!FINISHED.equals(status) && !CANCELED.equals(status)) {
             status = FINISHED;
 
             notifyObservers();
 
-            System.out.println("=== KET THUC ===");
-            System.out.println("Winner: " +(highestBidder != null ? highestBidder.getName() : "None"));
+            System.out.println("=== AUCTION FINISHED ===");
+            System.out.println("Winner: " + (highestBidder != null ? highestBidder.getName() : "None"));
         }
     }
 
@@ -132,7 +134,7 @@ public class Auction implements Subject {
         return currentPrice;
     }
 
-    public User getHighestBidder() {
+    public Bidder getHighestBidder() {
         return highestBidder;
     }
 
@@ -143,9 +145,11 @@ public class Auction implements Subject {
     public String getStatus() {
         return status;
     }
+
     public void setStatus(String status) {
-        this.status = status; 
+        this.status = status;
     }
+
     public long getSecondsRemaining() {
         return Math.max(0, (endTimeMillis - System.currentTimeMillis()) / 1000);
     }

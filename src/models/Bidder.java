@@ -27,8 +27,8 @@ public class Bidder extends User {
     }
 
     @Override
-    public void logIn(String name, String password){
-        if(!this.name.equals(name) || !this.password.equals(password)){
+    public void logIn(String name, String password) throws AuthenticationException {
+        if(!this.userName.equals(name) || !this.password.equals(password)){
             throw new AuthenticationException("Invalid username or password");
         }
     }
