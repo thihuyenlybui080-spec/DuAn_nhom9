@@ -1,0 +1,7 @@
+package exceptions;
+
+public class AuctionClosedException extends Exception {
+    public AuctionClosedException(String message) {
+        super(message);
+    }
+}
