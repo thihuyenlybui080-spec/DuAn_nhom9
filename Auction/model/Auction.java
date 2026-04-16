@@ -7,6 +7,7 @@ import model.exception.AuctionClosedException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Auction implements Subject {
 
@@ -15,8 +16,8 @@ public class Auction implements Subject {
     private double currentPrice;
     private User highestBidder;
 
-    private List<Observer> observers = new ArrayList<>();
-    private List<Bid> bids = new ArrayList<>();
+    private final List<Observer> observers = new ArrayList<>();
+    private final List<Bid> bids = new ArrayList<>();
 
     // ===== CONSTANT =====
     private static final String OPEN = "OPEN";
@@ -24,6 +25,9 @@ public class Auction implements Subject {
     private static final String FINISHED = "FINISHED";
 
     private String status = OPEN;
+
+    // Fair lock: thread chờ trước vào trước
+    private final ReentrantLock lock = new ReentrantLock(true);
 
     // ===== CONSTRUCTOR =====
     public Auction(String id, String itemName, double startPrice) {
@@ -36,18 +40,37 @@ public class Auction implements Subject {
     @Override
     public void addObserver(Observer observer) {
         if (observer != null) {
-            observers.add(observer);
+            lock.lock();
+            try {
+                observers.add(observer);
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
     @Override
     public void removeObserver(Observer observer) {
-        observers.remove(observer);
+        lock.lock();
+        try {
+            observers.remove(observer);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void notifyObservers() {
-        for (Observer o : observers) {
+        List<Observer> observerSnapshot;
+
+        lock.lock();
+        try {
+            observerSnapshot = new ArrayList<>(observers);
+        } finally {
+            lock.unlock();
+        }
+
+        for (Observer o : observerSnapshot) {
             o.update(
                 id,
                 currentPrice,
@@ -57,35 +80,53 @@ public class Auction implements Subject {
     }
 
     // ===== ĐẤU GIÁ (THREAD-SAFE) =====
-    public synchronized void placeBid(Bid bid)
+    public void placeBid(Bid bid)
             throws InvalidBidException, AuctionClosedException {
 
         if (bid == null) {
             throw new IllegalArgumentException("Bid khong hop le!");
         }
 
-        if (FINISHED.equals(status)) {
-            throw new AuctionClosedException("Auction da dong!");
+        lock.lock();
+
+        try {
+            if (FINISHED.equals(status)) {
+                throw new AuctionClosedException("Auction da dong!");
+            }
+
+            if (bid.getAmount() <= currentPrice) {
+                throw new InvalidBidException("Gia phai lon hon gia hien tai!");
+            }
+
+            currentPrice = bid.getAmount();
+            highestBidder = bid.getBidder();
+            bids.add(bid);
+
+            status = RUNNING;
+
+        } finally {
+            lock.unlock();
         }
-
-        if (bid.getAmount() <= currentPrice) {
-            throw new InvalidBidException("Gia phai lon hon gia hien tai!");
-        }
-
-        currentPrice = bid.getAmount();
-        highestBidder = bid.getBidder();
-        bids.add(bid);
-
-        status = RUNNING;
 
         notifyObservers();
     }
 
     // ===== KẾT THÚC =====
     public void finishAuction() {
-        if (!FINISHED.equals(status)) {
-            status = FINISHED;
 
+        boolean changed = false;
+
+        lock.lock();
+        try {
+            if (!FINISHED.equals(status)) {
+                status = FINISHED;
+                changed = true;
+            }
+        } finally {
+            lock.unlock();
+        }
+
+        if (changed) {
             notifyObservers();
 
             System.out.println("=== KET THUC ===");
@@ -111,7 +152,12 @@ public class Auction implements Subject {
     }
 
     public List<Bid> getBids() {
-        return bids;
+        lock.lock();
+        try {
+            return new ArrayList<>(bids);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public String getStatus() {
