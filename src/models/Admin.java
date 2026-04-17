@@ -5,7 +5,7 @@ import base.User;
 import exceptions.AuthenticationException;
 
 public class Admin extends User {
-    public Admin(String userName, String id, String password, String email, String fullName) {
+    public Admin( String id,String userName, String password, String email, String fullName) {
         super(userName, id, password, email, fullName);
     }
 

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Bidder extends User {
     private List<BidTransaction> history;
 
-    public Bidder(String name, String id, String password, String email, String fullName){
+    public Bidder(String id,String name, String password, String email, String fullName){
         super(name, id, password, email, fullName);
         this.history  = new ArrayList<>();
     }
