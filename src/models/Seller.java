@@ -9,8 +9,8 @@ import java.util.ArrayList;
 public class Seller extends User {
     private List<Item> ownedItems;
 
-    public Seller(String name, String id, String password, String email, String fullName){
-        super(name, id, password, email, fullName);
+    public Seller(String id, String name, String password, String email, String fullName){
+        super(id, name, password, email, fullName);
         this.ownedItems = new ArrayList<>();
     }
 
