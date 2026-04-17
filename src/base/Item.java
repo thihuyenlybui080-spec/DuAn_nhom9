@@ -12,7 +12,7 @@ public abstract class Item extends Entity {
         this.itemName = itemName;
         this.description = description;
         this.startingPrice = startingPrice;
-        this.currentPrice = startingPrice;
+        this.currentPrice = currentPrice;
         this.startTime = startTime;
         this.endTime = endTime;
     }
