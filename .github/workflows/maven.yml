@@ -22,6 +22,7 @@ jobs:
 
     - name: Build with Maven
       run: mvn -B clean install
+      working-directory: Testing1
 
     - name: Run Checkstyle
       run: mvn checkstyle:check
