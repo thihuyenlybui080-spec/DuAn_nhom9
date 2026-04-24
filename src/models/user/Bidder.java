@@ -21,7 +21,7 @@ public class Bidder extends User {
     public void recordBid(Item item, double amount) {
         BidTransaction transaction = new BidTransaction(this, item, amount);
         history.add(transaction);
-        System.out.println(getName() + " placed a bid of " + amount + " for item " + item.getItemName());
+        System.out.println(this.getName() + " placed a bid of " + amount + " for item " + item.getItemName());
     }
 
     public List<BidTransaction> getHistory() {
