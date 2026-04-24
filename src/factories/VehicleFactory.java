@@ -1,7 +1,7 @@
 package factories;
 
 import base.Item;
-import models.Vehicle;
+import models.item.Vehicle;
 
 import java.time.LocalDateTime;
 public class VehicleFactory extends ItemFactory{
