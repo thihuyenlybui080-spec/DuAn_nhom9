@@ -1,7 +1,7 @@
 package factories;
 
 import base.Item;
-import models.Electronics;
+import models.item.Electronics;
 
 import java.time.LocalDateTime;
 public class ElectronicsFactory extends ItemFactory{

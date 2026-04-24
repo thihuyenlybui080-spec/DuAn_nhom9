@@ -1,6 +1,8 @@
-package models;
+package models.auction;
 
 import java.time.LocalDateTime;
+
+import models.user.Bidder;
 
 public class Bid {
     private Bidder bidder;

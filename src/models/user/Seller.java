@@ -1,4 +1,4 @@
-package models;
+package models.user;
 import base.Item;
 import base.User;
 import exceptions.AuthenticationException;

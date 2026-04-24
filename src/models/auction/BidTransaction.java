@@ -1,7 +1,7 @@
-package models;
+package models.auction;
 
 import base.Item;
-import models.Bidder;
+import models.user.Bidder;
 
 import java.time.LocalDateTime;
 public class BidTransaction {
@@ -27,5 +27,5 @@ public class BidTransaction {
     public LocalDateTime getTimestamp(){
         return timestamp;
     }//can 1 lop abstrct Enity de dinh nghiaa lai printInfo
-    }
+}
 

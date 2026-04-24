@@ -1,6 +1,8 @@
-package models;
+package models.manager;
 
 import base.User;
+import models.auction.AuctionResult;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,7 +22,7 @@ public class AuctionHistoryManager {
      public void saveResult(AuctionResult result) {
           if (result != null) {
                completedAuctions.put(result.getAuctionId(), result);
-               System.out.println("✅ ĐÃ LƯU KẾT QUẢ PHIÊN: " + result);
+               System.out.println("AUCTION RESULT SAVED: " + result);
           }
      }
 
