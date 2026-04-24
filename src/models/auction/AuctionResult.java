@@ -35,8 +35,11 @@ public class AuctionResult {
 
      @Override
      public String toString() {
-          return String.format("Phiên %s | Sản phẩm: %s | Người thắng: %s | Giá cuối: %.0f",
-                    auctionId, item.getItemName(), 
-                    winner != null ? winner.getName() : "Không có", finalPrice);
+          String winnerName = (winner != null) ? winner.getName() : "None";
+
+          return "Session " + auctionId +
+                  " | Item: " + item.getItemName() +
+                  " | Winner: " + winnerName +
+                  " | Final Price: " + (long) finalPrice;
      }
 }

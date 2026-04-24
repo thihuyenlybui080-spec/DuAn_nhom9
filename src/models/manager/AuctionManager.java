@@ -13,12 +13,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * AuctionManager – Singleton quản lý tất cả phiên đấu giá đang hoạt động.
- *
- * 
- *  - Anti-sniping (gia hạn + đặt lại timer) thực hiện bên trong lock của Auction
- *    để tránh race condition giữa extend và endAuction.
- *  - Singleton vẫn dùng double-checked locking với volatile (không đổi).
- *  - endAuction() dùng ConcurrentHashMap.remove() – đủ thread-safe, không cần lock riêng.
+ * * - Anti-sniping (gia hạn + đặt lại timer) thực hiện bên trong lock của Auction
+ * để tránh race condition giữa extend và endAuction.
+ * - Singleton vẫn dùng double-checked locking với volatile (không đổi).
+ * - endAuction() dùng ConcurrentHashMap.remove() – đủ thread-safe, không cần lock riêng.
  */
 public class AuctionManager {
 
@@ -60,11 +58,11 @@ public class AuctionManager {
         newAuction.setStatus(Auction.RUNNING);
 
         if (activeAuctions.putIfAbsent(auctionId, newAuction) != null) {
-            System.err.println("Phiên đấu giá " + auctionId + " đã tồn tại!");
+            System.err.println("Auction session " + auctionId + " already exists!");
             return;
         }
 
-        System.out.println("Mở phiên " + auctionId + " trong " + durationInSeconds + " giây.");
+        System.out.println("Opened auction session " + auctionId + " for " + durationInSeconds + " seconds.");
         scheduleEnd(newAuction, durationInSeconds);
     }
 
@@ -72,16 +70,16 @@ public class AuctionManager {
      * Đặt giá thầu.
      *
      * Thread-safety:
-     *  - Đọc auction từ ConcurrentHashMap (lock-free).
-     *  - Gọi auction.processBid() – bên trong có ReentrantLock riêng của Auction.
-     *  - Anti-sniping dùng auction.getLock() để extend + reschedule timer
-     *    trong cùng một critical section, tránh race với endAuction().
+     * - Đọc auction từ ConcurrentHashMap (lock-free).
+     * - Gọi auction.processBid() – bên trong có ReentrantLock riêng của Auction.
+     * - Anti-sniping dùng auction.getLock() để extend + reschedule timer
+     * trong cùng một critical section, tránh race với endAuction().
      */
     public boolean placeBid(String auctionId, Bidder user, double amount) {
         Auction auction = activeAuctions.get(auctionId);
 
         if (auction == null || !Auction.RUNNING.equals(auction.getStatus())) {
-            System.err.println("Lỗi: Phiên đấu giá không tồn tại hoặc đã kết thúc!");
+            System.err.println("Error: Auction session does not exist or has already ended!");
             return false;
         }
 
@@ -114,8 +112,8 @@ public class AuctionManager {
     /**
      * Anti-sniping: nếu còn ít hơn THRESHOLD giây, gia hạn và lên lịch lại.
      * Toàn bộ thực hiện bên trong lock của Auction để đảm bảo:
-     *  - Không race với endAuction() đang chạy.
-     *  - extend và setTimer là 1 atomic operation.
+     * - Không race với endAuction() đang chạy.
+     * - extend và setTimer là 1 atomic operation.
      */
     private void tryAntiSnipe(Auction auction) {
         ReentrantLock auctionLock = auction.getLock();
@@ -125,8 +123,8 @@ public class AuctionManager {
             if (!Auction.RUNNING.equals(auction.getStatus())) return;
             if (auction.getSecondsRemaining() >= ANTI_SNIPE_THRESHOLD_SECONDS) return;
 
-            System.out.println("Anti-sniping kích hoạt: Gia hạn thêm "
-                    + ANTI_SNIPE_EXTENSION_SECONDS + " giây cho phiên " + auction.getId());
+            System.out.println("Anti-sniping triggered: Extending "
+                    + ANTI_SNIPE_EXTENSION_SECONDS + " seconds for session " + auction.getId());
 
             auction.extendEndTime(ANTI_SNIPE_EXTENSION_SECONDS);
             scheduleEndLocked(auction, ANTI_SNIPE_EXTENSION_SECONDS);

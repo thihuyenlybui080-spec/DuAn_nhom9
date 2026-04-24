@@ -1,7 +1,7 @@
 package factories;
 
 import base.Item;
-import models.Art;
+import models.item.Art;
 
 import java.time.LocalDateTime;
 
