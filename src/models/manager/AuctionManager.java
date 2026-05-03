@@ -3,8 +3,10 @@ package models.manager;
 import base.Item;
 import models.auction.Auction;
 import models.auction.AuctionResult;
+import models.auction.AuctionStatus;
 import models.user.Bidder;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -52,10 +54,17 @@ public class AuctionManager {
 
     // ===== PUBLIC API =====
 
-    public void startAuction(String auctionId, Item item, long durationInSeconds) {
+    public void startAuction(String auctionId, Item item) {
+        long durationInSeconds = ChronoUnit.SECONDS.between(item.getStartTime(), item.getEndTime());
+
+        if (durationInSeconds <= 0) {
+            System.err.println("[AuctionManager] Invalid duration for: " + item.getItemName());
+            return;
+        }
+
         // putIfAbsent đảm bảo không tạo trùng phiên, không cần synchronized block
-        Auction newAuction = new Auction(auctionId, item, durationInSeconds);
-        newAuction.setStatus(Auction.RUNNING);
+        Auction newAuction = new Auction(auctionId, item);
+        newAuction.setStatus(AuctionStatus.RUNNING);
 
         if (activeAuctions.putIfAbsent(auctionId, newAuction) != null) {
             System.err.println("Auction session " + auctionId + " already exists!");
@@ -78,7 +87,7 @@ public class AuctionManager {
     public boolean placeBid(String auctionId, Bidder user, double amount) {
         Auction auction = activeAuctions.get(auctionId);
 
-        if (auction == null || !Auction.RUNNING.equals(auction.getStatus())) {
+        if (auction == null || !AuctionStatus.RUNNING.equals(auction.getStatus())) {
             System.err.println("Error: Auction session does not exist or has already ended!");
             return false;
         }
@@ -100,6 +109,11 @@ public class AuctionManager {
         return activeAuctions.get(auctionId);
     }
 
+    public void removeAuction(String auctionId) {
+        activeAuctions.remove(auctionId);
+    }
+
+
     /**
      * Dừng scheduler khi application tắt để tránh thread leak.
      */
@@ -116,20 +130,9 @@ public class AuctionManager {
      * - extend và setTimer là 1 atomic operation.
      */
     private void tryAntiSnipe(Auction auction) {
-        ReentrantLock auctionLock = auction.getLock();
-        auctionLock.lock();
-        try {
-            // Kiểm tra lại sau khi giữ lock
-            if (!Auction.RUNNING.equals(auction.getStatus())) return;
-            if (auction.getSecondsRemaining() >= ANTI_SNIPE_THRESHOLD_SECONDS) return;
-
-            System.out.println("Anti-sniping triggered: Extending "
-                    + ANTI_SNIPE_EXTENSION_SECONDS + " seconds for session " + auction.getId());
-
-            auction.extendEndTime(ANTI_SNIPE_EXTENSION_SECONDS);
-            scheduleEndLocked(auction, ANTI_SNIPE_EXTENSION_SECONDS);
-        } finally {
-            auctionLock.unlock();
+        boolean extended = auction.tryExtendForAntiSnipe(ANTI_SNIPE_THRESHOLD_SECONDS, ANTI_SNIPE_EXTENSION_SECONDS);
+        if (extended) {
+            scheduleEnd(auction, ANTI_SNIPE_EXTENSION_SECONDS);
         }
     }
 
