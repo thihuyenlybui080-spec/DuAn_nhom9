@@ -210,9 +210,14 @@ public class Auction implements Subject {
     public void cancelBidsFrom(Bidder bidder) {
         lock.lock();
         try {
-            if (highestBidder != null && highestBidder.equals(bidder)) {
-                highestBidder = null;
-                // rollback về bid cao nhất còn lại
+            bids.removeIf(b -> b.getBidder().equals(bidder));
+        if (highestBidder != null && highestBidder.equals(bidder)) {
+            // Tìm bid cao nhất còn lại
+            bids.stream().max(Comparator.comparingDouble(Bid::getAmount))
+                .ifPresentOrElse(
+                    top -> { highestBidder = top.getBidder(); currentPrice = top.getAmount(); },
+                    ()  -> { highestBidder = null; currentPrice = item.getStartingPrice(); }
+                );
             }
         } finally { lock.unlock(); }
     }
