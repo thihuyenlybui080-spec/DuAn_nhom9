@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-
 /**
  * AuctionManager – Singleton quản lý tất cả phiên đấu giá đang hoạt động.
  * * - Anti-sniping (gia hạn + đặt lại timer) thực hiện bên trong lock của Auction
@@ -46,7 +44,6 @@ public class AuctionManager {
     // ===== FIELDS =====
     /** ConcurrentHashMap: đọc/xoá không cần lock ngoài. */
     private final Map<String, Auction> activeAuctions;
-
     private final ScheduledExecutorService scheduler;
 
     /** Thời gian còn lại dưới ngưỡng này sẽ kích hoạt anti-sniping (giây). */

@@ -61,7 +61,6 @@ public abstract class User extends Entity {
     public String getFullname(){
         return fullName;
     }
-
     public void setName(String name){
         this.userName = name;
     }

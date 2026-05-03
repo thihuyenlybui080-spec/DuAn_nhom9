@@ -4,10 +4,9 @@ public abstract class Item extends Entity {
     private String itemName;
     private String description;
     private double startingPrice;
-    private double currentPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    public Item(String id, String itemName, String description, double startingPrice,  LocalDateTime startTime, LocalDateTime endTime){
+    public Item(String id, String itemName, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
         super(id);
         this.itemName = itemName;
         this.description = description;
@@ -33,8 +32,7 @@ public abstract class Item extends Entity {
     public void setStartingPrice(double startingPrice) {
         this.startingPrice = startingPrice;
     }
-
-
+   
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
