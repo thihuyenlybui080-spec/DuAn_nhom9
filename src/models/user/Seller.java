@@ -24,10 +24,10 @@ public class Seller extends User {
 
             mgr.getActiveAuctions().stream().filter(a -> ownedItems.contains(a.getItem()))
                     .forEach(a -> {
-                        if ("RUNNING".equals(a.getStatus())) {
+                        if (AuctionStatus.RUNNING == a.getStatus()) {
                             a.setStatus(AuctionStatus.CANCELED);
                             System.out.println("  → CANCEL phiên: " + a.getId());
-                        } else if ("OPEN".equals(a.getStatus())) {
+                        } else if (AuctionStatus.OPEN == a.getStatus()) {
                             mgr.removeAuction(a.getId());
                             System.out.println("  → XOÁ phiên OPEN: " + a.getId());
                         }

@@ -6,6 +6,7 @@ import models.auction.AuctionResult;
 import models.auction.AuctionStatus;
 import models.user.Bidder;
 
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.ArrayList;
@@ -54,26 +55,47 @@ public class AuctionManager {
 
     // ===== PUBLIC API =====
 
+
+    //tự lên lịch mở auction dựa vào startTime  
     public void startAuction(String auctionId, Item item) {
-        long durationInSeconds = ChronoUnit.SECONDS.between(item.getStartTime(), item.getEndTime());
-
-        if (durationInSeconds <= 0) {
-            System.err.println("[AuctionManager] Invalid duration for: " + item.getItemName());
+        LocalDateTime now = LocalDateTime.now();
+        
+        long startDelay = ChronoUnit.SECONDS.between(now, item.getStartTime());
+        long endDelay   = ChronoUnit.SECONDS.between(now, item.getEndTime());
+    
+        if (endDelay <= 0) {
+            System.err.println("Auction end time is in the past!");
             return;
         }
-
-        // putIfAbsent đảm bảo không tạo trùng phiên, không cần synchronized block
-        Auction newAuction = new Auction(auctionId, item);
-        newAuction.setStatus(AuctionStatus.RUNNING);
-
-        if (activeAuctions.putIfAbsent(auctionId, newAuction) != null) {
-            System.err.println("Auction session " + auctionId + " already exists!");
-            return;
+    
+        // Tạo auction với status OPEN, chưa đưa vào activeAuctions
+        Auction auction = new Auction(auctionId, item);
+        // auction.status = OPEN theo mặc định
+    
+        if (startDelay <= 0) {
+            // startTime đã qua → mở luôn
+            openAuction(auction);
+        } else {
+            // Lên lịch mở auction khi đến startTime
+            scheduler.schedule(() -> openAuction(auction), startDelay, TimeUnit.SECONDS);
+            System.out.println("Auction " + auctionId + " scheduled to open in " + startDelay + "s");
         }
-
-        System.out.println("Opened auction session " + auctionId + " for " + durationInSeconds + " seconds.");
-        scheduleEnd(newAuction, durationInSeconds);
+    
+        // Lên lịch kết thúc auction khi đến endTime
+        ScheduledFuture<?> endTimer = scheduler.schedule(
+            () -> endAuction(auctionId), endDelay, TimeUnit.SECONDS
+        );
+        auction.setTimer(endTimer);
     }
+    
+    private void openAuction(Auction auction) {
+        // Giữ nguyên status = OPEN (không ép RUNNING).
+        // Status chỉ chuyển sang RUNNING khi có bid đầu tiên
+        activeAuctions.put(auction.getId(), auction);
+        System.out.println("Auction " + auction.getId() + " is now OPEN for bidding!");
+        auction.notifyObservers(); // báo cho client biết phiên đã mở
+    }
+   
 
     /**
      * Đặt giá thầu.
@@ -86,9 +108,15 @@ public class AuctionManager {
      */
     public boolean placeBid(String auctionId, Bidder user, double amount) {
         Auction auction = activeAuctions.get(auctionId);
+        // Chấp nhận bid khi phiên đang OPEN (chưa có bid nào) hoặc RUNNING
 
-        if (auction == null || !AuctionStatus.RUNNING.equals(auction.getStatus())) {
+        if (auction == null ) {
             System.err.println("Error: Auction session does not exist or has already ended!");
+            return false;
+        }
+        AuctionStatus st = auction.getStatus();
+        if (st != AuctionStatus.OPEN && st != AuctionStatus.RUNNING) {
+            System.err.println("Error: Auction " + auctionId + " is not accepting bids (status=" + st + ")");
             return false;
         }
 
@@ -149,12 +177,7 @@ public class AuctionManager {
      * Ở đây ta gọi trực tiếp để tránh re-entrant deadlock nếu lock không phải reentrant.
      * Vì ReentrantLock cho phép re-entrant, gọi setTimer() vẫn an toàn.
      */
-    private void scheduleEndLocked(Auction auction, long delaySeconds) {
-        ScheduledFuture<?> timer = scheduler.schedule(
-                () -> endAuction(auction.getId()), delaySeconds, TimeUnit.SECONDS);
-        // setTimer() sẽ acquire lại lock – OK vì ReentrantLock là reentrant
-        auction.setTimer(timer);
-    }
+
 
     /** Kết thúc phiên đấu giá, lưu kết quả, xoá khỏi map. */
     private void endAuction(String auctionId) {
