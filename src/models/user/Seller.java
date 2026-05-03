@@ -27,7 +27,7 @@ public class Seller extends User {
                         if (AuctionStatus.RUNNING == a.getStatus()) {
                             a.setStatus(AuctionStatus.CANCELED);
                             System.out.println("  → CANCEL phiên: " + a.getId());
-                        } else if (AuctionStatus.OPEN == a.getStatus())) {
+                        } else if (AuctionStatus.OPEN == a.getStatus()) {
                             mgr.removeAuction(a.getId());
                             System.out.println("  → XOÁ phiên OPEN: " + a.getId());
                         }
