@@ -26,7 +26,6 @@ public class AutoBidConfig {
 
     @Override
     public String toString() {
-        return "AutoBidConfig{maxBid=" + maxBid + ", increment=" + increment
-                + ", registeredAt=" + registeredAt + "}";
+        return "AutoBidConfig{maxBid=" + maxBid + ", increment=" + increment + ", registeredAt=" + registeredAt + "}";
     }
 }

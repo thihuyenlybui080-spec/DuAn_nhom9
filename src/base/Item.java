@@ -6,13 +6,17 @@ public abstract class Item extends Entity {
     private double startingPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    public Item(String id, String itemName, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
-        super(id);
+    public Item( String itemName, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+        super();
         this.itemName = itemName;
         this.description = description;
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+    @Override
+    protected String getIdPrefix() {
+        return "item";
     }
     public String getItemName() {
         return itemName;

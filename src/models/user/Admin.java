@@ -7,8 +7,8 @@ import models.auction.AuctionStatus;
 import models.manager.AuctionManager;
 
 public class Admin extends User {
-    public Admin(String id, String userName, String password, String email, String fullName) {
-        super(id, userName, password, email, fullName);
+    public Admin( String userName, String password, String email, String fullName) {
+        super( userName, password, email, fullName);
     }
     @Override
     protected void onStatusChanged(UserStatus s) {

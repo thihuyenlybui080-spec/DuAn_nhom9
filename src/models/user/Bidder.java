@@ -6,6 +6,7 @@ import exceptions.AuthenticationException;
 import models.auction.Auction;
 import models.auction.BidTransaction;
 import models.auction.auto_bidding.AutoBidAgent;
+import models.auction.auto_bidding.AutoBidConfig;
 import models.manager.AuctionManager;
 import observer.Observer;
 
@@ -14,15 +15,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Bidder extends User  {
 
-    private final List<BidTransaction> history = new ArrayList<>();
+    private final List<BidTransaction> history = new CopyOnWriteArrayList<>();
     private final Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
 
 
-    public Bidder(String id, String name, String password, String email, String fullName) {
-        super(id, name, password, email, fullName);
+    public Bidder( String name, String password, String email, String fullName) {
+        super( name, password, email, fullName);
     }
 
     @Override
@@ -47,14 +49,14 @@ public class Bidder extends User  {
         return Collections.unmodifiableList(history);
     }
 
-//autoBidding
-    public void enableAutoBid(Auction auction, double maxBid, double increment) {
+    //autoBidding
+    public void enableAutoBid(Auction auction, AutoBidConfig config) {
         // Dừng agent cũ nếu đã tồn tại cho phiên này
         AutoBidAgent existing = agents.get(auction.getId());
         if (existing != null) {
             existing.stop();
         }
-        AutoBidAgent agent = new AutoBidAgent(this, auction, maxBid, increment);
+        AutoBidAgent agent = new AutoBidAgent(this, auction,config);
         agents.put(auction.getId(), agent);
     }
 

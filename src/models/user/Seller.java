@@ -12,8 +12,8 @@ import java.util.ArrayList;
 public class Seller extends User {
     private List<Item> ownedItems;
 
-    public Seller(String id, String name, String password, String email, String fullName){
-        super(id, name, password, email, fullName);
+    public Seller( String name, String password, String email, String fullName){
+        super( name, password, email, fullName);
         this.ownedItems = new ArrayList<>();
     }
     @Override
@@ -43,12 +43,34 @@ public class Seller extends User {
     }
 
     public void deleteItem(Item item){
+        //ktra seller có sở hữu item này không
+        if (!ownedItems.contains(item)) throw new IllegalArgumentException("Seller không sở hữu item này");
+
+        //chỉ xóa khi auction chưa bắt đầu
         if (LocalDateTime.now().isBefore(item.getStartTime())){
+
+            //xóa auction chứa item khỏi ActiveAuctions
+            AuctionManager mgr = AuctionManager.getInstance();
+            mgr.getActiveAuctions().stream()
+                    .filter(a -> a.getItem().equals(item))
+                    .forEach(a -> mgr.removeAuction(a.getId()));
+
             ownedItems.remove(item);
             System.out.println("Deleted product " + item.getItemName() + " from the auction list");
         }
+        else {
+            throw new IllegalStateException("Không thể xoá: phiên đấu giá đã bắt đầu");
+        }
     }
+    // Seller chủ động mở phiên đấu giá khi sẵn sàng
+    public String listItemForAuction(Item item) {
+        if (!ownedItems.contains(item))
+            throw new IllegalArgumentException("Không sở hữu item này");
 
+        String auctionId = "AUC-" + item.getItemName() + "-" + System.currentTimeMillis();
+        AuctionManager.getInstance().startAuction(auctionId, item);
+        return auctionId;
+    }
 
 }
 

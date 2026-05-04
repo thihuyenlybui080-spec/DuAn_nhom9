@@ -13,12 +13,16 @@ public abstract class User extends Entity {
     // Khởi tạo mặc định ACTIVE ngay từ đầu
     private UserStatusRecord statusRecord = UserStatusRecord.defaultActive();
 
-    public User(String id, String userName, String password, String email, String fullName){
-        super(id);
+    public User( String userName, String password, String email, String fullName){
+        super();
         this.userName = userName;
         this.password = password;
         this.email = email;
         this.fullName = fullName;
+    }
+    @Override
+    protected String getIdPrefix() {
+        return "user";
     }
 
 
