@@ -39,8 +39,7 @@ public class AuctionDetailController implements Initializable {
     @FXML Button btnNavWon;
     @FXML Button btnNavHistory;
     @FXML Button btnSignOut;
-    @FXML
-    private ImageView ivProduct;
+    @FXML private ImageView ivProduct;
     @FXML private Label lblCategory;
     @FXML private Label lblItemName;
     @FXML private Label lblDescription;
@@ -72,6 +71,7 @@ public class AuctionDetailController implements Initializable {
 
     }
     public void setData(Auction auction, User currentUser){
+        System.out.println("✅ Đã nhận dữ liệu Auction: " + (auction != null ? auction.getId() : "NULL"));
         this.auction = auction;
         this.currentUser = currentUser;
         populateView();
@@ -80,7 +80,12 @@ public class AuctionDetailController implements Initializable {
 
     // điền toàn bộ thông tin lên màn
     private void populateView(){
-        lblUsername.setText(currentUser.getName());
+        if (currentUser != null) {
+            lblUsername.setText(currentUser.getName());
+        } else {
+            lblUsername.setText("Guest");
+            System.out.println("⚠️ CẢNH BÁO: currentUser đang bị NULL!");
+        }
 
         updateStatusBadge();
 
@@ -91,9 +96,9 @@ public class AuctionDetailController implements Initializable {
         lblSeller.setText(auction.getSeller().getName());
         lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
         lblStartTime.setText(auction.getItem().getStartTime() != null
-        ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
-        lblEndTime.setText(auction.getItem().getStartTime() != null
                 ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
+        lblEndTime.setText(auction.getItem().getEndTime() != null
+                ? auction.getItem().getEndTime().format(DT_FORMAT) : "—");
         lblAuctionIdBar.setText("Auction ID: #" + auction.getId());
 
         updatePriceArea();
@@ -179,11 +184,11 @@ public class AuctionDetailController implements Initializable {
     private void updateCountdown(){
         //kiểm tra hai tầng để đề xử lý edge cases ( TH ngoại lệ)
         if(auction.getItem().getEndTime() == null
-            || auction.getStatus() == FINISHED) {
-        lblCountDown.setText("ENDED");
-        lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
-        stopAutoRefresh();
-        return;
+                || auction.getStatus() == FINISHED) {
+            lblCountDown.setText("ENDED");
+            lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
+            stopAutoRefresh();
+            return;
         }
         long totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
         if(totalSecs <= 0){
@@ -202,10 +207,10 @@ public class AuctionDetailController implements Initializable {
                     "-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #e53935;"
             );
         } else if (totalSecs <= 1800) {
-            lblCountDown.setText("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f57c00;");
+            lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f57c00;");
         }
         else{
-            lblCountDown.setText("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
+            lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
         }
     }
 

@@ -172,4 +172,16 @@ public class AuctionManager {
 
         activeAuctions.remove(auctionId);
     }
+    public static synchronized void resetForTesting() {
+        if (instance != null) {
+            if (instance.scheduler != null && !instance.scheduler.isShutdown()) {
+                instance.scheduler.shutdownNow();
+            }
+            if (instance.activeAuctions != null) {
+                instance.activeAuctions.clear();
+            }
+
+            instance = null;
+        }
+    }
 }

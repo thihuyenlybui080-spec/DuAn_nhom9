@@ -5,20 +5,25 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.util.AuctionManager;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,9 +39,9 @@ import static org.example.loginregister.client.controller.MainController.LOGIN_T
 import static org.example.loginregister.server.model.entity.Auction.*;
 
 public class BidderDashboardController implements Initializable {
-    @FXML private Button btnNavAuctions;
-    @FXML private Button btnNavHistory;
-    @FXML private Button btnNavWon;
+    @FXML private ToggleButton btnNavAuctions;
+    @FXML private ToggleButton btnNavHistory;
+    @FXML private ToggleButton btnNavWon;
     @FXML private Label lbtlUserName;
 
     @FXML private Label lblPageTitle;
@@ -51,6 +56,7 @@ public class BidderDashboardController implements Initializable {
     @FXML private ToggleButton btnElectronics;
     @FXML private ToggleButton btnArt;
     @FXML private ComboBox<String> cmbStatus;
+
 
     @FXML private ScrollPane paneAuctions;
     @FXML private VBox auctionContainer;
@@ -75,10 +81,60 @@ public class BidderDashboardController implements Initializable {
     private final SceneManager sceneManager = new SceneManager(getClass());
 
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle){
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        // (Bước này đảm bảo CHỈ ĐƯỢC CHỌN 1 NÚT DUY NHẤT)
+        ToggleGroup myGroup = new ToggleGroup();
+        btnAll.setToggleGroup(myGroup);
+        btnVehicles.setToggleGroup(myGroup);
+        btnElectronics.setToggleGroup(myGroup);
+        btnArt.setToggleGroup(myGroup);
+
+        // 2. Mặc định chọn nút All đầu tiên và tô màu đỏ
+        btnAll.setSelected(true);
+        updateButtonColors(btnAll);
+
+        // 3. Xử lý khi click qua lại giữa các nút
+        myGroup.selectedToggleProperty().addListener((observable, oldButton, newButton) -> {
+            if (newButton == null) {
+                // Chặn không cho tắt cái nút đang sáng
+                oldButton.setSelected(true);
+            } else {
+                // Đổi màu: Nút mới chọn thành đỏ, các nút kia thành trắng
+                updateButtonColors((ToggleButton) newButton);
+            }
+        });
+        ToggleGroup navGroup = new ToggleGroup();
+        btnNavAuctions.setToggleGroup(navGroup);
+        btnNavHistory.setToggleGroup(navGroup);
+        btnNavWon.setToggleGroup(navGroup);
+
+        // Mặc định chọn nút Auctions khi vừa mở app
+        btnNavAuctions.setSelected(true);
+        setActiveNav(btnNavAuctions);
+
+        // Bắt sự kiện: Chặn người dùng click tắt cái Menu đang sáng
+        navGroup.selectedToggleProperty().addListener((observable, oldButton, newButton) -> {
+            if (newButton == null) {
+                // Ép nó bật lại nếu cố tình click tắt
+                oldButton.setSelected(true);
+            }
+        });
         cmbStatus.getSelectionModel().selectFirst();
         loadAuctions();
         startAutoRefresh();
+    }
+    private void updateButtonColors(ToggleButton selectedBtn) {
+        ToggleButton[] allButtons = {btnAll, btnVehicles, btnElectronics, btnArt};
+
+        for (ToggleButton btn : allButtons) {
+            if (btn == selectedBtn) {
+                // Nút được chọn: Nền đỏ đô, chữ vàng
+                btn.setStyle("-fx-background-color: #722f37; -fx-text-fill: #c0c43f; -fx-font-weight: bold;");
+            } else {
+                // Nút không được chọn: Nền trắng, chữ xám/đen
+                btn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-font-weight: normal;");
+            }
+        }
     }
 
     public void setCurrent(User user){
@@ -195,8 +251,8 @@ public class BidderDashboardController implements Initializable {
                     }
                 })
                 .filter(a -> keyword.isEmpty()
-                || a.getItem().getItemName().contains(keyword)
-                || a.getSeller().getName().toLowerCase().contains(keyword))
+                        || a.getItem().getItemName().contains(keyword)
+                        || a.getSeller().getName().toLowerCase().contains(keyword))
                 .collect(Collectors.toList());
         renderAuctions(result);
 
@@ -381,9 +437,30 @@ public class BidderDashboardController implements Initializable {
         navigateTo("bidding.fxml"); //truyền vào màn bidding
     }
 
-    private void onDetailClicked(Auction auction){
-        navigateTo("auction_detail.fxml"); // truyền vào màn chi tiết, mô tả
+    private void onDetailClicked(Auction auction) {
+        try {
+            // 1. Phải dùng FXMLLoader thủ công thì mới lấy được Controller
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/loginregister/client/view/auction_detail.fxml"));
+            Parent root = loader.load();
 
+            // 2. Lấy cái thằng Controller ra để nói chuyện với nó
+            AuctionDetailController controller = loader.getController();
+
+            // 3. ĐÂY LÀ DÒNG QUYẾT ĐỊNH: Đẩy dữ liệu sang
+            // Nhớ check xem biến currentUser ở Dashboard có dữ liệu chưa nhé
+            controller.setData(auction, currentUser);
+
+            // 4. Đổi màn hình
+            Stage stage = (Stage) btnNavAuctions.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.show();
+
+            System.out.println("✅ Đã chuyển scene và gọi setData thành công!");
+
+        } catch (Exception e) {
+            System.out.println("❌ Lỗi chuyển màn hình chi tiết: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void navigateTo(String fxmlFile){
@@ -399,8 +476,14 @@ public class BidderDashboardController implements Initializable {
         target.setVisible(true);
     }
 
-    private void setActiveNav(Button active){
-        active.setStyle(STYLE_NAV_ACTIVE);
+    private void setActiveNav(ToggleButton active){
+        btnNavAuctions.setStyle(STYLE_FILTER_ACTIVE);
+        btnNavHistory.setStyle(STYLE_FILTER_ACTIVE);
+        btnNavWon.setStyle(STYLE_FILTER_ACTIVE);
+
+        if (active != null) {
+            active.setStyle(STYLE_NAV_ACTIVE);
+        }
     }
 
     private  void updateCaegoryStyles(ToggleButton active){

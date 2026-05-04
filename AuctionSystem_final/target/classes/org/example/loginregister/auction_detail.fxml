@@ -46,42 +46,42 @@
                   <Font size="10.0" />
                </font>
             </Label>
-             <VBox prefWidth="150.0" spacing="2.0">
-                 <VBox.margin><Insets top="18.0" /></VBox.margin>
-                 <Label text="MENU" textFill="#c0c43f">
-                     <font><Font name="Bell MT" size="11.0" /></font>
-                     <VBox.margin><Insets bottom="4.0" left="14.0" /></VBox.margin>
-                 </Label>
-                 <Button fx:id="btnNavAuctions" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavAuctions" style="-fx-background-color: #8b3a44; -fx-font-weight: bold;" text=" ● Auctions" textFill="#c0c43f">
-                     <font><Font name="System Bold" size="12.0" /></font>
-                     <padding><Insets bottom="8.0" left="14.0" top="8.0" /></padding>
-                 </Button>
-                 <Button fx:id="btnNavHistory" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavHistory" style="-fx-background-color: #722f37;" text=" ● Bidding History" textFill="#c0c43f">
-                     <font><Font name="System Bold" size="12.0" /></font>
-                     <padding><Insets bottom="8.0" left="14.0" top="8.0" /></padding>
-                 </Button>
-                 <Button fx:id="btnNavWon" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavWon" style="-fx-background-color: #722f37;" text=" ● Won Items" textFill="#c0c43f">
-                     <font><Font name="System Bold" size="12.0" /></font>
-                     <padding><Insets bottom="8.0" left="14.0" top="8.0" /></padding>
-                 </Button>
-             </VBox>
+            <VBox prefWidth="150.0" spacing="2.0">
+               <VBox.margin><Insets top="18.0" /></VBox.margin>
+               <Label text="MENU" textFill="#c0c43f">
+                  <font><Font name="Bell MT" size="11.0" /></font>
+                  <VBox.margin><Insets bottom="4.0" left="14.0" /></VBox.margin>
+               </Label>
+               <Button fx:id="btnNavAuctions" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavAuctions" style="-fx-background-color: #8b3a44; -fx-font-weight: bold;" text=" ● Auctions" textFill="#c0c43f">
+                  <font><Font name="System Bold" size="12.0" /></font>
+                  <padding><Insets bottom="8.0" left="14.0" top="8.0" /></padding>
+               </Button>
+               <Button fx:id="btnNavHistory" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavHistory" style="-fx-background-color: #722f37;" text=" ● Bidding History" textFill="#c0c43f">
+                  <font><Font name="System Bold" size="12.0" /></font>
+                  <padding><Insets bottom="8.0" left="14.0" top="8.0" /></padding>
+               </Button>
+               <Button fx:id="btnNavWon" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavWon" style="-fx-background-color: #722f37;" text=" ● Won Items" textFill="#c0c43f">
+                  <font><Font name="System Bold" size="12.0" /></font>
+                  <padding><Insets bottom="8.0" left="14.0" top="8.0" /></padding>
+               </Button>
+            </VBox>
 
-             <Region VBox.vgrow="ALWAYS" />
-             <VBox prefWidth="150.0" spacing="4.0">
-                 <VBox.margin><Insets bottom="14.0" /></VBox.margin>
-                 <Label fx:id="lblUsername" text="Username" textFill="WHITE">
-                     <font><Font name="System Bold" size="13.0" /></font>
-                     <VBox.margin><Insets left="14.0" /></VBox.margin>
-                 </Label>
-                 <Label text="Bidder" textFill="#c0c43f">
-                     <VBox.margin><Insets left="14.0" /></VBox.margin>
-                 </Label>
-                 <Button fx:id="btnSignOut" maxWidth="Infinity" onAction="#onSignOut" prefHeight="32.0" prefWidth="105.0" style="-fx-background-color: #5a2028;" text="Sign Out" textFill="#c0c43f">
-                     <font><Font name="System Bold" size="12.0" /></font>
-                     <padding><Insets bottom="7.0" left="8.0" top="7.0" /></padding>
-                     <VBox.margin><Insets left="8.0" right="8.0" top="4.0" /></VBox.margin>
-                 </Button>
-             </VBox>
+            <Region VBox.vgrow="ALWAYS" />
+            <VBox prefWidth="150.0" spacing="4.0">
+               <VBox.margin><Insets bottom="14.0" /></VBox.margin>
+               <Label fx:id="lblUsername" text="Username" textFill="WHITE">
+                  <font><Font name="System Bold" size="13.0" /></font>
+                  <VBox.margin><Insets left="14.0" /></VBox.margin>
+               </Label>
+               <Label text="Bidder" textFill="#c0c43f">
+                  <VBox.margin><Insets left="14.0" /></VBox.margin>
+               </Label>
+               <Button fx:id="btnSignOut" maxWidth="Infinity" onAction="#onSignOut" prefHeight="32.0" prefWidth="105.0" style="-fx-background-color: #5a2028;" text="Sign Out" textFill="#c0c43f">
+                  <font><Font name="System Bold" size="12.0" /></font>
+                  <padding><Insets bottom="7.0" left="8.0" top="7.0" /></padding>
+                  <VBox.margin><Insets left="8.0" right="8.0" top="4.0" /></VBox.margin>
+               </Button>
+            </VBox>
          </children>
       </VBox>
    </left>
@@ -171,19 +171,19 @@
                                        </padding>
                                     </Label>
                                     <GridPane hgap="8.0" vgap="8.0">
-                                      <columnConstraints>
+                                       <columnConstraints>
                                           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="45.0" prefWidth="100.0" />
                                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="55.0" prefWidth="100.0" />
-                                      </columnConstraints>
-                                      <rowConstraints>
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                       </columnConstraints>
+                                       <rowConstraints>
                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                      </rowConstraints>
+                                          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                       </rowConstraints>
                                        <children>
                                           <Label text="Seller" textFill="#888888" />
                                           <Label fx:id="lblSeller" prefHeight="18.0" prefWidth="168.0" text="__" textFill="#0b0a0a" GridPane.columnIndex="1" />
@@ -242,7 +242,7 @@
                                     <Insets bottom="2.0" />
                                  </VBox.margin>
                               </Label>
-                              <Label fx:id="lblCountdown" text="00:36:36" textFill="#722f37">
+                              <Label fx:id="lblCountDown" text="00:36:36" textFill="#722f37">
                                  <font>
                                     <Font name="System Bold" size="24.0" />
                                  </font>
