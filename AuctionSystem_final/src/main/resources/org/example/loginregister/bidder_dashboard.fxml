@@ -20,7 +20,7 @@
 <?import javafx.scene.text.Font?>
 
 <?import javafx.scene.control.ToggleGroup?>
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BidderDashboardController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BidderDashboardController">
     <left>
         <VBox alignment="TOP_CENTER" prefHeight="246.0" prefWidth="139.0" style="-fx-background-color: #722f37;" styleClass="sidebar-logo" BorderPane.alignment="CENTER">
             <children>
@@ -31,7 +31,7 @@
                 </ImageView>
                 <Label styleClass="logo-title" text="NETBID" textFill="#c0c43f">
                     <font>
-                        <Font name="Bell MT Bold" size="12.0" />
+                        <Font name="Arial Bold" size="12.0" />
                     </font>
                <padding>
                   <Insets top="10.0" />
@@ -46,7 +46,7 @@
                     <children>
                         <Label alignment="TOP_CENTER" styleClass="nav-section-label" text="MENU" textFill="#c0c43f">
                             <font>
-                                <Font name="Bell MT" size="11.0" />
+                                <Font name="Arial" size="11.0" />
                             </font>
                             <padding>
                                 <Insets right="60.0" top="10.0" />

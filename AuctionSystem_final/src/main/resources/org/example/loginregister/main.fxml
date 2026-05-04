@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="468.0" prefWidth="831.0" style="-fx-background-color: c0c43f;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.MainController">
+<AnchorPane prefHeight="468.0" prefWidth="831.0" style="-fx-background-color: c0c43f;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.MainController">
     <children>
       <ImageView fx:id="welcomeImageView" fitHeight="469.0" fitWidth="835.0" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -20,30 +20,30 @@
          <children>
                 <Label alignment="CENTER" prefHeight="75.0" prefWidth="194.0" text="User Management" textFill="#c0c43f">
                     <font>
-                        <Font name="Bell MT" size="24.0" />
+                        <Font name="Arial" size="24.0" />
                     </font>
                 </Label>
               
                     <Button fx:id="loginButton" alignment="CENTER" mnemonicParsing="false" onAction="#loginButtonOnAction" prefHeight="40.0" prefWidth="354.0" style="-fx-background-color: #722f37;" text="Login" textFill="#c0c43f">
                   <font>
-                      <Font name="Bell MT Bold" size="16.0" />
+                      <Font name="Arial Bold" size="16.0" />
                   </font>
               </Button>
               
                     <Button fx:id="registerButton" alignment="CENTER" mnemonicParsing="false" onAction="#registerButtonOnAction" prefHeight="40.0" prefWidth="354.0" style="-fx-background-color: #722f37;" text="Register" textFill="#c0c43f">
                   <font>
-                      <Font name="Bell MT Bold" size="16.0" />
+                      <Font name="Arial Bold" size="16.0" />
                   </font>
               </Button>
             <Button fx:id="adminButton" alignment="CENTER" mnemonicParsing="false" onAction="#adminButtonOnAction" prefHeight="40.0" prefWidth="354.0" style="-fx-background-color: #722f37;" text="Admin" textFill="#c0c43f">
                <font>
-                  <Font name="Bell MT Bold" size="16.0" />
+                  <Font name="Arial Bold" size="16.0" />
                </font>
             </Button>
               
                     <Button fx:id="exitButton" alignment="CENTER" mnemonicParsing="false" onAction="#exitButtonOnAction" prefHeight="30.0" prefWidth="354.0" style="-fx-background-color: #000000;" text="Exit" textFill="#c0c43f">
                   <font>
-                      <Font name="Bell MT Bold" size="14.0" />
+                      <Font name="Arial Bold" size="14.0" />
                   </font>
               </Button>
          </children>

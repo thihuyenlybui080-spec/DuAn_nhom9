@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class SceneManager {
     private static final String FXML_BASE_PATH = "/org/example/loginregister/";
@@ -18,6 +19,7 @@ public class SceneManager {
     public void switchScene(ActionEvent event, String fxmlFile, String title){
         try{
             FXMLLoader loader = new FXMLLoader(resourceClass.getResource(FXML_BASE_PATH + fxmlFile));
+            loader.setCharset(StandardCharsets.UTF_8);
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setTitle(title);

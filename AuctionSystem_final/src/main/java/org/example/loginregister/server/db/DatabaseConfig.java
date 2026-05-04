@@ -30,7 +30,7 @@ import java.sql.SQLException;
 public class DatabaseConfig {
 
     // ★ SỬA DÒNG NÀY: thay bằng IP máy bạn (xem bằng lệnh ipconfig)
-    private static final String DB_HOST = "192.168.56.1";
+    private static final String DB_HOST = "192.168.1.13";
 
     private static final String DB_PORT = "3306";
     private static final String DB_NAME = "loginregister";
@@ -39,7 +39,8 @@ public class DatabaseConfig {
 
     private static final String DB_URL =
             "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME
-            + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh";
+                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh"
+                    + "&useUnicode=true&characterEncoding=UTF-8";;
 
     /**
      * Lấy một Connection tới MySQL server.

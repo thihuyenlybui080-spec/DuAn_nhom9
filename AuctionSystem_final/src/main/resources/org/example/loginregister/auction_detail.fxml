@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:controller="org.example.loginregister.client.controller.AuctionDetailController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:controller="org.example.loginregister.client.controller.AuctionDetailController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
    <left>
       <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="150.0" style="-fx-background-color: #722f37;" BorderPane.alignment="CENTER">
          <children>
@@ -35,7 +35,7 @@
             </StackPane>
             <Label text="NETBID" textFill="#c0c43f">
                <font>
-                  <Font name="Bell MT Bold" size="13.0" />
+                  <Font name="Arial Bold" size="13.0" />
                </font>
                <VBox.margin>
                   <Insets top="6.0" />
@@ -49,7 +49,7 @@
              <VBox prefWidth="150.0" spacing="2.0">
                  <VBox.margin><Insets top="18.0" /></VBox.margin>
                  <Label text="MENU" textFill="#c0c43f">
-                     <font><Font name="Bell MT" size="11.0" /></font>
+                     <font><Font name="Arial" size="11.0" /></font>
                      <VBox.margin><Insets bottom="4.0" left="14.0" /></VBox.margin>
                  </Label>
                  <Button fx:id="btnNavAuctions" alignment="TOP_LEFT" maxWidth="Infinity" onAction="#onNavAuctions" style="-fx-background-color: #8b3a44; -fx-font-weight: bold;" text=" ● Auctions" textFill="#c0c43f">

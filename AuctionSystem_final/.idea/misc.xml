@@ -9,4 +9,17 @@
     </option>
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="25" project-jdk-type="JavaSDK" />
+  <component name="XmlSchemaReferences">
+    <EXTENSION>
+      <uri name="http://javafx.com/fxml/1">
+        <location>https://raw.githubusercontent.com/openjfx/javafx/master/modules/javafx.fxml/src/main/resources/javafx/fxml/javafx.fxml.dtd</location>
+      </uri>
+      <uri name="http://javafx.com/javafx/21">
+        <location>https://raw.githubusercontent.com/openjfx/javafx/master/modules/javafx.graphics/src/main/resources/javafx/scene/doc-files/javafx-21.xsd</location>
+      </uri>
+      <uri name="http://javafx.com/javafx/25">
+        <location>https://raw.githubusercontent.com/openjfx/javafx/master/modules/javafx.graphics/src/main/resources/javafx/scene/doc-files/javafx-25.xsd</location>
+      </uri>
+    </EXTENSION>
+  </component>
 </project>

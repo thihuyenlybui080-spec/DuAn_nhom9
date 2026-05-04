@@ -73,6 +73,7 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -90,6 +91,10 @@
                             <noManPages>true</noManPages>
                             <stripDebug>true</stripDebug>
                             <noHeaderFiles>true</noHeaderFiles>
+                            <options>                                    <!-- ← thêm từ đây -->
+                                <option>-Dfile.encoding=UTF-8</option>
+                                <option>-Dstdout.encoding=UTF-8</option>
+                            </options>
                         </configuration>
                     </execution>
                 </executions>
