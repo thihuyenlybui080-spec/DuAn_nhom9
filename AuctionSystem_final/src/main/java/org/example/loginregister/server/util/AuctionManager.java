@@ -2,10 +2,13 @@ package org.example.loginregister.server.util;
 
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
+import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -14,7 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * AuctionManager – Singleton quản lý tất cả phiên đấu giá đang hoạt động.
- * * - Anti-sniping (gia hạn + đặt lại timer) thực hiện bên trong lock của Auction
+ * - Anti-sniping (gia hạn + đặt lại timer) thực hiện bên trong lock của Auction
  * để tránh race condition giữa extend và endAuction.
  * - Singleton vẫn dùng double-checked locking với volatile (không đổi).
  * - endAuction() dùng ConcurrentHashMap.remove() – đủ thread-safe, không cần lock riêng.
@@ -53,18 +56,49 @@ public class AuctionManager {
 
     // ===== PUBLIC API =====
 
-    public void startAuction( String auctionId, Item item,Seller seller, long durationInSeconds) {
-        // putIfAbsent đảm bảo không tạo trùng phiên, không cần synchronized block
-        Auction newAuction = new Auction(auctionId, item,seller, durationInSeconds);
-        newAuction.setStatus(Auction.RUNNING);
 
-        if (activeAuctions.putIfAbsent(auctionId, newAuction) != null) {
-            System.err.println("Auction session " + auctionId + " already exists!");
+    //tự lên lịch mở auction dựa vào startTime
+    public void startAuction(String auctionId, Item item) {
+        LocalDateTime now = LocalDateTime.now();
+        long startDelay = ChronoUnit.SECONDS.between(now, item.getStartTime());
+        long endDelay   = ChronoUnit.SECONDS.between(now, item.getEndTime());
+
+        //TH  end < strart
+        if (item.getEndTime().isBefore(item.getStartTime())) {
+            System.err.println("End time must be after start time!");
+            return;
+        }
+        //TH endTime<now
+        if (endDelay <= 0) {
+            System.err.println("Auction end time is in the past!");
             return;
         }
 
-        System.out.println("Opened auction session " + auctionId + " for " + durationInSeconds + " seconds.");
-        scheduleEnd(newAuction, durationInSeconds);
+        // Tạo auction với status OPEN, chưa đưa vào activeAuctions
+        Auction auction = new Auction( item);
+
+        if (startDelay <= 0) {
+            // startTime đã qua → mở luôn
+            openAuction(auction);
+        } else {
+            // Lên lịch mở auction khi đến startTime
+            scheduler.schedule(() -> openAuction(auction), startDelay, TimeUnit.SECONDS);
+            System.out.println("Auction " + auctionId + " scheduled to open in " + startDelay + "s");
+        }
+    }
+
+    private void openAuction(Auction auction) {
+        // Giữ nguyên status = OPEN (không ép RUNNING).
+        // Status chỉ chuyển sang RUNNING khi có bid đầu tiên
+        activeAuctions.put(auction.getId(), auction);
+        System.out.println("Auction " + auction.getId() + " is now OPEN for bidding!");
+        auction.notifyObservers(); // báo cho client biết phiên đã mở
+
+        // Lên lịch kết thúc auction khi đến endTime
+        // Tính lại delay TẠI THỜI ĐIỂM MỞ PHIÊN, không phải T=0
+        long endDelay = ChronoUnit.SECONDS.between(LocalDateTime.now(), auction.getItem().getEndTime());
+        scheduleEnd(auction, endDelay);
+
     }
 
     /**
@@ -76,30 +110,32 @@ public class AuctionManager {
      * - Anti-sniping dùng auction.getLock() để extend + reschedule timer
      * trong cùng một critical section, tránh race với endAuction().
      */
-    public boolean placeBid(String auctionId, Bidder user, double amount) {
+    public boolean placeBid(String auctionId, Bidder bidder, double amount) {
         Auction auction = activeAuctions.get(auctionId);
-
-        if (auction == null || !Auction.RUNNING.equals(auction.getStatus())) {
+        //auction không tồn tại
+        if (auction == null ) {
             System.err.println("Error: Auction session does not exist or has already ended!");
             return false;
         }
 
-        boolean success = auction.processBid(user, amount);
+
+        boolean success = auction.processBid(bidder, amount);
 
         if (success) {
+            //lưu lịch sử dao dịch cho  uesr
+            bidder.recordBid(auction.getItem(), amount);
             tryAntiSnipe(auction);
         }
 
         return success;
     }
 
-    public List<Auction> getActiveAuctions() {
-        return new ArrayList<>(activeAuctions.values());
+
+
+    public void removeAuction(String auctionId) {
+        activeAuctions.remove(auctionId);
     }
 
-    public Auction getAuction(String auctionId) {
-        return activeAuctions.get(auctionId);
-    }
 
     /**
      * Dừng scheduler khi application tắt để tránh thread leak.
@@ -107,6 +143,24 @@ public class AuctionManager {
     public void shutdown() {
         scheduler.shutdownNow();
     }
+
+
+    //xử lí trường hợp seller
+    public void cancelAuction(String auctionId) {
+        Auction auction = activeAuctions.get(auctionId);
+        if (auction == null) return;
+
+        auction.setStatus(AuctionStatus.CANCELED);  // đóng cửa bid mới
+
+        // Lưu kết quả dù là CANCELED (yêu cầu của bạn)
+        AuctionResult result = new AuctionResult(auction);
+        AuctionHistoryManager.getInstance().saveResult(result);
+
+        activeAuctions.remove(auctionId);           // xóa khỏi map
+        // timer tự hủy vì endAuction() sẽ check auction == null rồi return
+    }
+
+
 
     // ===== PRIVATE HELPERS =====
 
@@ -117,22 +171,12 @@ public class AuctionManager {
      * - extend và setTimer là 1 atomic operation.
      */
     private void tryAntiSnipe(Auction auction) {
-        ReentrantLock auctionLock = auction.getLock();
-        auctionLock.lock();
-        try {
-            // Kiểm tra lại sau khi giữ lock
-            if (!Auction.RUNNING.equals(auction.getStatus())) return;
-            if (auction.getSecondsRemaining() >= ANTI_SNIPE_THRESHOLD_SECONDS) return;
-
-            System.out.println("Anti-sniping triggered: Extending "
-                    + ANTI_SNIPE_EXTENSION_SECONDS + " seconds for session " + auction.getId());
-
-            auction.extendEndTime(ANTI_SNIPE_EXTENSION_SECONDS);
-            scheduleEndLocked(auction, ANTI_SNIPE_EXTENSION_SECONDS);
-        } finally {
-            auctionLock.unlock();
+        boolean extended = auction.tryExtendForAntiSnipe(ANTI_SNIPE_THRESHOLD_SECONDS, ANTI_SNIPE_EXTENSION_SECONDS);
+        if (extended) {
+            scheduleEnd(auction, ANTI_SNIPE_EXTENSION_SECONDS);
         }
     }
+
 
     /** Lên lịch kết thúc auction (không giữ lock). */
     private void scheduleEnd(Auction auction, long delaySeconds) {
@@ -141,35 +185,31 @@ public class AuctionManager {
         auction.setTimer(timer);
     }
 
-    /**
-     * Lên lịch lại timer khi đã giữ lock của auction từ bên ngoài.
-     * Dùng setTimer() nội bộ (setTimer cũng acquire lock → phải dùng non-locking variant).
-     * Ở đây ta gọi trực tiếp để tránh re-entrant deadlock nếu lock không phải reentrant.
-     * Vì ReentrantLock cho phép re-entrant, gọi setTimer() vẫn an toàn.
-     */
-    private void scheduleEndLocked(Auction auction, long delaySeconds) {
-        ScheduledFuture<?> timer = scheduler.schedule(
-                () -> endAuction(auction.getId()), delaySeconds, TimeUnit.SECONDS);
-        // setTimer() sẽ acquire lại lock – OK vì ReentrantLock là reentrant
-        auction.setTimer(timer);
-    }
-
     /** Kết thúc phiên đấu giá, lưu kết quả, xoá khỏi map. */
     private void endAuction(String auctionId) {
         Auction auction = activeAuctions.get(auctionId);
         if (auction == null) return;
 
-        auction.finishAuction(); // thread-safe bên trong
+        //nếu k có người thắng thì status auction==CANCELED
+        AuctionStatus finalStatus = (auction.getHighestBidder() != null) ? AuctionStatus.FINISHED : AuctionStatus.CANCELED;
 
-        AuctionResult result = new AuctionResult(
-                auction.getId(),
-                auction.getItem(),
-                auction.getHighestBidder(),
-                auction.getCurrentPrice(),
-                auction.getBids()
-        );
+        auction.finishAuction(finalStatus); // thread-safe bên trong
+
+        AuctionResult result = new AuctionResult(auction);
         AuctionHistoryManager.getInstance().saveResult(result);
 
         activeAuctions.remove(auctionId);
+    }
+
+
+
+
+    //====GETTER====
+    public List<Auction> getActiveAuctions() {
+        return new ArrayList<>(activeAuctions.values());
+    }
+
+    public Auction getAuction(String auctionId) {
+        return activeAuctions.get(auctionId);
     }
 }

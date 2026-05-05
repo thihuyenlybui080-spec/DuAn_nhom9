@@ -3,7 +3,7 @@ package org.example.loginregister.server.model.entity.item;
 import java.time.LocalDateTime;
 
 public class Electronics extends Item {
-    public Electronics(String id, String itemName, String description, double startingPrice, double currentPrice, LocalDateTime startTime, LocalDateTime endTime){
-        super(id, itemName, description, startingPrice, currentPrice, startTime, endTime);
+    public Electronics( String itemName, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+        super( itemName, description, startingPrice, startTime, endTime);
     }
 }
