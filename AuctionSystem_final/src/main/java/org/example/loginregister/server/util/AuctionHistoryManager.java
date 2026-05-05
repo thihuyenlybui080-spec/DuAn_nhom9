@@ -13,7 +13,7 @@ public class AuctionHistoryManager {
     private static final AuctionHistoryManager instance = new AuctionHistoryManager();
     private final Map<String, AuctionResult> completedAuctions = new ConcurrentHashMap<>();
 
-    private AuctionHistoryManager() {}   // private constructor cho Singleton
+    private AuctionHistoryManager() {}
 
     public static AuctionHistoryManager getInstance() {
         return instance;
@@ -57,5 +57,9 @@ public class AuctionHistoryManager {
     //Xóa lịch sử (dùng khi test hoặc reset hệ thống)
     public void clearHistory() {
         completedAuctions.clear();
+    }
+
+    public void updateStatusPaid(String auctionId){
+        completedAuctions.get(auctionId).setStatusPaid();
     }
 }

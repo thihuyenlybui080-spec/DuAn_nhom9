@@ -1,4 +1,4 @@
-package models.user;
+package org.example.loginregister.server.model.entity.user;
 
 public class UserStatusRecord {
     private final UserStatus status;

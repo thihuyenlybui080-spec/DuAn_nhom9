@@ -1,5 +1,6 @@
 package org.example.loginregister.server.model.entity.user;
 
+
 import org.example.loginregister.common.exception.AuthenticationException;
 import org.example.loginregister.server.model.entity.Entity;
 
@@ -8,19 +9,57 @@ public abstract class User extends Entity {
     private String email;
     protected String password;
     private String fullName;
-    public User(String id, String userName, String password, String email, String fullName){
-        super(id);
+
+    // Khởi tạo mặc định ACTIVE ngay từ đầu
+    private UserStatusRecord statusRecord = UserStatusRecord.defaultActive();
+
+    public User( String userName, String password, String email, String fullName){
+        super();
         this.userName = userName;
         this.password = password;
         this.email = email;
         this.fullName = fullName;
     }
+    @Override
+    protected String getIdPrefix() {
+        return "user";
+    }
+
+
+    public final void updateStatus(UserStatusRecord newRecord) {
+        this.statusRecord = newRecord;
+        onStatusChanged(newRecord.getStatus());
+    }
+
+    //hành vi sau khi thay đổi status
+    protected abstract void onStatusChanged(UserStatus newStatus);
+
+
+
+    public void logIn(String name, String password) throws AuthenticationException {
+
+        if (!statusRecord.getStatus().isActive()) {
+            throw new AuthenticationException("Account is banned");
+        }
+        if (!this.userName.equals(name) || !this.password.equals(password)) {
+            throw new AuthenticationException("Invalid username or password");
+        }
+    }
+
+
+
+    //Geter-Setter
+    public UserStatusRecord getStatusRecord() {return statusRecord;}
+    public UserStatus getStatus() {return statusRecord.getStatus();}
+    public boolean isActive() {return statusRecord.getStatus().isActive();}
+
     public String getName(){
         return userName;
     }
     public String getEmail(){
         return email;
-    }public String getPassword(){
+    }
+    public String getPassword(){
         return password;
     }
     public String getFullname(){
@@ -38,5 +77,5 @@ public abstract class User extends Entity {
     public void setFullname(String fullName){
         this.fullName = fullName;
     }
-    public abstract void logIn(String name, String password) throws AuthenticationException, AuthenticationException;
+
 }

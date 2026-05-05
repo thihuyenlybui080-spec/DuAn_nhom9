@@ -26,5 +26,5 @@ public class BidTransaction {
     }
     public LocalDateTime getTimestamp(){
         return timestamp;
-    }//can 1 lop abstrct Enity de dinh nghiaa lai printInfo
+    }
 }

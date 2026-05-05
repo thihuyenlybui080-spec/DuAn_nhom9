@@ -10,8 +10,11 @@ import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
@@ -19,21 +22,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Auction implements Subject {
 
-    // ===== CONSTANTS =====
-    public static final String OPEN     = "OPEN";
-    public static final String RUNNING  = "RUNNING";
-    public static final String FINISHED = "FINISHED";
-    public static final String CANCELED = "CANCELED";
-
     // ===== FIELDS =====
     private final String id;
     private final Item item;
-    private final Seller seller;
-
     private volatile double  currentPrice;
-    private volatile Bidder highestBidder;
-    private volatile String  status = OPEN;
-    private volatile long    endTimeMillis;
+    private volatile Bidder  highestBidder;
+    //mặc định status khi mới khởi tạoo là OPEN
+    private volatile AuctionStatus status = AuctionStatus.OPEN;
 
     /**
      * ReentrantLock thay thế cho synchronized:
@@ -47,18 +42,20 @@ public class Auction implements Subject {
     private final List<Observer> observers = new CopyOnWriteArrayList<>();
 
     /** Bid list chỉ được ghi bên trong lock nên dùng ArrayList bình thường. */
-    private final List<Bid> bids = new ArrayList<>();
+    private final List<BidTransaction> bids = new ArrayList<>();
 
     private volatile ScheduledFuture<?> currentTimer;
 
+
+
     // ===== CONSTRUCTOR =====
-    public Auction(String id, Item item, Seller seller, long durationInSeconds) {
-        this.id           = id;
-        this.item         = item;
-        this.seller       = seller;
+    public Auction( Item item) {
+        this.id = "auction-" + item.getId().substring(5);
+        this.item= item;
         this.currentPrice = item.getStartingPrice();
-        this.endTimeMillis = System.currentTimeMillis() + durationInSeconds * 1_000L;
     }
+
+
 
     // ===== OBSERVER (thread-safe via CopyOnWriteArrayList) =====
     @Override
@@ -79,19 +76,21 @@ public class Auction implements Subject {
         }
     }
 
+
+
     // ===== BIDDING =====
 
     /**
      * Public entry point: wraps placeBid trong try/catch.
      * Trả về true nếu đấu thầu thành công, false nếu thất bại.
      */
-    public boolean processBid(Bidder user, double amount) {
-        if (user == null) {
+    public boolean processBid(Bidder bidder, double amount) {
+        if (bidder == null) {
             System.err.println("Bidding error: Invalid user!");
             return false;
         }
         try {
-            placeBid(new Bid(user, amount));
+            placeBid(new BidTransaction(bidder,item, amount));
             return true;
         } catch (Exception e) {
             System.err.println("Bidding error: " + e.getMessage());
@@ -103,12 +102,12 @@ public class Auction implements Subject {
      * Thread-safe với ReentrantLock.
      * Mọi thay đổi trạng thái auction đều nằm trong lock.
      */
-    public void placeBid(Bid bid) throws InvalidBidException, AuctionClosedException {
+    public void placeBid(BidTransaction bid) throws InvalidBidException, AuctionClosedException {
         if (bid == null) throw new IllegalArgumentException("Invalid bid!");
 
         lock.lock();
         try {
-            if (FINISHED.equals(status) || CANCELED.equals(status)) {
+            if (status == AuctionStatus.FINISHED ||status == AuctionStatus.CANCELED) {
                 throw new AuctionClosedException("Auction is already closed!");
             }
             if (bid.getAmount() <= currentPrice) {
@@ -118,8 +117,7 @@ public class Auction implements Subject {
             currentPrice  = bid.getAmount();
             highestBidder = bid.getBidder();
             bids.add(bid);
-            status = RUNNING;
-            item.setCurrentPrice(currentPrice);
+            status = AuctionStatus.RUNNING;
         } finally {
             lock.unlock();
         }
@@ -128,26 +126,31 @@ public class Auction implements Subject {
         notifyObservers();
     }
 
+
+
     // ===== FINISH =====
-    public void finishAuction() {
+    public void finishAuction(AuctionStatus finalStatus) {
         lock.lock();
         try {
-            if (FINISHED.equals(status) || CANCELED.equals(status)) return;
-            status = FINISHED;
+            if (status == AuctionStatus.FINISHED ||status == AuctionStatus.CANCELED) return;
+            status = finalStatus;
         } finally {
             lock.unlock();
         }
 
         notifyObservers();
-        System.out.println("=== AUCTION FINISHED ===");
+        System.out.println("=== AUCTION ENDED: " + finalStatus + " ===");
         System.out.println("Winner: " + (highestBidder != null ? highestBidder.getName() : "None"));
     }
+
+
+
 
     // ===== TIMER / EXTENSION =====
     public void extendEndTime(long additionalSeconds) {
         lock.lock();
         try {
-            endTimeMillis += additionalSeconds * 1_000L;
+            item.setEndTime(item.getEndTime().plusSeconds(additionalSeconds));
         } finally {
             lock.unlock();
         }
@@ -164,10 +167,63 @@ public class Auction implements Subject {
         }
     }
 
-    // ===== GETTERS =====
-    public Seller getSeller(){
-        return seller;
+    /**
+     * Chỉ dùng nội bộ (Admin.cancelAuction).
+     * Dùng lock để đảm bảo an toàn khi set status.
+     */
+    public boolean tryExtendForAntiSnipe(long thresholdSec, long extensionSec) {
+        lock.lock();
+        try {
+            // Anti-snipe kích hoạt cả khi phiên đang OPEN (chưa có bid) hoặc RUNNING phòng trường TH thời gian khi khởi tạo quá ngắn
+
+            if (status != AuctionStatus.OPEN && status != AuctionStatus.RUNNING) return false;
+            if (getSecondsRemaining() >= thresholdSec) return false;
+
+            item.setEndTime(item.getEndTime().plusSeconds(extensionSec));
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
+
+
+
+    /**
+     * Chỉ dùng nội bộ (Admin.cancelAuction).
+     * Dùng lock để đảm bảo an toàn khi set status.
+     */
+    public void setStatus(AuctionStatus newStatus) {
+        lock.lock();
+        try {
+            this.status = newStatus;
+        } finally {
+            lock.unlock();
+        }
+    }
+    /**
+     * xóa 1 bidder ,không cho tham gia đấu giá nữa
+     * khi đó sẽ cập nhật lại giá và người trả giá cao nhất
+     * sau đó thông báo cho mn
+     * */
+    public void cancelBidsFrom(Bidder bidder) {
+        lock.lock();
+        try {
+            bids.removeIf(b -> b.getBidder().equals(bidder));
+            if (highestBidder != null && highestBidder.equals(bidder)) {
+                // Tìm bid cao nhất còn lại
+                bids.stream().max(Comparator.comparingDouble(BidTransaction::getAmount))
+                        .ifPresentOrElse(
+                                top -> { highestBidder = top.getBidder(); currentPrice = top.getAmount(); },
+                                ()  -> { highestBidder = null; currentPrice = item.getStartingPrice(); }
+                        );
+            }
+        } finally { lock.unlock(); }
+        notifyObservers();
+    }
+
+
+
+    // ===== GETTERS =====
     public String getId() {
         return id;
     }
@@ -180,31 +236,13 @@ public class Auction implements Subject {
     public Bidder getHighestBidder() {
         return highestBidder;
     }
-    public String getStatus() {
+    public AuctionStatus getStatus() {
         return status;
     }
-    public List<Bid> getBids() {
+    public List<BidTransaction> getBids() {
         return Collections.unmodifiableList(bids);
     }
     public long getSecondsRemaining() {
-        return Math.max(0, (endTimeMillis - System.currentTimeMillis()) / 1_000L);
-    }
-
-    /**
-     * Chỉ dùng nội bộ (Admin.cancelAuction).
-     * Dùng lock để đảm bảo an toàn khi set status.
-     */
-    public void setStatus(String newStatus) {
-        lock.lock();
-        try {
-            this.status = newStatus;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /** Expose lock để AuctionManager có thể gia hạn + đặt timer trong cùng 1 transaction. */
-    public ReentrantLock getLock() {
-        return lock;
+        return Math.max(0, ChronoUnit.SECONDS.between(LocalDateTime.now(), item.getEndTime()));
     }
 }

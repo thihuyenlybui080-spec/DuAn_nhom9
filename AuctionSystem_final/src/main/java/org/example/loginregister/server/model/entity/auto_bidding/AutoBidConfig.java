@@ -1,4 +1,4 @@
-package models.auction.auto_bidding;
+package org.example.loginregister.server.model.entity.auto_bidding;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,6 @@ public class AutoBidConfig {
 
     @Override
     public String toString() {
-        return "AutoBidConfig{maxBid=" + maxBid + ", increment=" + increment
-                + ", registeredAt=" + registeredAt + "}";
+        return "AutoBidConfig{maxBid=" + maxBid + ", increment=" + increment + ", registeredAt=" + registeredAt + "}";
     }
 }
