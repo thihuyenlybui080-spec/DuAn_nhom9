@@ -36,7 +36,7 @@ public class Bidder extends User  {
             // Huỷ tất cả bid đang chạy của bidder này
             AuctionManager.getInstance().getActiveAuctions().forEach(auction -> auction.cancelBidsFrom(this));
 
-            System.out.println("[Bidder] " + getName() + " bị " + newStatus + ": tất cả bid đã bị huỷ");
+            System.out.println("[Bidder] " + getName() + " was set to " + newStatus + ": all bids were canceled");
         }
     }
 
@@ -45,17 +45,17 @@ public class Bidder extends User  {
      * Kiểm tra tài khoản trước, sau đó chuyển toàn bộ logic xuống AuctionManager.*/
     public boolean bid(Auction auction, double amount) {
         if (!isActive()) {
-            throw new IllegalStateException("[Bidder] " + getName() + ": tài khoản bị khoá, không thể đặt bid");
+            throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot place bids");
         }
         if (auction == null) {
-            throw new IllegalArgumentException("[Bidder] " + getName() + ": auction không hợp lệ");
+            throw new IllegalArgumentException("[Bidder] " + getName() + ": invalid auction");
         }
         return AuctionManager.getInstance().placeBid(auction.getId(), this, amount);
     }
 
     //Lưu lịch sử giao dịch sau khi đặt giá thành công.
     public void recordBid(Item item, double amount) {
-        if (!isActive()) throw new IllegalStateException("Tài khoản bị khoá, không thể đặt bid");
+        if (!isActive()) throw new IllegalStateException("Account is locked and cannot place bids");
         history.add(new BidTransaction(this, item, amount));
         System.out.println(this.getName() + " placed a bid of " + amount + " for item " + item.getItemName());
     }
@@ -91,30 +91,30 @@ public class Bidder extends User  {
         Optional<AuctionResult> resultOpt = getWonAuction(auctionId);
 
         if (resultOpt.isEmpty()) {
-            System.err.println("❌ Bạn không phải người thắng phiên này!");
+            System.err.println("You are not the winner of this auction.");
             return false;
         }
 
         AuctionResult result = resultOpt.get();
 
         if (result.getStatus() == AuctionStatus.PAID) {
-            System.out.println("✅ Phiên này đã được thanh toán trước đó.");
+            System.out.println("This auction has already been paid.");
             return true;
         }
 
         if (result.getStatus() != AuctionStatus.FINISHED) {
-            System.err.println("❌ Không thế thanh toán phiên bây giờ.");
+            System.err.println("This auction cannot be paid at this time.");
             return false;
         }
 
         // Giả lập thanh toán
-        System.out.println("💰 " + getName() + " đang thanh toán " + result.getFinalPrice()  + " cho item: " + result.getItem().getItemName());
+        System.out.println(getName() + " is paying " + result.getFinalPrice()  + " for item: " + result.getItem().getItemName());
         AuctionHistoryManager ahm=AuctionHistoryManager.getInstance();
 
         //thay đổi trạng thái của auction từ FINISHED->PAID
         ahm.updateStatus(auctionId,AuctionStatus.PAID);
 
-        System.out.println("✅ Thanh toán thành công!");
+        System.out.println("Payment completed successfully.");
 
         // Refresh lại danh sách
         refreshWonAuctions();
@@ -140,7 +140,7 @@ public class Bidder extends User  {
     public void disableAutoBid(String auctionId) {
         AutoBidAgent agent = agents.remove(auctionId);
         if (agent != null) agent.stop();
-        System.out.println("[AutoBid] " + getName() + " đã tắt auto-bid cho phiên " + auctionId);
+        System.out.println("[AutoBid] " + getName() + " disabled auto-bid for auction " + auctionId);
     }
 
 

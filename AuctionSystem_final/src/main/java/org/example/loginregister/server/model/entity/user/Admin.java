@@ -19,7 +19,7 @@ public class Admin extends User {
     // Thay đổi trạng thái user
     public void manageUser(User user, UserStatus status) {
         user.updateStatus( new UserStatusRecord(status, this));
-        System.out.println("[Admin] " + getName() + " đã " + status + " user " + user.getName());
+        System.out.println("[Admin] " + getName() + " set user " + user.getName() + " status to " + status);
     }
 
 

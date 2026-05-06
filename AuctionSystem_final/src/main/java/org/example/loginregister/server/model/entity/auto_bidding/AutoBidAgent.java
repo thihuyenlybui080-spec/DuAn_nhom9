@@ -36,7 +36,7 @@ public class AutoBidAgent implements Observer {
             bidder.bid(auction, nextBid);
 
         }catch(Exception e){
-            System.err.println("[AutoBid] " + bidder.getName() + " đặt bid thất bại tại phiên " + auctionId + ": " + e.getMessage());
+            System.err.println("[AutoBid] " + bidder.getName() + " failed to place bid in auction " + auctionId + ": " + e.getMessage());
         }
     }
 

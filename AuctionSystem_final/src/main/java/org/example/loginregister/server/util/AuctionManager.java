@@ -236,7 +236,7 @@ public class AuctionManager {
             }
         }, PAYMENT_DEADLINE_SECONDS, TimeUnit.SECONDS);
 
-        System.out.println("[PaymentDeadline] Phiên " + auctionId + " - người thắng có 1 ngày để thanh toán.");
+        System.out.println("[PaymentDeadline] Auction " + auctionId + " - winner has 1 day to complete payment.");
     }
 
 
