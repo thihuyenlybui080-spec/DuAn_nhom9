@@ -54,11 +54,15 @@ public class AuctionManager {
     /** Thời gian gia hạn khi anti-sniping kích hoạt (giây). */
     private static final long ANTI_SNIPE_EXTENSION_SECONDS = 60;
 
+    // hạn để bidder thanh toán
+    private static final long PAYMENT_DEADLINE_SECONDS = 24 * 60 * 60; // 24 giờ
+
+
     // ===== PUBLIC API =====
 
 
     //tự lên lịch mở auction dựa vào startTime
-    public void startAuction(String auctionId, Item item) {
+    public void startAuction(String auctionId, Seller seller,Item item) {
         LocalDateTime now = LocalDateTime.now();
         long startDelay = ChronoUnit.SECONDS.between(now, item.getStartTime());
         long endDelay   = ChronoUnit.SECONDS.between(now, item.getEndTime());
@@ -75,7 +79,7 @@ public class AuctionManager {
         }
 
         // Tạo auction với status OPEN, chưa đưa vào activeAuctions
-        Auction auction = new Auction( item);
+        Auction auction = new Auction( seller,item);
 
         if (startDelay <= 0) {
             // startTime đã qua → mở luôn
@@ -199,6 +203,9 @@ public class AuctionManager {
         AuctionHistoryManager.getInstance().saveResult(result);
 
         activeAuctions.remove(auctionId);
+
+        //nếu auction kết thúc có người thắng sẽ lên hạn 1 ngày để bidder thanh toán
+        if (finalStatus == AuctionStatus.FINISHED) {schedulePaymentDeadline(auctionId);}
     }
 
 
@@ -212,4 +219,25 @@ public class AuctionManager {
     public Auction getAuction(String auctionId) {
         return activeAuctions.get(auctionId);
     }
+
+
+
+    private void schedulePaymentDeadline(String auctionId) {
+        AuctionHistoryManager ahm = AuctionHistoryManager.getInstance();
+        AuctionResult result = ahm.getResult(auctionId);
+        if (result == null) return;
+
+
+        scheduler.schedule(() -> {
+            AuctionResult r = ahm.getResult(auctionId);
+            // Chỉ cancel nếu vẫn chưa được thanh toán
+            if (r != null && r.getStatus() == AuctionStatus.FINISHED) {
+                ahm.updateStatus(auctionId,AuctionStatus.CANCELED);
+            }
+        }, PAYMENT_DEADLINE_SECONDS, TimeUnit.SECONDS);
+
+        System.out.println("[PaymentDeadline] Auction " + auctionId + " - winner has 1 day to complete payment.");
+    }
+
+
 }

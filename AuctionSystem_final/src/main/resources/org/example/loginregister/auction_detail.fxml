@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.AuctionDetailController">
+<BorderPane fx:controller="org.example.loginregister.client.controller.AuctionDetailController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
    <left>
       <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="150.0" style="-fx-background-color: #722f37;" BorderPane.alignment="CENTER">
          <children>
@@ -112,7 +112,7 @@
                      <content>
                         <VBox fillWidth="false" prefHeight="470.0" prefWidth="400.0" spacing="12.0">
                            <children>
-                              <VBox alignment="TOP_CENTER" prefHeight="282.0" prefWidth="347.0" style="-fx-background-color: #ffffff; -fx-border-color: #eee; -fx-background-radius: 13; -fx-border-radius: 8;">
+                              <VBox alignment="TOP_CENTER" prefHeight="282.0" prefWidth="347.0" style="-fx-background-color: #fff; -fx-border-color: #eee; -fx-background-radius: 13; -fx-border-radius: 8;">
                                  <padding>
                                     <Insets bottom="14.0" left="14.0" right="14.0" top="14.0" />
                                  </padding>
@@ -128,7 +128,7 @@
                                           <Insets bottom="10.0" />
                                        </VBox.margin>
                                     </Label>
-                                    <VBox alignment="CENTER" prefHeight="183.0" prefWidth="318.0" style="-fx-background-color: #f5e8e8; -fx-background-radius: 8;">
+                                    <VBox fx:id="thumbBox" alignment="CENTER" prefHeight="183.0" prefWidth="318.0" style="-fx-background-color: #f5e8e8; -fx-background-radius: 8;">
                                        <opaqueInsets>
                                           <Insets />
                                        </opaqueInsets>
@@ -154,7 +154,7 @@
                                     <Insets bottom="6.0" />
                                  </VBox.margin>
                               </VBox>
-                              <VBox prefHeight="156.0" prefWidth="348.0" style="-fx-background-color: #ffffff; -fx-border-color: #eee; -fx-background-radius: 8; -fx-border-radius: 8;">
+                              <VBox prefHeight="156.0" prefWidth="348.0" style="-fx-background-color: #fff; -fx-border-color: #eee; -fx-background-radius: 8; -fx-border-radius: 8;">
                                  <padding>
                                     <Insets bottom="14.0" left="14.0" right="14.0" top="5.0" />
                                  </padding>
@@ -187,7 +187,7 @@
                                        <children>
                                           <Label text="Seller" textFill="#888888" />
                                           <Label fx:id="lblSeller" prefHeight="18.0" prefWidth="168.0" text="__" textFill="#0b0a0a" GridPane.columnIndex="1" />
-                                          <Label layoutX="10.0" layoutY="6.0" text="ID" textFill="#888888" GridPane.rowIndex="1" />
+                                          <Label fx:id="lblItemId" layoutX="10.0" layoutY="6.0" text="ID" textFill="#888888" GridPane.rowIndex="1" />
                                           <Label fx:id="lblId" layoutX="157.0" layoutY="6.0" prefHeight="18.0" prefWidth="168.0" text="__" textFill="#0b0a0a" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label layoutX="10.0" layoutY="6.0" text="Starting Price" textFill="#888888" GridPane.rowIndex="2" />
                                           <Label fx:id="lblStartPrice" prefHeight="18.0" prefWidth="168.0" text="__" textFill="#0b0a0a" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -208,7 +208,7 @@
                   </ScrollPane>
                   <VBox prefHeight="458.0" prefWidth="459.0" spacing="10.0">
                      <children>
-                        <VBox prefHeight="230.0" prefWidth="360.0" style="-fx-background-color: #ffffff; -fx-border-color: #722f37; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;">
+                        <VBox prefHeight="230.0" prefWidth="360.0" style="-fx-background-color: #fff; -fx-border-color: #722f37; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;">
                            <padding>
                               <Insets bottom="14.0" left="14.0" right="14.0" top="14.0" />
                            </padding>
@@ -237,7 +237,7 @@
                                     <Insets bottom="12.0" />
                                  </VBox.margin>
                               </Label>
-                              <Label layoutX="26.0" layoutY="72.0" text="Time Remaining" textFill="#888888">
+                              <Label fx:id="lblBidCount1" layoutX="26.0" layoutY="72.0" text="Time Remaining" textFill="#888888">
                                  <VBox.margin>
                                     <Insets bottom="2.0" />
                                  </VBox.margin>
@@ -265,7 +265,7 @@
                               </Button>
                            </children>
                         </VBox>
-                        <VBox alignment="TOP_CENTER" maxWidth="360.0" prefHeight="214.0" prefWidth="360.0" style="-fx-background-color: #ffffff; -fx-background-radius: 12;">
+                        <VBox alignment="TOP_CENTER" maxWidth="360.0" prefHeight="214.0" prefWidth="360.0" style="-fx-background-color: #fff; -fx-background-radius: 12;">
                            <children>
                               <Label text="DESCRIPTION" textFill="#722f37">
                                  <font>

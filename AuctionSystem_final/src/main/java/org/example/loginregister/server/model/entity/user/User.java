@@ -32,7 +32,8 @@ public abstract class User extends Entity {
     }
 
     //hành vi sau khi thay đổi status
-    protected abstract void onStatusChanged(UserStatus newStatus);
+    //để abstract thì admin bắt buộc pk Override mà không có hành vi gì
+    protected void onStatusChanged(UserStatus newStatus){};
 
 
 

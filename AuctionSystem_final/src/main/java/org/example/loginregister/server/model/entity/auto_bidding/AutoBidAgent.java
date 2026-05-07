@@ -10,11 +10,11 @@ public class AutoBidAgent implements Observer {
     private final Bidder  bidder;
     private final Auction auction;
     private final AutoBidConfig config;
-    private boolean       active = true;
+    private boolean active = true;
 
     public AutoBidAgent(Bidder bidder, Auction auction, AutoBidConfig config) {
-        this.bidder    = bidder;
-        this.auction   = auction;
+        this.bidder = bidder;
+        this.auction= auction;
         this.config = config;
         auction.addObserver(this);   // bắt đầu lắng nghe
     }
@@ -23,7 +23,7 @@ public class AutoBidAgent implements Observer {
     public void update(String auctionId, double currentPrice, String highestBidder) {
         if (!active) return;
 
-        //  đang dẫn đầu rồi, không cần làm gì
+        //  đang dẫn đầu , không cần làm gì
         if (bidder.getName().equals(highestBidder)) return;
 
         double nextBid = currentPrice + config.getIncrement();
@@ -33,10 +33,10 @@ public class AutoBidAgent implements Observer {
             return;
         }
         try {
-            AuctionManager mgr= AuctionManager.getInstance();
-            mgr.placeBid(auctionId,bidder, nextBid);
+            bidder.bid(auction, nextBid);
+
         }catch(Exception e){
-            System.err.println("[AutoBid] " + bidder.getName() + " đặt bid thất bại tại phiên " + auctionId + ": " + e.getMessage());
+            System.err.println("[AutoBid] " + bidder.getName() + " failed to place bid in auction " + auctionId + ": " + e.getMessage());
         }
     }
 

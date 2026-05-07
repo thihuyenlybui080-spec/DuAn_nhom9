@@ -28,8 +28,8 @@ public class AuctionResult {
         this.bidHistory = new ArrayList<>(auction.getBids()); // copy để tránh thay đổi sau này
     }
 
-    public void setStatusPaid(){
-        status=AuctionStatus.PAID;
+    public void setStatus(AuctionStatus newStatus){
+        status=newStatus;
     }
 
     //getter

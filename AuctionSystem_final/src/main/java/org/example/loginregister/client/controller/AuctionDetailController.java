@@ -48,12 +48,12 @@ public class AuctionDetailController implements Initializable {
     @FXML private Label lblStartPrice;
     @FXML private Label lblStartTime;
     @FXML private Label lblEndTime;
+    @FXML private Label lblItemId;
     @FXML private Label lblUsername;
-    @FXML private Label lblId;
 
     @FXML private Label lblCurrentPrice;
     @FXML private Label lblBidCount;
-    @FXML private Label lblCountdown;
+    @FXML private Label lblCountDown;
     @FXML private Button btnPlaceBid;
     @FXML private Button btnBack;
     @FXML private Label lblAuctionIdBar;
@@ -84,7 +84,7 @@ public class AuctionDetailController implements Initializable {
 
         updateStatusBadge();
 
-        lblId.setText(auction.getItem().getId());
+        lblItemId.setText(auction.getItem().getId());
         lblItemName.setText(auction.getItem().getItemName());
         lblDescription.setText(auction.getItem().getDescription());
 
@@ -92,7 +92,7 @@ public class AuctionDetailController implements Initializable {
         lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
         lblStartTime.setText(auction.getItem().getStartTime() != null
         ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
-        lblEndTime.setText(auction.getItem().getEndTime() != null
+        lblEndTime.setText(auction.getItem().getStartTime() != null
                 ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
         lblAuctionIdBar.setText("Auction ID: #" + auction.getId());
 
@@ -180,14 +180,14 @@ public class AuctionDetailController implements Initializable {
         //kiểm tra hai tầng để đề xử lý edge cases ( TH ngoại lệ)
         if(auction.getItem().getEndTime() == null
             || auction.getStatus() == FINISHED) {
-        lblCountdown.setText("ENDED");
-        lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
+        lblCountDown.setText("ENDED");
+        lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
         stopAutoRefresh();
         return;
         }
         long totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
         if(totalSecs <= 0){
-            lblCountdown.setText("ENDED");
+            lblCountDown.setText("ENDED");
             stopAutoRefresh();
             return;
         }
@@ -195,17 +195,17 @@ public class AuctionDetailController implements Initializable {
         long  h = totalSecs / 3600;
         long m = (totalSecs % 3600) / 60;
         long s = totalSecs % 60;
-        lblCountdown.setText(h + ":" + m + ":" + s);
+        lblCountDown.setText(h + ":" + m + ":" + s);
 
         if(totalSecs <= 300){
-            lblCountdown.setStyle(
+            lblCountDown.setStyle(
                     "-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #e53935;"
             );
         } else if (totalSecs <= 1800) {
-            lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f57c00;");
+            lblCountDown.setText("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f57c00;");
         }
         else{
-            lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
+            lblCountDown.setText("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
         }
     }
 
@@ -243,5 +243,7 @@ public class AuctionDetailController implements Initializable {
     private String formatPrice(double price){
         return VND_FORMAT.format((long) price);
     }
+
+
 
 }
