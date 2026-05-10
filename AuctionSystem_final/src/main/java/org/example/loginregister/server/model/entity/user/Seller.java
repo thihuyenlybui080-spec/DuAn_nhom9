@@ -12,14 +12,14 @@ import java.util.ArrayList;
 
 
 public class Seller extends User {
-    private List<Item> ownedItems;
+    private static List<Item> ownedItems;
 
     public Seller( String name, String password, String email, String fullName){
         super( name, password, email, fullName);
         this.ownedItems = new ArrayList<>();
     }
     @Override
-    protected void onStatusChanged(UserStatus newStatus) {
+    public void onStatusChanged(UserStatus newStatus) {
         if (newStatus == UserStatus.BANNED || newStatus == UserStatus.DELETED) {
 
             AuctionManager mgr = AuctionManager.getInstance();
@@ -43,7 +43,7 @@ public class Seller extends User {
         System.out.println("Added " + item.getItemName() + " to the auction list");
     }
 
-    public void deleteItem(Item item){
+    public static void deleteItem(Item item){
         //ktra seller có sở hữu item này không
         if (!ownedItems.contains(item)) throw new IllegalArgumentException("Seller does not own this item");
 
@@ -72,6 +72,15 @@ public class Seller extends User {
         String auctionId = "AUC-" + item.getItemName() + "-" + System.currentTimeMillis();
         AuctionManager.getInstance().startAuction(auctionId, this,item);
         return auctionId;
+    }
+
+    @Override
+    protected String getIdPrefix(){
+        return "seller";
+    }
+    @Override
+    public String getRole(){
+        return "Seller";
     }
 
 }

@@ -29,5 +29,13 @@ public class Admin extends User {
         amg.cancelAuction(auction.getId());
     }
 
+    @Override
+    protected String getIdPrefix(){
+        return "admin";
+    }
 
+    @Override
+    public String getRole(){
+        return "Admin";
+    }
 }

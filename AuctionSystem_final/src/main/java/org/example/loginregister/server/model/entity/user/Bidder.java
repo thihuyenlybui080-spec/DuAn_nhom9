@@ -30,7 +30,7 @@ public class Bidder extends User  {
 
     //hành động sau khi bị BAN hoặc DELETED
     @Override
-    protected void onStatusChanged(UserStatus newStatus) {
+    public void onStatusChanged(UserStatus newStatus) {
         if (newStatus == UserStatus.BANNED || newStatus == UserStatus.DELETED) {
 
             // Huỷ tất cả bid đang chạy của bidder này
@@ -161,5 +161,15 @@ public class Bidder extends User  {
     public Optional<AuctionResult> getWonAuction(String auctionId) {
         refreshWonAuctions();
         return Optional.ofNullable(wonAuctions.get(auctionId));
+    }
+
+    @Override
+    protected String getIdPrefix(){
+        return "bidder";
+    }
+
+    @Override
+    public String getRole(){
+        return "Bidder";
     }
 }

@@ -20,11 +20,6 @@ public abstract class User extends Entity {
         this.email = email;
         this.fullName = fullName;
     }
-    @Override
-    protected String getIdPrefix() {
-        return "user";
-    }
-
 
     public final void updateStatus(UserStatusRecord newRecord) {
         this.statusRecord = newRecord;
@@ -33,7 +28,7 @@ public abstract class User extends Entity {
 
     //hành vi sau khi thay đổi status
     //để abstract thì admin bắt buộc pk Override mà không có hành vi gì
-    protected void onStatusChanged(UserStatus newStatus){};
+    public void onStatusChanged(UserStatus newStatus){};
 
 
 
@@ -78,5 +73,5 @@ public abstract class User extends Entity {
     public void setFullname(String fullName){
         this.fullName = fullName;
     }
-
+    public abstract String getRole();
 }

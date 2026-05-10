@@ -15,7 +15,7 @@ public class AuctionResult {
     private final User winner;
     private final double finalPrice;
     private final LocalDateTime endTime;
-    private final List<BidTransaction> bidHistory;
+    private static List<BidTransaction> bidHistory;
     private  AuctionStatus status;//có thể thay đổi từ FINISHED->PAID
 
     public AuctionResult(Auction auction) {
@@ -38,7 +38,7 @@ public class AuctionResult {
     public User getWinner() { return winner; }
     public double getFinalPrice() { return finalPrice; }
     public LocalDateTime getEndTime() { return endTime; }
-    public List<BidTransaction> getBidHistory() { return bidHistory; }
+    public static List<BidTransaction> getBidHistory() { return bidHistory; }
     public AuctionStatus getStatus() {return status;}
 
     @Override

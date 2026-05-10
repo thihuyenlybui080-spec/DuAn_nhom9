@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
 import static org.example.loginregister.server.model.entity.Auction.*;
+import static org.example.loginregister.server.model.entity.AuctionStatus.*;
 
 public class AuctionDetailController implements Initializable {
 
@@ -243,7 +244,4 @@ public class AuctionDetailController implements Initializable {
     private String formatPrice(double price){
         return VND_FORMAT.format((long) price);
     }
-
-
-
 }

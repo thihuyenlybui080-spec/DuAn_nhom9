@@ -11,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
@@ -29,7 +30,6 @@ import static org.example.loginregister.client.controller.MainController.LOGIN_T
 
 public class RegisterController implements Initializable {
     private final String AUCTION_REGISTER_IMAGE_PATH = "auctionres.png";
-    private final String LIBRA_REGISTER_IMAGE_PATH = "libra.png";
 
 
     private static final String ROLE_BIDDER = "Bidder";
@@ -64,23 +64,31 @@ public class RegisterController implements Initializable {
     private TextField phoneNumberTF;
     @FXML
     private ImageView auctionImageView;
+    @FXML
+    private StackPane rootStackPane;
 
     String selectedGender = "";
 
+    @FXML
     ToggleGroup genderGroup = new ToggleGroup();
     private final SceneManager sceneManager = new SceneManager(getClass());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         URL test = getClass().getResource("/org/example/loginregister/register.fxml");
-        auctionImageView.setImage(ImageLoader.loadFromFile(AUCTION_REGISTER_IMAGE_PATH));
-        libraImageView.setImage(ImageLoader.loadFromFile(LIBRA_REGISTER_IMAGE_PATH));
 
         roleComboBox.getItems().addAll(ROLE_BIDDER, ROLE_SELLER);
         ToggleGroup genderGroup = new ToggleGroup();
         maleRButton.setToggleGroup(genderGroup);
         femaleRButton.setToggleGroup(genderGroup);
         otherRButton.setToggleGroup(genderGroup);
+
+        Platform.runLater(() -> {
+            if(rootStackPane.getScene() != null) {
+                Stage stage = (Stage) rootStackPane.getScene().getWindow();
+                stage.setFullScreen(true);
+            }
+        });
 
         genderGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
             @Override
@@ -125,12 +133,14 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Phone must be 10 - 11 digits");
             isValid = false;
         }
-        if (isValid) {
-            confirmPasswordLabel.setText("Password match");
-            sceneManager.switchScene(event, "auction_detail.fxml", "bidder_dashboard");
-            registerUser();
-        } else {
-
+        boolean isSuccess = registerUser();
+        if (isSuccess) {
+            String selectedRole = roleComboBox.getValue();
+            if (ROLE_SELLER.equalsIgnoreCase(selectedRole)) {
+                sceneManager.switchScene(event, "seller_dashboard.fxml", "Seller Dashboard");
+            } else {
+                sceneManager.switchScene(event, "bidder_dashboard.fxml", "Bidder Dashboard");
+            }
         }
     }
 
@@ -167,7 +177,7 @@ public class RegisterController implements Initializable {
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
     }
 
-    public void registerUser() {
+    public boolean registerUser() {
         String fullName = firstNameTF.getText().trim() + " " + lastnameTF.getText().trim();
         String username = userNameTF.getText().trim();
         String password = passwordPF.getText();
@@ -185,7 +195,7 @@ public class RegisterController implements Initializable {
             rs.next();
             if (rs.getInt(1) > 0) {
                 registrationMessageLabel.setText("Username already exists, please choose another!");
-                return;
+                return true;
             }
 
             // INSERT đủ cột khớp với loginregister.sql
@@ -205,6 +215,7 @@ public class RegisterController implements Initializable {
         } catch (Exception e) {
             registrationMessageLabel.setText("Unable to connect to server, please try again!");
         }
+        return true;
     }
 }
 

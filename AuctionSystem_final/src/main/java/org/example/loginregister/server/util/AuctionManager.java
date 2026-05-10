@@ -6,14 +6,18 @@ import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
+import org.example.loginregister.server.model.entity.user.User;
+import org.example.loginregister.server.model.entity.user.UserStatusRecord;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * AuctionManager – Singleton quản lý tất cả phiên đấu giá đang hoạt động.
@@ -47,6 +51,9 @@ public class AuctionManager {
     /** ConcurrentHashMap: đọc/xoá không cần lock ngoài. */
     private final Map<String, Auction> activeAuctions;
     private final ScheduledExecutorService scheduler;
+    private List<Auction> auctions;
+    private List<Item> items;
+    private List<User> users;
 
     /** Thời gian còn lại dưới ngưỡng này sẽ kích hoạt anti-sniping (giây). */
     private static final long ANTI_SNIPE_THRESHOLD_SECONDS = 30;
@@ -190,7 +197,7 @@ public class AuctionManager {
     }
 
     /** Kết thúc phiên đấu giá, lưu kết quả, xoá khỏi map. */
-    private void endAuction(String auctionId) {
+    public void endAuction(String auctionId) {
         Auction auction = activeAuctions.get(auctionId);
         if (auction == null) return;
 
@@ -239,5 +246,39 @@ public class AuctionManager {
         System.out.println("[PaymentDeadline] Auction " + auctionId + " - winner has 1 day to complete payment.");
     }
 
+    public List<Auction> getAuctionsBySeller(String sellerId){
+        if(sellerId == null){
+            return Collections.emptyList();
+        }
+        return auctions.stream()
+                .filter(auction -> auction.getItem() != null
+                        && auction.getItem().getSellerId() != null
+                        && auction.getItem().getSellerId().equals(sellerId))
+                .collect(Collectors.toList());
 
+    }
+
+    public List<Item> getItemsBySeller(String sellerId){
+        if(sellerId == null){
+            return Collections.emptyList();
+        }
+        return items.stream()
+                .filter(item -> item.getSellerId() !=  null
+                && item.getSellerId().equals(sellerId))
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Auction> getAllAuctions(){
+        if(this.auctions == null){
+            return new ArrayList<>();
+        }
+        return this.auctions;
+    }
+    public List<User> getAllUsers(){
+        if(this.users == null){
+            return new ArrayList<>();
+        }
+        return this.users;
+    }
 }

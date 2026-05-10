@@ -1,10 +1,16 @@
 package org.example.loginregister.server.model.entity.item;
 
+import org.example.loginregister.server.model.entity.user.Seller;
+
 import java.time.LocalDateTime;
 
 public class Art extends Item {
-    public Art( String itemName, String description, double startingPrice,  LocalDateTime startTime, java.time.LocalDateTime
+    public Art(String itemName, Seller seller, String description, double startingPrice, LocalDateTime startTime, java.time.LocalDateTime
             endTime){
-        super( itemName, description, startingPrice, startTime, endTime);
+        super( itemName,seller, description, startingPrice, startTime, endTime);
+    }
+    @Override
+    public String getCategory(){
+        return "Art";
     }
 }

@@ -12,20 +12,26 @@ import java.io.IOException;
 public class SceneManager {
     private static final String FXML_BASE_PATH = "/org/example/loginregister/";
     private final Class<?> resourceClass;
+
     public SceneManager (Class<?> resourceClass){
         this.resourceClass = resourceClass;
     }
+
     public void switchScene(ActionEvent event, String fxmlFile, String title){
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        switchScene(stage, fxmlFile, title);
+    }
+    public void switchScene(Stage stage, String fxmlFile, String title){
         try{
             FXMLLoader loader = new FXMLLoader(resourceClass.getResource(FXML_BASE_PATH + fxmlFile));
             Scene scene = new Scene(loader.load());
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setTitle(title);
             stage.setScene(scene);
             stage.show();
-        } catch (IOException e){
+
+        }
+        catch (IOException e){
             e.printStackTrace();
         }
-
     }
 }

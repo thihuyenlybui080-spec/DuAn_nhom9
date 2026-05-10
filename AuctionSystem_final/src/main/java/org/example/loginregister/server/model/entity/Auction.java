@@ -227,6 +227,17 @@ public class Auction implements Subject {
 
     // ===== GETTERS =====
     public Seller getSeller(){return seller;}
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public void setHighestBidder(Bidder highestBidder) {
+        this.highestBidder = highestBidder;
+    }
+    public void setHighestBidderName(String highestBidderName){
+        this.highestBidder.setName(highestBidderName);
+    }
     public String getId() {
         return id;
     }
