@@ -20,7 +20,9 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
+
 <BorderPane prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.SellerDashboardController">
+
 
 
    <left>

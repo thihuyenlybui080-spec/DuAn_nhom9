@@ -9,11 +9,13 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -67,6 +69,7 @@ public class AdminDashboardController implements Initializable {
     @FXML private VBox auctionListContainer;
 
     @FXML private Label lblStatusBar;
+    @FXML private BorderPane rootBorderPane;
 
     private Admin admin;
     private ObservableList<Auction> allAuctions;
@@ -79,6 +82,11 @@ public class AdminDashboardController implements Initializable {
         cmbAuctionFilter.getSelectionModel().selectFirst();
         cmbRoleFilter.getSelectionModel().selectFirst();
         cmbStatusFilter.getSelectionModel().selectFirst();
+
+        Platform.runLater(() -> {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            stage.setFullScreen(true);
+        });
     }
 
     /**

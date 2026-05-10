@@ -114,6 +114,16 @@
                             <Label text="Phone Number" textFill="#c0c43f"><font><Font name="System Bold" size="11.0" /></font></Label>
                             <TextField fx:id="phoneNumberTF" prefHeight="35.0" style="-fx-background-color: #1a0a0c; -fx-text-fill: white; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 5;" />
                         </VBox>
+                  <VBox layoutX="50.0" layoutY="355.0" spacing="3.0">
+                     <children>
+                        <Label text="Email" textFill="#c0c43f">
+                           <font>
+                              <Font name="System Bold" size="11.0" />
+                           </font>
+                        </Label>
+                        <TextField fx:id="emailTF" prefHeight="35.0" style="-fx-background-color: #1a0a0c; -fx-text-fill: white; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 5;" />
+                     </children>
+                  </VBox>
 
                         <VBox spacing="3.0">
                             <Label text="Gender" textFill="#c0c43f"><font><Font name="System Bold" size="11.0" /></font></Label>
