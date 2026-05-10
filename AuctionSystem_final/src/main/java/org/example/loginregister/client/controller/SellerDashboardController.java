@@ -121,7 +121,8 @@ public class SellerDashboardController implements Initializable {
     private TextField txtEndTime;
     @FXML
     private Label lblFormError;
-
+    @FXML
+    private BorderPane rootBorderPane;
 
     @FXML
     private Label lblStatusBar;
@@ -137,6 +138,10 @@ public class SellerDashboardController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         cmbAuctionFilter.getSelectionModel().selectFirst();
         cmbCategory.getSelectionModel().selectFirst();
+        Platform.runLater(() -> {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            stage.setFullScreen(true);
+        });
     }
 
     /**

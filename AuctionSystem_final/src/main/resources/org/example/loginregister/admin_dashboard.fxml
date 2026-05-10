@@ -16,7 +16,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.AdminDashboardController"> <left>
+<BorderPane fx:id="rootBorderPane" prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.AdminDashboardController"> <left>
     <VBox alignment="TOP_CENTER" prefHeight="720.0" prefWidth="253.0" style="-fx-background-color: #1a0a0c; -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
 
         <VBox alignment="CENTER" prefHeight="120.0">
