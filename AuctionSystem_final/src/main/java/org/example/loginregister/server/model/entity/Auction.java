@@ -24,7 +24,7 @@ public class Auction implements Subject {
 
     // ===== FIELDS =====
     private final Seller seller;
-    private final String id;
+    private String id;
     private final Item item;
     private volatile double  currentPrice;
     private volatile Bidder  highestBidder;
@@ -258,5 +258,9 @@ public class Auction implements Subject {
     }
     public long getSecondsRemaining() {
         return Math.max(0, ChronoUnit.SECONDS.between(LocalDateTime.now(), item.getEndTime()));
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

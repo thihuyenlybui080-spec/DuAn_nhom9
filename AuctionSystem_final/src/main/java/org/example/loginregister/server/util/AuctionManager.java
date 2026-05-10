@@ -84,6 +84,9 @@ public class AuctionManager {
 
         // Tạo Auction object
         Auction auction = new Auction(seller, item);
+        if (auctionDbId > 0) {
+            auction.setId("auction-" + auctionDbId);
+        }
 
         if (startDelay <= 0) {
             openAuction(auction);

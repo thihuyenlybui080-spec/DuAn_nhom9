@@ -105,7 +105,7 @@ public class AuctionDAO {
     /** Lưu item mới vào DB, trả về id được sinh ra. */
     public static int insertItem(Item item, int sellerId) {
         String sql = "INSERT INTO items (item_name, description, item_type, starting_price, current_price, start_time, end_time, created_by) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, item.getItemName());
@@ -139,12 +139,35 @@ public class AuctionDAO {
         }
     }
 
+    // [SỬA] mapItem dùng tên cột rõ ràng — không có prefix bảng
+    // Hoạt động đúng khi gọi từ query đơn bảng (getItemById, getItemsBySeller)
+    // VÀ từ JOIN query (mapAuction) vì các cột item đã được alias riêng
     private static Item mapItem(ResultSet rs, Seller seller) throws SQLException {
-        int    id           = rs.getInt("id");
-        String itemName     = rs.getString("item_name");
-        String description  = rs.getString("description");
-        String itemType     = rs.getString("item_type");
-        double startPrice   = rs.getDouble("starting_price");
+        int    id          = rs.getInt("item_id");        // [SỬA] dùng alias item_id
+        String itemName    = rs.getString("item_name");
+        String description = rs.getString("description");
+        String itemType    = rs.getString("item_type");
+        double startPrice  = rs.getDouble("starting_price");
+        LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
+        LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
+
+        Item item;
+        switch (itemType) {
+            case "ELECTRONICS": item = new Electronics(itemName, seller, description, startPrice, startTime, endTime); break;
+            case "VEHICLE":     item = new Vehicle(itemName, seller, description, startPrice, startTime, endTime); break;
+            default:            item = new Art(itemName, seller, description, startPrice, startTime, endTime);
+        }
+        item.setId("item-" + id);
+        return item;
+    }
+
+    // mapItem dùng khi query đơn bảng items (id thật sự tên là "id")
+    private static Item mapItemSingle(ResultSet rs, Seller seller) throws SQLException {
+        int    id          = rs.getInt("id");
+        String itemName    = rs.getString("item_name");
+        String description = rs.getString("description");
+        String itemType    = rs.getString("item_type");
+        double startPrice  = rs.getDouble("starting_price");
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
 
@@ -162,16 +185,38 @@ public class AuctionDAO {
     //  AUCTION
     // ================================================================
 
+    // [SỬA] Tất cả query auction JOIN dùng alias rõ ràng để tránh lỗi
+    // rs.getInt("a.id") và rs.getInt("i.created_by") không hoạt động trong JDBC
+    // → thêm alias: a.id AS auction_id, i.id AS item_id, i.created_by AS seller_db_id
+
+    private static final String AUCTION_SELECT =
+            "SELECT a.id               AS auction_id, "
+                    + "       a.status           AS auction_status, "
+                    + "       a.current_price    AS auction_current_price, "
+                    + "       a.highest_bidder_id, "
+                    + "       a.end_time_millis, "
+                    + "       i.id               AS item_id, "
+                    + "       i.item_name, "
+                    + "       i.description, "
+                    + "       i.item_type, "
+                    + "       i.starting_price, "
+                    + "       i.start_time, "
+                    + "       i.end_time, "
+                    + "       i.created_by       AS seller_id, "
+                    + "       u.username         AS seller_name, "
+                    + "       u.password         AS seller_pass, "
+                    + "       u.email            AS seller_email, "
+                    + "       u.full_name        AS seller_fullname "
+                    + "FROM auctions a "
+                    + "JOIN items i ON a.item_id = i.id "
+                    + "JOIN users u ON i.created_by = u.id ";
+
     /** Lấy tất cả auction đang OPEN hoặc RUNNING. */
     public static List<Auction> getActiveAuctions(List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = "SELECT a.*, i.*, u.username AS seller_name, u.password AS seller_pass, "
-                   + "u.email AS seller_email, u.full_name AS seller_fullname "
-                   + "FROM auctions a "
-                   + "JOIN items i ON a.item_id = i.id "
-                   + "JOIN users u ON i.created_by = u.id "
-                   + "WHERE a.status IN ('OPEN','RUNNING') "
-                   + "ORDER BY a.end_time_millis ASC";
+        String sql = AUCTION_SELECT
+                + "WHERE a.status IN ('OPEN','RUNNING') "
+                + "ORDER BY a.end_time_millis ASC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -188,12 +233,7 @@ public class AuctionDAO {
     /** Lấy tất cả auction (mọi trạng thái). */
     public static List<Auction> getAllAuctions(List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = "SELECT a.*, i.*, u.username AS seller_name, u.password AS seller_pass, "
-                   + "u.email AS seller_email, u.full_name AS seller_fullname "
-                   + "FROM auctions a "
-                   + "JOIN items i ON a.item_id = i.id "
-                   + "JOIN users u ON i.created_by = u.id "
-                   + "ORDER BY a.created_at DESC";
+        String sql = AUCTION_SELECT + "ORDER BY a.id DESC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -210,13 +250,9 @@ public class AuctionDAO {
     /** Lấy auction theo seller. */
     public static List<Auction> getAuctionsBySeller(int sellerId, List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = "SELECT a.*, i.*, u.username AS seller_name, u.password AS seller_pass, "
-                   + "u.email AS seller_email, u.full_name AS seller_fullname "
-                   + "FROM auctions a "
-                   + "JOIN items i ON a.item_id = i.id "
-                   + "JOIN users u ON i.created_by = u.id "
-                   + "WHERE i.created_by = ? "
-                   + "ORDER BY a.created_at DESC";
+        String sql = AUCTION_SELECT
+                + "WHERE i.created_by = ? "
+                + "ORDER BY a.id DESC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, sellerId);
@@ -235,7 +271,7 @@ public class AuctionDAO {
     /** Lưu auction mới vào DB, trả về id được sinh ra. */
     public static int insertAuction(int itemId, double startingPrice, long durationSeconds, long endTimeMillis) {
         String sql = "INSERT INTO auctions (item_id, status, current_price, duration_seconds, end_time_millis) "
-                   + "VALUES (?, 'OPEN', ?, ?, ?)";
+                + "VALUES (?, 'OPEN', ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, itemId);
@@ -266,7 +302,7 @@ public class AuctionDAO {
         }
     }
 
-    /** Cập nhật trạng thái auction (FINISHED / CANCELED). */
+    /** Cập nhật trạng thái auction (FINISHED / CANCELED / PAID). */
     public static void updateAuctionStatus(int auctionDbId, AuctionStatus status) {
         String sql = "UPDATE auctions SET status = ? WHERE id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
@@ -279,9 +315,10 @@ public class AuctionDAO {
         }
     }
 
+    // [SỬA] Dùng alias auction_id, auction_status, seller_db_id thay vì "a.id", "a.status", "i.created_by"
     private static Auction mapAuction(ResultSet rs, List<User> allUsers) throws SQLException {
-        int auctionDbId = rs.getInt("a.id");
-        String status   = rs.getString("a.status");
+        int    auctionDbId = rs.getInt("auction_id");           // [SỬA]
+        String status      = rs.getString("auction_status");    // [SỬA]
 
         // Map seller
         String sellerName     = rs.getString("seller_name");
@@ -289,17 +326,17 @@ public class AuctionDAO {
         String sellerEmail    = rs.getString("seller_email");
         String sellerFullname = rs.getString("seller_fullname");
         Seller seller = new Seller(sellerName, sellerPass, sellerEmail, sellerFullname);
-        seller.setId(String.valueOf(rs.getInt("i.created_by")));
+        seller.setId(String.valueOf(rs.getInt("seller_id"))); // [SỬA]
 
-        // Map item
+        // Map item (dùng alias item_id, các cột còn lại không trùng tên)
         Item item = mapItem(rs, seller);
 
         // Tạo Auction
         Auction auction = new Auction(seller, item);
-        auction.setCurrentPrice(rs.getDouble("a.current_price"));
+        auction.setCurrentPrice(rs.getDouble("auction_current_price")); // [SỬA]
 
         // Map highest bidder nếu có
-        int highestBidderId = rs.getInt("a.highest_bidder_id");
+        int highestBidderId = rs.getInt("highest_bidder_id");
         if (!rs.wasNull() && allUsers != null) {
             allUsers.stream()
                     .filter(u -> u.getId().equals(String.valueOf(highestBidderId)))
@@ -339,19 +376,21 @@ public class AuctionDAO {
     /** Lấy lịch sử bid của một bidder. */
     public static List<BidTransaction> getBidHistory(int bidderId, Bidder bidder) {
         List<BidTransaction> list = new ArrayList<>();
-        String sql = "SELECT b.amount, b.bid_time, i.item_name, i.item_type, i.description, "
-                   + "i.starting_price, i.start_time, i.end_time, i.created_by "
-                   + "FROM bids b "
-                   + "JOIN auctions a ON b.auction_id = a.id "
-                   + "JOIN items i ON a.item_id = i.id "
-                   + "WHERE b.bidder_id = ? ORDER BY b.bid_time DESC";
+        // [SỬA] thêm alias amount_val để tránh nhầm với cột amount của items nếu có
+        String sql = "SELECT b.amount AS bid_amount, b.bid_time, "
+                + "i.id AS item_id, i.item_name, i.item_type, i.description, "
+                + "i.starting_price, i.start_time, i.end_time "
+                + "FROM bids b "
+                + "JOIN auctions a ON b.auction_id = a.id "
+                + "JOIN items i ON a.item_id = i.id "
+                + "WHERE b.bidder_id = ? ORDER BY b.bid_time DESC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bidderId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Item item = mapItem(rs, null);
-                    BidTransaction tx = new BidTransaction(bidder, item, rs.getDouble("b.amount"));
+                    BidTransaction tx = new BidTransaction(bidder, item, rs.getDouble("bid_amount")); // [SỬA]
                     list.add(tx);
                 }
             }
