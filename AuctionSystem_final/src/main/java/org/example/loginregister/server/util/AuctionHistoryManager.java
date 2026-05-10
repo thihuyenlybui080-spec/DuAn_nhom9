@@ -1,6 +1,7 @@
 package org.example.loginregister.server.util;
 
 import org.example.loginregister.server.model.entity.AuctionResult;
+import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.User;
 
 import java.util.ArrayList;
@@ -42,7 +43,6 @@ public class AuctionHistoryManager {
 
 
     //Lấy lịch sử theo người thắng (tùy chọn)
-
     public List<AuctionResult> getResultsByWinner(User winner) {
         List<AuctionResult> list = new ArrayList<>();
         for (AuctionResult r : completedAuctions.values()) {
@@ -59,7 +59,13 @@ public class AuctionHistoryManager {
         completedAuctions.clear();
     }
 
-    public void updateStatusPaid(String auctionId){
-        completedAuctions.get(auctionId).setStatusPaid();
+
+    /**
+     * dùng để updateStatus
+     * nếu người đó thanh toán đúng hạn FINISHED->PAID
+     * nếu không ->CANCELED
+     * */
+    public void updateStatus(String auctionId, AuctionStatus status){
+        completedAuctions.get(auctionId).setStatus(status);
     }
 }

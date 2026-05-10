@@ -13,8 +13,8 @@ public class AutoBidConfig {
     private final LocalDateTime registeredAt; // Thời điểm đăng ký (dùng để ưu tiên khi tie)
 
     public AutoBidConfig(double maxBid, double increment) {
-        if (maxBid <= 0)      throw new IllegalArgumentException("maxBid phải > 0");
-        if (increment <= 0)   throw new IllegalArgumentException("increment phải > 0");
+        if (maxBid <= 0)      throw new IllegalArgumentException("maxBid must be > 0");
+        if (increment <= 0)   throw new IllegalArgumentException("increment must be > 0");
         this.maxBid       = maxBid;
         this.increment    = increment;
         this.registeredAt = LocalDateTime.now();

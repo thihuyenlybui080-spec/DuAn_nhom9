@@ -5,20 +5,25 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.AuctionStatus;
+import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.util.AuctionManager;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,13 +36,13 @@ import java.util.stream.Collectors;
 
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
-import static org.example.loginregister.server.model.entity.Auction.*;
+import static org.example.loginregister.server.model.entity.AuctionStatus.*;
 
 public class BidderDashboardController implements Initializable {
     @FXML private Button btnNavAuctions;
     @FXML private Button btnNavHistory;
     @FXML private Button btnNavWon;
-    @FXML private Label lbtlUserName;
+    @FXML private Label lblUserName;
 
     @FXML private Label lblPageTitle;
     @FXML private Label lblSubtitle;
@@ -60,13 +65,19 @@ public class BidderDashboardController implements Initializable {
     @FXML private Label lblCount;
     @FXML private Label lblUpdate;
 
+    @FXML private BorderPane rootBorderPane;
+
     private static final String STYLE_NAV_ACTIVE =
-            "-fx-background-color: #8b3a44; -fx-font-weight: bold;";
+            "-fx-background-color: #722f37; -fx-font-weight: bold; -fx-text-fill: #c0c43f; -fx-background-radius: 10;";
     private static final String STYLE_FILTER_ACTIVE =
-            "-fx-background-color: #722f37; -fx-text-fill: white;";
+            "-fx-background-color: #722f37; -fx-text-fill: #c0c43f; -fx-background-radius: 15; -fx-font-weight: bold;";
+    private static final String STYLE_FILTER_NORMAL =
+            "-fx-background-color: transparent; -fx-text-fill: white; -fx-background-radius: 15; -fx-font-weight: normal;";
+    private static final String STYLE_NAV_NOMAL =
+            "-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #fff; -fx-background-radius: 10;";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private User currentUser;
+    private Bidder bidder;
     private ObservableList<Auction> allAutions;
     private String currentCategory = "All";
     private String currentStatus = "All Status";
@@ -79,11 +90,17 @@ public class BidderDashboardController implements Initializable {
         cmbStatus.getSelectionModel().selectFirst();
         loadAuctions();
         startAutoRefresh();
+        Platform.runLater(() ->{
+            if(rootBorderPane != null) {
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                stage.setFullScreen(true);
+            }
+        });
     }
 
-    public void setCurrent(User user){
-        this.currentUser = user;
-        lbtlUserName.setText(user.getFullname());
+    public void setCurrent(Bidder bidder){
+        this.bidder = bidder;
+        lblUserName.setText(bidder.getFullname());
     }
 
     @FXML
@@ -132,28 +149,28 @@ public class BidderDashboardController implements Initializable {
     @FXML
     private void onCategoryAll(){
         currentCategory = "All";
-        updateCaegoryStyles(btnAll);
+        updateCategoryStyles(btnAll);
         applyFilter();
     }
 
     @FXML
     private void onCategoryVehicles(){
         currentCategory = "Vehicle";
-        updateCaegoryStyles(btnVehicles);
+        updateCategoryStyles(btnVehicles);
         applyFilter();
     }
 
     @FXML
     private void onCategoryElectronics(){
-        currentCategory = "Vehicle";
-        updateCaegoryStyles(btnElectronics);
+        currentCategory = "Electronics";
+        updateCategoryStyles(btnElectronics);
         applyFilter();
     }
 
     @FXML
     private void onCategoryArt(){
-        currentCategory = "Vehicle";
-        updateCaegoryStyles(btnArt);
+        currentCategory = "Art";
+        updateCategoryStyles(btnArt);
         applyFilter();
     }
 
@@ -236,7 +253,7 @@ public class BidderDashboardController implements Initializable {
                     allAutions.setAll(updated);
                     applyFilter();
                     updateSubtitle();
-                    lblSubtitle.setText("Updated " + LocalDateTime.now().format(TIME_FORMAT));
+                    lblUpdate.setText("Updated " + LocalDateTime.now().format(TIME_FORMAT));
                 }),
                 5, 5, TimeUnit.SECONDS
         );
@@ -251,10 +268,7 @@ public class BidderDashboardController implements Initializable {
     private HBox buildCard(Auction auction){
         HBox card = new HBox(14); //spacing
         card.setPadding(new Insets(12));
-        card.setStyle("-fx-background-color: #ffffff;"
-                + "-fx-border-color: #ddd;" // xám nhạt
-                + "-fx-border-radius: 8;" //bo tròn
-                + "-fx-background-radius: 8;");
+        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21); -fx-border-color: #3d1c21; -fx-border-radius: 8; -fx-background-radius: 8;");
 
         VBox thumb = buildThumb(auction.getItem().getCategory());
 
@@ -265,19 +279,20 @@ public class BidderDashboardController implements Initializable {
         row1.setAlignment(Pos.CENTER_LEFT);
         Label nameLabel = new Label(auction.getItem().getItemName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
+        nameLabel.setStyle("-fx-text-fill: #c0c43f;");
         Label badge = buildStatusBadge(auction.getStatus());
         row1.getChildren().addAll(nameLabel, badge);
 
         Label sellerLabel = new Label("Seller: " + auction.getSeller().getName());
-        sellerLabel.setStyle("-fx-text-fill: #777;");
+        sellerLabel.setStyle("-fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
 
         HBox row2 = new HBox(8);
         row2.setAlignment(Pos.CENTER_LEFT);
         Label priceLabel = new Label(formatPrice(auction.getCurrentPrice()) + " đ");
         priceLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
-        priceLabel.setStyle("-fx-text-fill: #722f37;");
+        priceLabel.setStyle("-fx-text-fill: #ffffff;");
         Label bidsLabel = new Label("· " + auction.getBids().size() + " bids");
-        bidsLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+        bidsLabel.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 11px; -fx-opacity: 0.7;");
         row2.getChildren().addAll(priceLabel, bidsLabel);
 
         Label timeLabel = new Label("⏱ " + formatTimeRemaining(auction));
@@ -319,40 +334,30 @@ public class BidderDashboardController implements Initializable {
 
         Button btnDetail = new Button("Details");
         btnDetail.setMaxWidth(Double.MAX_VALUE);
-        btnDetail.setStyle("-fx-background-color: transparent;"
-                + "-fx-border-color: #722f37;"
-                + "-fx-border-radius: 4;"
-                + "-fx-text-fill: #722f37;"
-                + "-fx-font-size: 12px;");
+        btnDetail.setStyle("-fx-background-color: transparent; -fx-border-color: #c0c43f; -fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 12px;");
         btnDetail.setOnAction(e -> onDetailClicked(auction));
-
         actions.getChildren().addAll(btnBid, btnDetail);
         return actions;
     }
 
-    private Label buildStatusBadge(String status){
+    private Label buildStatusBadge(AuctionStatus status){
         Label badge = new Label();
         switch (status){
             case RUNNING:
                 badge.setText("● Live");
-                badge.setStyle("-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                        + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
+                badge.setStyle("-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e; -fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
                 break;
             case OPEN:
                 badge.setText("● Upcoming");
-                badge.setStyle("-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                        + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
+                badge.setStyle("-fx-background-color: #e8f0fe; -fx-text-fill: #1a56db; -fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
                 break;
             case FINISHED:
                 badge.setText("● Finished");
-                badge.setStyle("-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                        + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
+                badge.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #777; -fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
                 break;
             default:
                 badge.setText(status.toString());
-                badge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #777;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
+                badge.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #777; -fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 11px;");
         }
         return badge;
     }
@@ -367,7 +372,7 @@ public class BidderDashboardController implements Initializable {
         Label msg = new Label("No auctions found");
         msg.setFont(Font.font("System", FontWeight.BOLD, 16));
         Label hint = new Label("Try changing the filter or search keyword.");
-        hint.setStyle("-fx-text-fill: #999;");
+        hint.setStyle("-fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
 
         empty.getChildren().addAll(icon, msg, hint);
         return empty;
@@ -378,17 +383,17 @@ public class BidderDashboardController implements Initializable {
             new Alert(Alert.AlertType.INFORMATION, "This auction has ended.").showAndWait();
             return;
         }
-        navigateTo("bidding.fxml"); //truyền vào màn bidding
+        navigateTo("bidding.fxml", "bidding");
     }
 
     private void onDetailClicked(Auction auction){
-        navigateTo("auction_detail.fxml"); // truyền vào màn chi tiết, mô tả
-
+        navigateTo("auction_detail.fxml", "auction detail");
     }
 
-    private void navigateTo(String fxmlFile){
+    private void navigateTo(String fxmlFile, String title){
+        Stage stage = (Stage) auctionContainer.getScene().getWindow();
+        sceneManager.switchScene(stage, fxmlFile, title);
         stopAutoRefresh();
-
     }
 
     //Chỉ hiện pane được chọn, ẩn các pane còn lại
@@ -401,10 +406,21 @@ public class BidderDashboardController implements Initializable {
 
     private void setActiveNav(Button active){
         active.setStyle(STYLE_NAV_ACTIVE);
+
+        btnNavWon.setStyle(STYLE_NAV_NOMAL);
+        btnNavAuctions.setStyle(STYLE_NAV_NOMAL);
+        btnNavHistory.setStyle(STYLE_NAV_NOMAL);
+        active.setStyle(STYLE_NAV_NOMAL);
     }
 
-    private  void updateCaegoryStyles(ToggleButton active){
+    private  void updateCategoryStyles(ToggleButton active){
         active.setStyle(STYLE_FILTER_ACTIVE);
+
+        btnArt.setStyle(STYLE_FILTER_NORMAL);
+        btnElectronics.setStyle(STYLE_FILTER_NORMAL);
+        btnVehicles.setStyle(STYLE_FILTER_NORMAL);
+        btnAll.setStyle(STYLE_FILTER_NORMAL);
+        active.setStyle(STYLE_FILTER_NORMAL);
     }
 
     private String getCategoryIcon(String category){
@@ -465,10 +481,10 @@ public class BidderDashboardController implements Initializable {
         if(minutes <= 30){
             return "-fx-text-fill: #f57c00; -fx-font-weight: bold; -fx-font-size: 12px;";
         }
-        return "-fx-text-fill: #555; -fx-font-size: 12px;";
+        return "-fx-text-fill: #fff; -fx-font-size: 12px; -fx-opacity: 0.7;";
     }
 
-    private String getBidButtonText(String status){
+    private String getBidButtonText(AuctionStatus status){
         switch (status){
             case RUNNING: return "Place Bid";
             case OPEN: return "Preview";
@@ -476,22 +492,14 @@ public class BidderDashboardController implements Initializable {
         }
     }
 
-    private String getBidButtonStyle(String status){
+    private String getBidButtonStyle(AuctionStatus status){
         switch (status){
             case RUNNING:
-                return "-fx-background-color: #722f37; -fx-text-fill: white;"
-                        + "-fx-background-radius: 4; -fx-font-size: 12px;";
+                return "-fx-background-color: #c0c43f; -fx-text-fill: #722f37; -fx-background-radius: 4; -fx-font-size: 12px;";
             case OPEN:
-                return "-fx-background-color: #1a56db; -fx-text-fill: white;"
-                        + "-fx-background-radius: 4; -fx-font-size: 12px;";
+                return "-fx-background-color: transparent; -fx-text-fill: #c0c43f; -fx-background-radius: 4; -fx-font-size: 12px; -fx-border-color: #c0c43f; -fx-border-radius: 4";
             default:
-                return "-fx-background-color: #999; -fx-text-fill: white;"
-                        + "-fx-background-radius: 4; -fx-font-size: 12px;";
+                return "-fx-background-color: #999; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-size: 12px;";
         }
     }
-
-
-
-
-
 }

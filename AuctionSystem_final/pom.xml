@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>AuctionSystem</artifactId>
+    <artifactId>AuctionSystem_final</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>LoginRegister</name>
 
     <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.12.1</junit.version>
+        <junit.version>5.10.2</junit.version>
     </properties>
-
     <repositories>
         <repository>
             <id>central</id>
@@ -73,7 +73,6 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
-                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -91,10 +90,6 @@
                             <noManPages>true</noManPages>
                             <stripDebug>true</stripDebug>
                             <noHeaderFiles>true</noHeaderFiles>
-                            <options>                                    <!-- ← thêm từ đây -->
-                                <option>-Dfile.encoding=UTF-8</option>
-                                <option>-Dstdout.encoding=UTF-8</option>
-                            </options>
                         </configuration>
                     </execution>
                 </executions>

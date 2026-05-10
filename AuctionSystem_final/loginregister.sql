@@ -162,3 +162,7 @@ INSERT INTO users (username, password, email, full_name, gender, phone, role) VA
 --   ORDER BY b.bid_time DESC;
 
 SELECT * FROM users;
+SELECT * FROM items;
+SELECT * FROM auctions;
+SELECT * FROM bids;
+SELECT * FROM bid_transactions;

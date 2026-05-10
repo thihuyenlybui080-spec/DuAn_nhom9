@@ -23,6 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Auction implements Subject {
 
     // ===== FIELDS =====
+    private final Seller seller;
     private final String id;
     private final Item item;
     private volatile double  currentPrice;
@@ -49,7 +50,8 @@ public class Auction implements Subject {
 
 
     // ===== CONSTRUCTOR =====
-    public Auction( Item item) {
+    public Auction(Seller seller, Item item) {
+        this.seller = seller;
         this.id = "auction-" + item.getId().substring(5);
         this.item= item;
         this.currentPrice = item.getStartingPrice();
@@ -224,6 +226,18 @@ public class Auction implements Subject {
 
 
     // ===== GETTERS =====
+    public Seller getSeller(){return seller;}
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public void setHighestBidder(Bidder highestBidder) {
+        this.highestBidder = highestBidder;
+    }
+    public void setHighestBidderName(String highestBidderName){
+        this.highestBidder.setName(highestBidderName);
+    }
     public String getId() {
         return id;
     }
