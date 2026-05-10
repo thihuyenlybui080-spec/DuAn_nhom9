@@ -15,7 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
-import org.example.loginregister.server.database.DatabaseConfig;
+import org.example.loginregister.server.db.DatabaseConfig;
 
 import java.io.IOException;
 import java.net.URL;
@@ -100,7 +100,7 @@ public class RegisterController implements Initializable {
 
     public void onGenderSelected(Toggle selectedToggle) {
         if (selectedToggle == null) {
-            selectedGender = "";
+            String selectedGender = "";
             return;
         }
         RadioButton selected = (RadioButton) selectedToggle;
@@ -110,7 +110,6 @@ public class RegisterController implements Initializable {
 
     //kiểm tra điền đủ thông tin hay chưa
     public void onRegisterButtonClicked(ActionEvent event) {
-
         registrationMessageLabel.setText("");
         confirmPasswordLabel.setText("");
 
@@ -134,7 +133,6 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Phone must be 10 - 11 digits");
             isValid = false;
         }
-        if (!isValid) return;
         boolean isSuccess = registerUser();
         if (isSuccess) {
             String selectedRole = roleComboBox.getValue();
@@ -197,7 +195,7 @@ public class RegisterController implements Initializable {
             rs.next();
             if (rs.getInt(1) > 0) {
                 registrationMessageLabel.setText("Username already exists, please choose another!");
-                return false;
+                return true;
             }
 
             // INSERT đủ cột khớp với loginregister.sql
@@ -213,12 +211,11 @@ public class RegisterController implements Initializable {
             insertStmt.executeUpdate();
 
             registrationMessageLabel.setText("Registration successful!");
-            return true;
 
         } catch (Exception e) {
             registrationMessageLabel.setText("Unable to connect to server, please try again!");
-            return false;
         }
+        return true;
     }
 }
 

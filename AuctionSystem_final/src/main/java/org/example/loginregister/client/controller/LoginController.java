@@ -10,7 +10,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.loginregister.client.service.SceneManager;
+
 import org.example.loginregister.server.database.DatabaseConfig;
+
 
 import java.net.URL;
 import java.sql.Connection;
