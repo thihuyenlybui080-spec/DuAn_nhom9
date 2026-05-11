@@ -195,9 +195,7 @@ public class BiddingController implements Initializable, Observer {
         } else {
             btnPlaceBid.setText("🔨  Place Bid");
             btnPlaceBid.setStyle(
-
                     "-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
-
                             + "-fx-font-size: 14px; -fx-font-weight: bold;"
                             + "-fx-background-radius: 8; -fx-cursor: hand;");
         }
@@ -419,13 +417,11 @@ public class BiddingController implements Initializable, Observer {
     }
 
     @FXML
-
     private void onNavMyAuctions(ActionEvent event) {
         onBack(event);
     }
 
     @FXML
-
     private void onNavAuctions(ActionEvent event) {
         onBack(event);
     }

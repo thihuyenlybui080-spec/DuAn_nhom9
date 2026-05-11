@@ -16,8 +16,6 @@ import javafx.stage.Stage;
 import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.database.DatabaseConfig;
-import org.example.loginregister.server.model.entity.user.Bidder;
-import org.example.loginregister.server.model.entity.user.Seller;
 
 import java.io.IOException;
 import java.net.URL;
@@ -65,8 +63,6 @@ public class RegisterController implements Initializable {
     @FXML
     private TextField phoneNumberTF;
     @FXML
-    private TextField emailTF;
-    @FXML
     private ImageView auctionImageView;
     @FXML
     private StackPane rootStackPane;
@@ -82,7 +78,6 @@ public class RegisterController implements Initializable {
         URL test = getClass().getResource("/org/example/loginregister/register.fxml");
 
         roleComboBox.getItems().addAll(ROLE_BIDDER, ROLE_SELLER);
-        roleComboBox.setStyle("-fx-text-fill: white;");
         ToggleGroup genderGroup = new ToggleGroup();
         maleRButton.setToggleGroup(genderGroup);
         femaleRButton.setToggleGroup(genderGroup);
@@ -138,43 +133,13 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Phone must be 10 - 11 digits");
             isValid = false;
         }
-        if (!isEmailValid(emailTF.getText())) {
-            registrationMessageLabel.setText("Email must be abc@gmail.com");
-            isValid = false;
-        }
-
-        if(!isValid) return;
         boolean isSuccess = registerUser();
         if (isSuccess) {
             String selectedRole = roleComboBox.getValue();
             if (ROLE_SELLER.equalsIgnoreCase(selectedRole)) {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/loginregister/seller_dashboard.fxml"));
-                    Scene scene = new Scene(loader.load());
-                    SellerDashboardController ctrl = loader.getController();
-                    String fullName = firstNameTF.getText() + lastnameTF.getText();
-                    ctrl.setCurrentUser(new Seller(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
-                    Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                    stage.setScene(scene);
-                    stage.setTitle("Seller");
-                    stage.show();
-                } catch (IOException e){
-                    e.printStackTrace();
-                }
+                sceneManager.switchScene(event, "seller_dashboard.fxml", "Seller Dashboard");
             } else {
-                try{
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/loginregister/bidder_dashboard.fxml"));
-                    Scene scene = new Scene(loader.load());
-                    BidderDashboardController ctrl = loader.getController();
-                    String fullName = firstNameTF.getText() + lastnameTF.getText();
-                    ctrl.setCurrent(new Bidder(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
-                    Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                    stage.setScene(scene);
-                    stage.setTitle("Bidder");
-                    stage.show();
-                } catch (IOException e){
-                    e.printStackTrace();
-                }
+                sceneManager.switchScene(event, "bidder_dashboard.fxml", "Bidder Dashboard");
             }
         }
     }
@@ -186,7 +151,6 @@ public class RegisterController implements Initializable {
                 && !passwordPF.getText().trim().isEmpty()
                 && !confirmPasswordPF.getText().trim().isEmpty()
                 && !phoneNumberTF.getText().trim().isEmpty()
-                && !emailTF.getText().trim().isEmpty()
                 && roleComboBox.getValue() != null
                 && !selectedGender.isEmpty();
     }
@@ -197,10 +161,6 @@ public class RegisterController implements Initializable {
 
     private boolean isPasswordLongEnough(String password) {
         return password.length() >= PASSWORD_MIN_LENGTH;
-    }
-
-    private boolean isEmailValid(String email){
-        return email != null && email.endsWith("@gmail.com");
     }
 
     private boolean doPasswordsMatch() {
@@ -223,7 +183,7 @@ public class RegisterController implements Initializable {
         String password = passwordPF.getText();
         String phone = phoneNumberTF.getText().trim();
         String role = roleComboBox.getValue().toUpperCase();
-        String email = emailTF.getText().trim();
+        String email = username + "@auction.com";
 
         try (Connection conn = DatabaseConfig.getConnection()) {
 
@@ -235,7 +195,7 @@ public class RegisterController implements Initializable {
             rs.next();
             if (rs.getInt(1) > 0) {
                 registrationMessageLabel.setText("Username already exists, please choose another!");
-                return false;
+                return true;
             }
 
             // INSERT đủ cột khớp với loginregister.sql
@@ -249,13 +209,13 @@ public class RegisterController implements Initializable {
             insertStmt.setString(6, phone);
             insertStmt.setString(7, role);
             insertStmt.executeUpdate();
+
             registrationMessageLabel.setText("Registration successful!");
-            return true;
 
         } catch (Exception e) {
             registrationMessageLabel.setText("Unable to connect to server, please try again!");
         }
-        return false;
+        return true;
     }
 }
 
