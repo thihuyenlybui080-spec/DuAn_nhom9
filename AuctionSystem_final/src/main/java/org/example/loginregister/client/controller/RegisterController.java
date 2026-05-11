@@ -15,7 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
-import org.example.loginregister.server.db.DatabaseConfig;
+import org.example.loginregister.server.database.DatabaseConfig;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
