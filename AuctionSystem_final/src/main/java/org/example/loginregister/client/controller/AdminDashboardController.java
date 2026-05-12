@@ -219,7 +219,7 @@ public class AdminDashboardController implements Initializable {
         emailLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
 
         Label idLabel = new Label(user.getId());
-        idLabel.setStyle("-fx-font-size: 10pz; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
 
         info.getChildren().addAll(row1, emailLabel, idLabel);
 
@@ -309,6 +309,16 @@ public class AdminDashboardController implements Initializable {
         List<Auction> list = AuctionManager.getInstance().getAllAuctions();
         allAuctions = FXCollections.observableArrayList(list);
         applyAuctionFilter();
+    }
+
+    @FXML
+    private void onRoleFilterChanged() {
+        applyUserFilter();
+    }
+
+    @FXML
+    private void onStatusFilterChanged() {
+        applyUserFilter();
     }
 
     @FXML

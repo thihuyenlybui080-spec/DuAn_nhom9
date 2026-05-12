@@ -538,6 +538,7 @@ public class SellerDashboardController implements Initializable {
                 break;
             case "Art":
                 factory = new ArtFactory();
+                break;
             case "Vehicle":
                 factory = new VehicleFactory();
                 break;

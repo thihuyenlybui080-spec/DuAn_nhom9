@@ -46,12 +46,13 @@ CREATE TABLE IF NOT EXISTS items (
 
 -- ============================================================
 --  Bảng auctions
---  status khớp với hằng số trong Auction.java
+--  status khớp với hằng số trong AuctionStatus.java
+--  [SỬA] Thêm 'PAID' vào ENUM để khớp với AuctionStatus.PAID trong Java
 -- ============================================================
 CREATE TABLE IF NOT EXISTS auctions (
     id                  INT         NOT NULL AUTO_INCREMENT,
     item_id             INT         NOT NULL,
-    status              ENUM('OPEN','RUNNING','FINISHED','CANCELED') NOT NULL DEFAULT 'OPEN',
+    status              ENUM('OPEN','RUNNING','FINISHED','CANCELED','PAID') NOT NULL DEFAULT 'OPEN',
     current_price       DOUBLE      NOT NULL,
     highest_bidder_id   INT         NULL,
     duration_seconds    BIGINT      NOT NULL,
@@ -73,7 +74,7 @@ CREATE TABLE IF NOT EXISTS bids (
     bidder_id   INT         NOT NULL,
     amount      DOUBLE      NOT NULL,
     bid_time    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     PRIMARY KEY (id),
+    PRIMARY KEY (id),
     CONSTRAINT fk_bid_auction FOREIGN KEY (auction_id)
     REFERENCES auctions(id) ON DELETE CASCADE,
     CONSTRAINT fk_bid_bidder  FOREIGN KEY (bidder_id)
@@ -113,7 +114,7 @@ CREATE INDEX idx_items_type      ON items(item_type);
 INSERT INTO users (username, password, email, full_name, gender, phone, role) VALUES
                                                                                   ('huyenly',  '123456789', 'huyenly@auction.com',  'Bui Thi Huyen Ly',  'Female', '0900000001', 'ADMIN'),
                                                                                   ('thuthuy',  '123456789', 'thuthuy@auction.com',  'Tran Thi Thu Thuy', 'Female', '0900000002', 'ADMIN'),
-                                                                                  ('lamduong', '123456789', 'lamduong@auction.com', 'Tran Lam Duong',    'Female',   '0900000003', 'ADMIN'),
+                                                                                  ('lamduong', '123456789', 'lamduong@auction.com', 'Tran Lam Duong',    'Female', '0900000003', 'ADMIN'),
                                                                                   ('dongnhat', '123456789', 'dongnhat@auction.com', 'Bui Dong Nhat',     'Male',   '0900000004', 'ADMIN');
 
 -- ============================================================
@@ -162,3 +163,7 @@ INSERT INTO users (username, password, email, full_name, gender, phone, role) VA
 --   ORDER BY b.bid_time DESC;
 
 SELECT * FROM users;
+SELECT * FROM items;
+SELECT * FROM auctions;
+SELECT * FROM bids;
+SELECT * FROM bid_transactions;

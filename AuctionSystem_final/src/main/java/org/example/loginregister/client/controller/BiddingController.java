@@ -195,7 +195,7 @@ public class BiddingController implements Initializable, Observer {
         } else {
             btnPlaceBid.setText("🔨  Place Bid");
             btnPlaceBid.setStyle(
-                    "-fx-background-color: #c0c43f; -fx-text-fill: 722f37;"
+                    "-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
                             + "-fx-font-size: 14px; -fx-font-weight: bold;"
                             + "-fx-background-radius: 8; -fx-cursor: hand;");
         }
@@ -414,6 +414,11 @@ public class BiddingController implements Initializable, Observer {
     private void onBack(ActionEvent event) {
         stopScheduler();
         sceneManager.switchScene(event, BIDDER_DASHBOARD_FXML, BIDDER_DASHBOARD_TITLE);
+    }
+
+    @FXML
+    private void onNavMyAuctions(ActionEvent event) {
+        onBack(event);
     }
 
     @FXML
