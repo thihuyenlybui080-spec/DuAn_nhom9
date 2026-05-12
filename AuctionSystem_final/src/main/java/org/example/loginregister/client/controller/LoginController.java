@@ -1,5 +1,6 @@
 package org.example.loginregister.client.controller;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -9,8 +10,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.example.loginregister.client.service.SceneManager;
+import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.database.DatabaseConfig;
+import org.example.loginregister.server.dao.LoginHistoryDAO;
+import org.example.loginregister.server.model.entity.user.User;
 
 import java.net.URL;
 import java.sql.Connection;
@@ -70,25 +75,39 @@ public class LoginController implements Initializable {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
+
     public void validateLogin() {
         String username = usernameTF.getText();
         String password = passwordTF.getText();
 
-        try (Connection conn = DatabaseConfig.getConnection()) {
-            String sql = "SELECT COUNT(*) FROM users WHERE username = ? AND password = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            rs.next();
+        try {
+            User user = UserDAO.getUserByCredentials(username, password);
 
-            if (rs.getInt(1) > 0) {
-                messageLabel.setText("Login successful! Welcome, " + username);
+            if (user != null) {
+                int userId = Integer.parseInt(user.getId());
+                String role = user.getRole();
+
+                LoginHistoryDAO.saveLoginHistory(userId, username, "SUCCESS");  // gọi thẳng
+                messageLabel.setText("Login successful! Welcome, " + user.getName());
+
+                PauseTransition pause = new PauseTransition(Duration.seconds(1));
+                pause.setOnFinished(e -> {
+                    Stage stage = (Stage) rootStackPane.getScene().getWindow();
+                    switch (role) {
+                        case "ADMIN"  -> sceneManager.switchScene(stage, "admin_dashboard.fxml",  "Admin Dashboard");
+                        case "SELLER" -> sceneManager.switchScene(stage, "seller_dashboard.fxml", "Seller Dashboard");
+                        default       -> sceneManager.switchScene(stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+                    }
+                });
+                pause.play();
+
             } else {
+                LoginHistoryDAO.saveLoginHistory(-1, username, "FAILED");
                 messageLabel.setText("Incorrect username or password!");
             }
 
         } catch (Exception e) {
+            LoginHistoryDAO.saveLoginHistory(-1, username, "FAILED");
             messageLabel.setText("Unable to connect to server, please try again!");
         }
     }

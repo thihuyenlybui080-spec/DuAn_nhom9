@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
+import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.database.DatabaseConfig;
 
 import java.io.IOException;
@@ -56,6 +57,8 @@ public class RegisterController implements Initializable {
     private TextField lastnameTF;
     @FXML
     private TextField userNameTF;
+    @FXML
+    private TextField emailTF;
     @FXML
     private ComboBox<String> roleComboBox;
     @FXML
@@ -181,41 +184,22 @@ public class RegisterController implements Initializable {
         String fullName = firstNameTF.getText().trim() + " " + lastnameTF.getText().trim();
         String username = userNameTF.getText().trim();
         String password = passwordPF.getText();
-        String phone = phoneNumberTF.getText().trim();
-        String role = roleComboBox.getValue().toUpperCase();
-        String email = username + "@auction.com";
+        String phone    = phoneNumberTF.getText().trim();
+        String role     = roleComboBox.getValue().toUpperCase();
+        String email    = emailTF.getText().trim();
 
-        try (Connection conn = DatabaseConfig.getConnection()) {
+        if (UserDAO.isUsernameTaken(username)) {
+            registrationMessageLabel.setText("Username already exists, please choose another!");
+            return false;
+        }
 
-            // Kiểm tra username đã tồn tại chưa
-            String checkSql = "SELECT COUNT(*) FROM users WHERE username = ?";
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
-            checkStmt.setString(1, username);
-            ResultSet rs = checkStmt.executeQuery();
-            rs.next();
-            if (rs.getInt(1) > 0) {
-                registrationMessageLabel.setText("Username already exists, please choose another!");
-                return true;
-            }
-
-            // INSERT đủ cột khớp với loginregister.sql
-            String insertSql = "INSERT INTO users (username, password, email, full_name, gender, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement insertStmt = conn.prepareStatement(insertSql);
-            insertStmt.setString(1, username);
-            insertStmt.setString(2, password);
-            insertStmt.setString(3, email);
-            insertStmt.setString(4, fullName);
-            insertStmt.setString(5, selectedGender);
-            insertStmt.setString(6, phone);
-            insertStmt.setString(7, role);
-            insertStmt.executeUpdate();
-
+        boolean success = UserDAO.registerUser(username, password, fullName, email, selectedGender, phone, role);
+        if (success) {
             registrationMessageLabel.setText("Registration successful!");
-
-        } catch (Exception e) {
+        } else {
             registrationMessageLabel.setText("Unable to connect to server, please try again!");
         }
-        return true;
+        return success;
     }
 }
 

@@ -1,6 +1,9 @@
 package org.example.loginregister.server.util;
 
-import org.example.loginregister.server.database.AuctionDAO;
+import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.BidDAO;
+import org.example.loginregister.server.dao.ItemDAO;
+import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -72,7 +75,7 @@ public class AuctionManager {
         int sellerId = AuctionDAO.parseDbId(seller.getId());
 
         // Lưu item vào DB
-        int itemDbId = AuctionDAO.insertItem(item, sellerId);
+        int itemDbId = ItemDAO.insertItem(item, sellerId);
         if (itemDbId > 0) {
             item.setId("item-" + itemDbId);
         }
@@ -125,7 +128,7 @@ public class AuctionManager {
             int auctionDbId = AuctionDAO.parseDbId(auctionId);
             int bidderId    = AuctionDAO.parseDbId(bidder.getId());
             if (auctionDbId > 0 && bidderId > 0) {
-                AuctionDAO.insertBid(auctionDbId, bidderId, amount);
+                BidDAO.insertBid(auctionDbId, bidderId, amount);
                 AuctionDAO.updateAuctionBid(auctionDbId, amount, bidderId);
             }
         }
@@ -183,7 +186,7 @@ public class AuctionManager {
                 int bidderId = AuctionDAO.parseDbId(auction.getHighestBidder().getId());
                 int itemDbId = AuctionDAO.parseDbId(auction.getItem().getId());
                 if (bidderId > 0 && itemDbId > 0) {
-                    AuctionDAO.insertBidTransaction(auctionDbId, bidderId, itemDbId, auction.getCurrentPrice());
+                    BidDAO.insertBidTransaction(auctionDbId, bidderId, itemDbId, auction.getCurrentPrice());
                 }
             }
         }
@@ -202,15 +205,14 @@ public class AuctionManager {
 
     /** Lấy danh sách auction đang chạy từ DB. */
     public List<Auction> getActiveAuctions() {
-        List<User> allUsers = AuctionDAO.getAllUsers();
+        List<User> allUsers = UserDAO.getAllUsers();
         return AuctionDAO.getActiveAuctions(allUsers);
     }
 
     public Auction getAuction(String auctionId) {
-        // Ưu tiên in-memory (real-time), fallback về DB
         Auction a = activeAuctions.get(auctionId);
         if (a != null) return a;
-        List<User> allUsers = AuctionDAO.getAllUsers();
+        List<User> allUsers = UserDAO.getAllUsers();
         return AuctionDAO.getAllAuctions(allUsers).stream()
                 .filter(au -> au.getId().equals(auctionId))
                 .findFirst().orElse(null);
@@ -218,7 +220,7 @@ public class AuctionManager {
 
     /** Lấy tất cả auction từ DB (Admin dùng). */
     public List<Auction> getAllAuctions() {
-        List<User> allUsers = AuctionDAO.getAllUsers();
+        List<User> allUsers = UserDAO.getAllUsers();
         return AuctionDAO.getAllAuctions(allUsers);
     }
 
@@ -230,7 +232,7 @@ public class AuctionManager {
             // sellerId là số nguyên trực tiếp từ DB
             try { dbId = Integer.parseInt(sellerId); } catch (NumberFormatException e) { return Collections.emptyList(); }
         }
-        List<User> allUsers = AuctionDAO.getAllUsers();
+        List<User> allUsers = UserDAO.getAllUsers();
         return AuctionDAO.getAuctionsBySeller(dbId, allUsers);
     }
 
@@ -244,12 +246,12 @@ public class AuctionManager {
         // Cần Seller object để map, tạo dummy seller với id
         Seller dummy = new Seller("", "", "", "");
         dummy.setId(sellerId);
-        return AuctionDAO.getItemsBySeller(dbId, dummy);
+        return ItemDAO.getItemsBySeller(dbId, dummy);
     }
 
     /** Lấy toàn bộ user từ DB (Admin dùng). */
     public List<User> getAllUsers() {
-        return AuctionDAO.getAllUsers();
+        return UserDAO.getAllUsers();
     }
 
     // ===== PRIVATE HELPERS =====
