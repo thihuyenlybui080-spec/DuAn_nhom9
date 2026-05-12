@@ -281,4 +281,8 @@ public class AuctionManager {
         }
         return this.users;
     }
+
+    private User logIn(String username, String password){
+        if()
+    }
 }
