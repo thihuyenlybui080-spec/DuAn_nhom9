@@ -3,6 +3,7 @@ package org.example.loginregister.server;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.network.Request;
 import org.example.loginregister.server.network.Response;
+import org.example.loginregister.server.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -113,20 +114,19 @@ public class ClientHandler implements Runnable{
     }
 
     private Response handleLogin(Request request) {
+        try {
 
-        Map<String, String> credentials = (Map<String, String>) request.getData();
+            Map<String, String> credentials = (Map<String, String>) request.getData();
 
-        String userName = credentials.get("username");
-        String password = credentials.get("password");
+            String userName = credentials.get("username");
+            String password = credentials.get("password");
 
-        if(userName == null || password == null){
-            return  Response.error("Username and password are required.");
+            if (userName == null || password == null) {
+                return Response.error("Username and password are required.");
+            }
+
+            User user = AuctionManager.getInstance().
         }
-        User user = ;
-        try{
-            user.logIn(userName, password);
-        } catch ()
-
     }
 
 
