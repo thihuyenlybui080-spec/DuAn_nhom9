@@ -21,6 +21,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
+<?import java.lang.String?>
 <BorderPane prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.SellerDashboardController">
 
 
@@ -217,7 +218,15 @@
                                                 <VBox spacing="5.0" GridPane.columnIndex="1">
                                                    <children>
                                                       <Label text="Category *" textFill="WHITE" />
-                                                      <ComboBox fx:id="cmbCategory" maxWidth="Infinity" prefHeight="42.0" style="-fx-background-color: #0d0607; -fx-border-color: #3d1c21; -fx-border-radius: 5;" />
+                                                      <ComboBox fx:id="cmbCategory" maxWidth="Infinity" prefHeight="42.0" style="-fx-background-color: #0d0607; -fx-border-color: #3d1c21; -fx-border-radius: 5;">
+                                                         <items>
+                                                            <javafx.collections.FXCollections fx:factory="observableArrayList">
+                                                               <String fx:value="Electronics" />
+                                                               <String fx:value="Art" />
+                                                               <String fx:value="Vehicle" />
+                                                            </javafx.collections.FXCollections>
+                                                         </items>
+                                                      </ComboBox>
                                                    </children>
                                                 </VBox>
                                                 <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
