@@ -13,10 +13,10 @@ import java.util.Properties;
  *  CẤU HÌNH KẾT NỐI DATABASE
  * ================================================================
  *
- *  Đọc cấu hình từ file config.properties đặt cùng thư mục với .jar
+ *  Đọc cấu hình từ file config.propertie đặt cùng thư mục với .jar
  *  Nếu không có file ngoài thì đọc file mặc định bên trong jar.
  *
- *  Nội dung config.properties:
+ *  Nội dung config.propertie:
  *    db.host=localhost
  *    db.port=3306
  *    db.name=loginregister
