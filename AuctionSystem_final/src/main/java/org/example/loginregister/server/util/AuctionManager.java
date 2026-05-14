@@ -287,4 +287,16 @@ public class AuctionManager {
 
         System.out.println("[PaymentDeadline] Auction " + auctionId + " - winner has 1 day to complete payment.");
     }
+    public static synchronized void resetForTesting() {
+        if (instance != null) {
+            if (instance.scheduler != null && !instance.scheduler.isShutdown()) {
+                instance.scheduler.shutdownNow();
+            }
+            if (instance.activeAuctions != null) {
+                instance.activeAuctions.clear();
+            }
+
+            instance = null;
+        }
+    }
 }
