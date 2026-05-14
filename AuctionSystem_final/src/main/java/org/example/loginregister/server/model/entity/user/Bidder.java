@@ -1,6 +1,8 @@
 package org.example.loginregister.server.model.entity.user;
 
+import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.AuthenticationException;
+import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -43,7 +45,7 @@ public class Bidder extends User  {
     /**
      * Bidder chủ động đặt giá vào một phiên đấu giá.
      * Kiểm tra tài khoản trước, sau đó chuyển toàn bộ logic xuống AuctionManager.*/
-    public boolean bid(Auction auction, double amount) {
+    public boolean bid(Auction auction, double amount) throws InvalidBidException, AuctionClosedException {
         if (!isActive()) {
             throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot place bids");
         }

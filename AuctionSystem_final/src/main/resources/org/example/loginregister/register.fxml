@@ -15,12 +15,15 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
 <?import javafx.scene.text.Font?>
 
 <StackPane fx:id="rootStackPane" style="-fx-background-color: #12080a;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.RegisterController">
     <ImageView fitHeight="${rootStackPane.height}" fitWidth="${rootStackPane.width}" opacity="0.35" pickOnBounds="true" preserveRatio="false">
         <image>
-            <Image url="@main2.png" />
+            <Image url="@hele.jpg" />
         </image>
     </ImageView>
 
@@ -32,17 +35,17 @@
 
                 <AnchorPane fx:id="rootAnchorPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="380.0" AnchorPane.topAnchor="0">
                     <ImageView fx:id="auctionImageView" fitHeight="${rootAnchorPane.height}" fitWidth="${rootAnchorPane.width}" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0">
-                        <image><Image url="@main2.png" /></image>
+                        <image><Image url="@hele.jpg" /></image>
                     </ImageView>
 
-                    <AnchorPane prefHeight="644.0" prefWidth="640.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 100%);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0" />
+                    <AnchorPane prefHeight="644.0" prefWidth="640.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 20%);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0" />
 
                     <VBox alignment="TOP_LEFT" layoutY="51.2" prefHeight="550.0" prefWidth="540.0" spacing="0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                         <children>
                             <Label text="NETBID" textFill="#c0c43f">
                                 <font><Font name="Bell MT Bold" size="44.0" /></font>
                             </Label>
-                            <Label style="-fx-font-size: 11px; -fx-opacity: 0.6; -fx-letter-spacing: 3px;" text="JOIN THE ELITE AUCTION" textFill="#c0c43f">
+                            <Label style="-fx-font-size: 11px; -fx-opacity: 0.6; -fx-letter-spacing: 3px;" text="JOIN THE ELITE AUCTION" textFill="#d7ccb7">
                                 <VBox.margin><Insets bottom="15" /></VBox.margin>
                             </Label>
                             <HBox prefHeight="2" prefWidth="80" style="-fx-background-color: linear-gradient(to right, #722f37, #c0c43f);" />
@@ -53,23 +56,39 @@
                     </VBox>
                 </AnchorPane>
 
-                <VBox alignment="CENTER" maxWidth="380.0" minWidth="380.0" prefWidth="380.0" style="-fx-background-color: rgba(18,8,10,0.98); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+                <VBox alignment="CENTER" maxWidth="380.0" minWidth="380.0" prefWidth="380.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-                    <HBox maxHeight="3" maxWidth="Infinity" prefHeight="3" style="-fx-background-color: linear-gradient(to right, #722f37, #c0c43f, #722f37);" />
+                    <HBox maxHeight="3" maxWidth="Infinity" prefHeight="3" style="-fx-background-color: linear-gradient(to right, #722f37,#D7CCB7 , #722f37);" />
 
                     <VBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                         <padding><Insets bottom="30" left="40" right="40" top="35" /></padding>
 
                         <HBox alignment="CENTER_RIGHT">
                             <children>
-                                <Label style="-fx-background-color: rgba(192,196,63,0.1); -fx-border-color: rgba(192,196,63,0.3); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #c0c43f; -fx-font-size: 10px; -fx-padding: 3 10; -fx-letter-spacing: 1px;" text="v3.6" />
+                                <Label style="-fx-background-color: #543735; -fx-border-color: rgba(192,196,63,0.3); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #c0c43f; -fx-font-size: 10px; -fx-padding: 3 10; -fx-letter-spacing: 1px;" text="v3.6" />
                                 <Region HBox.hgrow="ALWAYS" />
                             </children>
                         </HBox>
 
-                        <Label text="User Registration" textFill="WHITE">
-                            <font><Font name="System Bold" size="26.0" /></font>
+                        <Label text="User Registration">
+                            <font><Font name="Bell MT Bold" size="31.0" /></font>
                             <VBox.margin><Insets bottom="5.0" /></VBox.margin>
+                     <textFill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="0.843137264251709" green="0.800000011920929" blue="0.7176470756530762" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="1.0" green="1.0" blue="1.0" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </textFill>
                         </Label>
 
                         <HBox spacing="10.0">
@@ -126,7 +145,7 @@
                   </VBox>
 
                         <VBox spacing="3.0">
-                            <Label text="Gender" textFill="#c0c43f"><font><Font name="System Bold" size="11.0" /></font></Label>
+                            <Label text="Gender" textFill="#d7ccb7"><font><Font name="System Bold" size="11.0" /></font></Label>
                             <HBox alignment="CENTER_LEFT" spacing="12.0">
                                 <RadioButton fx:id="maleRButton" text="Male" textFill="WHITE">
                                     <toggleGroup><ToggleGroup fx:id="genderGroup" /></toggleGroup>
@@ -150,7 +169,7 @@
                             <VBox.margin><Insets bottom="1" top="1" /></VBox.margin>
                         </Label>
 
-                        <Button fx:id="registerButton" maxWidth="Infinity" onAction="#onRegisterButtonClicked" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #722f37); -fx-cursor: hand; -fx-background-radius: 6;" text="REGISTER NOW" textFill="#c0c43f">
+                        <Button fx:id="registerButton" maxWidth="Infinity" onAction="#onRegisterButtonClicked" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #D7CCB7); -fx-cursor: hand; -fx-background-radius: 6;" text="REGISTER NOW" textFill="#c0c43f">
                             <font><Font name="Bell MT Bold" size="14.0" /></font>
                             <padding><Insets bottom="11" top="11" /></padding>
                         </Button>

@@ -16,6 +16,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.InvalidBidException;
@@ -29,6 +30,7 @@ import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.util.AuctionHistoryManager;
 import org.example.loginregister.server.util.AuctionManager;
 
+import javax.management.NotificationListener;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.Duration;
@@ -54,6 +56,7 @@ public class BiddingController implements Initializable, Observer {
 
     static final String BIDDER_DASHBOARD_FXML  = "bidder_dashboard.fxml";
     static final String BIDDER_DASHBOARD_TITLE = "Bidder Dashboard";
+
 
     @FXML private Label lblUsername;
 
@@ -118,9 +121,10 @@ public class BiddingController implements Initializable, Observer {
             this.auction.addObserver(this);
         }
         populateView();
+        AuctionClientService.getInstance().watchAuction(auction.getId());
+        NotificationListener.
         startAutoRefresh();
     }
-
     private void populateView() {
         lblUsername.setText(bidder.getFullname());
         lblItemName.setText(auction.getItem().getItemName());

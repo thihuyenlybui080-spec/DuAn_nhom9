@@ -4,6 +4,9 @@ module org.example.loginregister {
 
     requires org.kordamp.bootstrapfx.core;
     requires java.sql;
+    requires org.slf4j;
+    requires java.desktop;
+    requires java.management;
 
     opens org.example.loginregister to javafx.fxml;
     exports org.example.loginregister;

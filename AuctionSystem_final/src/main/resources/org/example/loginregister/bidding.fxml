@@ -17,7 +17,7 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BiddingController">
    <left>
-      <VBox prefHeight="458.0" prefWidth="180.0" spacing="5.0" style="-fx-background-color: #1a0a0c; -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
+      <VBox prefHeight="458.0" prefWidth="180.0" spacing="5.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
          <children>
             <VBox alignment="CENTER" prefHeight="116.0" prefWidth="179.0" spacing="8.0">
                <children>
@@ -89,7 +89,7 @@
    <center>
       <VBox prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: #12080a;" BorderPane.alignment="CENTER">
          <children>
-            <HBox prefHeight="70.0" prefWidth="420.0" spacing="15.0" style="-fx-background-color: #1a0a0c;">
+            <HBox prefHeight="70.0" prefWidth="420.0" spacing="15.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000);">
                <padding>
                   <Insets left="20.0" right="20.0" />
                </padding>
@@ -203,7 +203,7 @@
                               <Label prefHeight="18.0" prefWidth="190.0" text="Leader:" textFill="#ffffffa1" />
                            </children>
                         </VBox>
-                        <VBox prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: #1a0a0c; -fx-background-radius: 15; -fx-padding: 20;">
+                        <VBox prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-background-radius: 15; -fx-padding: 20;">
                            <children>
                               <Label text="PLACE YOUR BID" textFill="#c0c43f">
                                  <font>

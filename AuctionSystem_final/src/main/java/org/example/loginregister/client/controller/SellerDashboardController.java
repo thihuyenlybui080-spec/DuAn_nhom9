@@ -54,7 +54,7 @@ public class SellerDashboardController implements Initializable {
     private static final String STYLE_NAV_ACTIVE =
             "-fx-background-color: #722f37; -fx-font-weight: bold; -fx-text-fill: #c0c43f";
     private static final String STYLE_NAV_NORMAL =
-            "-fx-background-color: #transparent; -fx-text-fill: white; -fx-font-weight: bold";
+            "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold";
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("HH:mm");
     private static final NumberFormat VND_FORMAT =

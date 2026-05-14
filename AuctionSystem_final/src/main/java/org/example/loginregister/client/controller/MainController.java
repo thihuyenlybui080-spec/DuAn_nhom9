@@ -15,7 +15,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
-    private static final String WELCOME_IMAGE_PATH = "main.jpg";
+    private static final String WELCOME_IMAGE_PATH = "hele.jpg";
 
     static final String LOGIN_FXML     = "login.fxml";
     private static final String REGISTER_FXML  = "register.fxml";
