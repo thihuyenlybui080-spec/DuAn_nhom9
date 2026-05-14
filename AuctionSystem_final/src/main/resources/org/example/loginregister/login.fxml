@@ -17,7 +17,7 @@
 <StackPane fx:id="rootStackPane" style="-fx-background-color: #12080a;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.LoginController">
     <ImageView fitHeight="${rootStackPane.height}" fitWidth="${rootStackPane.width}" pickOnBounds="true" preserveRatio="false">
         <image>
-            <Image url="@main2.png" />
+            <Image url="@hele.jpg" />
         </image>
     </ImageView>
     <StackPane alignment="CENTER" maxHeight="900.0" maxWidth="1300.0">
@@ -28,10 +28,10 @@
 
                 <AnchorPane fx:id="rootAnchorPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="380" AnchorPane.topAnchor="0">
                     <ImageView fx:id="loginSideImageView" fitHeight="${rootAnchorPane.height}" fitWidth="${rootAnchorPane.width}" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0">
-                        <image><Image url="@main.jpg" /></image>
+                        <image><Image url="@hele.jpg" /></image>
                     </ImageView>
 
-                    <AnchorPane prefHeight="550.0" prefWidth="540.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 100%);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
+                    <AnchorPane prefHeight="550.0" prefWidth="540.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 80%);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
 
                     <VBox alignment="CENTER_LEFT" prefHeight="550.0" prefWidth="540.0" spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0">
                         <padding><Insets bottom="40.0" left="50.0" right="40.0" top="60.0" /></padding>
@@ -106,7 +106,7 @@
                     </VBox>
                 </AnchorPane>
 
-                <VBox fx:id="vboxLogin" alignment="CENTER" prefHeight="550.0" prefWidth="382.0" style="-fx-background-color: rgba(18,8,10,0.98); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+                <VBox fx:id="vboxLogin" alignment="CENTER" prefHeight="550.0" prefWidth="382.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
                     <HBox maxHeight="3" maxWidth="Infinity" prefHeight="3" style="-fx-background-color: linear-gradient(to right, #722f37, #c0c43f, #722f37);" />
 
@@ -128,7 +128,7 @@
                         <VBox spacing="8">
                             <VBox.margin><Insets bottom="30" /></VBox.margin>
                             <Label text="Welcome Back" textFill="WHITE">
-                                <font><Font name="System Bold" size="28.0" /></font>
+                                <font><Font name="Bell MT Bold" size="33.0" /></font>
                             </Label>
                         </VBox>
 
@@ -153,7 +153,7 @@
                             <font><Font size="11.0" /></font>
                         </Label>
 
-                        <Button fx:id="loginButton" maxWidth="Infinity" onAction="#LoginButtonAction" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #722f37); -fx-cursor: hand; -fx-background-radius: 6;" text="LOGIN" textFill="#c0c43f">
+                        <Button fx:id="loginButton" maxWidth="Infinity" onAction="#LoginButtonAction" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #D7CCB7); -fx-cursor: hand; -fx-background-radius: 6;" text="LOGIN" textFill="#c0c43f">
                             <font><Font name="System Bold" size="14.0" /></font>
                             <padding><Insets bottom="14" top="14" /></padding>
                             <VBox.margin><Insets bottom="12" /></VBox.margin>

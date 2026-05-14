@@ -10,23 +10,28 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
 <?import javafx.scene.text.Font?>
 
 <StackPane fx:id="rootStackPane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.MainController">
     <ImageView fitHeight="${rootStackPane.height}" fitWidth="${rootStackPane.width}" pickOnBounds="true" preserveRatio="false">
         <image>
-            <Image url="@main2.png" />
+            <Image url="@hele.jpg" />
         </image>
     </ImageView>
     <StackPane alignment="CENTER" maxHeight="900.0" maxWidth="1300.0">
     <AnchorPane fx:id="welcomeWrapper" maxHeight="900.0" maxWidth="1300.0" style="-fx-background-radius: 20;" StackPane.alignment="CENTER">
         <StackPane.margin><Insets bottom="50" left="50" right="50" top="50" /></StackPane.margin>
-        <AnchorPane fx:id="rootAnchorPaneTotal" maxHeight="900.0" maxWidth="1300.0" style="-fx-background-color: #12080a;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <AnchorPane fx:id="rootAnchorPaneTotal" maxHeight="900.0" maxWidth="1300.0" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #5a2028);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
             <AnchorPane fx:id="rootAnchorPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="380.0" AnchorPane.topAnchor="0">
-                <ImageView fx:id="welcomeImageView" fitHeight="${rootAnchorPane.height}" fitWidth="${rootAnchorPane.width}" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0">
-                    <image><Image url="@main.jpg" /></image>
+                <ImageView fx:id="welcomeImageView" fitHeight="${rootAnchorPane.height}" fitWidth="${rootAnchorPane.width}" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+                    <image><Image url="@../../../../../../../../Anh_man_hinh/hele.jpg" />
+                    </image>
                 </ImageView>
-                <AnchorPane style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.85) 0%, rgba(26,10,12,0.5) 100%);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+               <AnchorPane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 80%);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <AnchorPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
                     <children>
                         <VBox alignment="CENTER_LEFT" layoutY="0.0" spacing="0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <padding>
@@ -42,7 +47,7 @@
                                 </VBox.margin>
                             </Label>
 
-                            <Label style="-fx-font-size: 11px; -fx-opacity: 0.6; -fx-letter-spacing: 3px;" text="ONLINE AUCTION SYSTEM" textFill="#c0c43f">
+                            <Label style="-fx-font-size: 11px; -fx-opacity: 0.6; -fx-letter-spacing: 3px;" text="ONLINE AUCTION SYSTEM" textFill="#d7ccb7">
                                 <VBox.margin>
                                     <Insets bottom="28" />
                                 </VBox.margin>
@@ -59,9 +64,9 @@
                                 </VBox.margin>
                                 <Label style="-fx-font-size: 20px;" text="🏷️" textFill="#ae142b" />
                                 <VBox spacing="3">
-                                    <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-letter-spacing: 0.5px;" text="Real-Time Bidding" textFill="#c0c43f">
+                                    <Label style="-fx-font-weight: bold; -fx-letter-spacing: 0.5px;" text="Real-Time Bidding" textFill="#c0c43f">
                                         <font>
-                                            <Font name="System Bold" size="13.0" />
+                                            <Font name="System Bold" size="15.0" />
                                         </font>
                                     </Label>
                                     <Label style="-fx-font-size: 11px; -fx-opacity: 0.5;" text="Place bids instantly and watch prices update live." textFill="WHITE" wrapText="true" />
@@ -74,9 +79,9 @@
                                 </VBox.margin>
                                 <Label style="-fx-font-size: 20px;" text="🔒" textFill="#ae142b" />
                                 <VBox spacing="3">
-                                    <Label style="-fx-font-size: 13px; -fx-font-weight: bold;" text="Secure &amp; Transparent" textFill="#c0c43f">
+                                    <Label style="-fx-font-weight: bold;" text="Secure &amp; Transparent" textFill="#c0c43f">
                                         <font>
-                                            <Font name="System Bold" size="13.0" />
+                                            <Font name="System Bold" size="15.0" />
                                         </font>
                                     </Label>
                                     <Label style="-fx-font-size: 11px; -fx-opacity: 0.5;" text="Every transaction is logged. Fair competition, guaranteed." textFill="WHITE" wrapText="true" />
@@ -89,9 +94,9 @@
                                 </VBox.margin>
                                 <Label style="-fx-font-size: 20px;" text="⚡" textFill="#ae142b" />
                                 <VBox spacing="3">
-                                    <Label style="-fx-font-size: 13px; -fx-font-weight: bold;" text="Auto-Bidding" textFill="#c0c43f">
+                                    <Label style="-fx-font-weight: bold;" text="Auto-Bidding" textFill="#c0c43f">
                                         <font>
-                                            <Font name="System Bold" size="13.0" />
+                                            <Font name="System Bold" size="15.0" />
                                         </font>
                                     </Label>
                                     <Label style="-fx-font-size: 11px; -fx-opacity: 0.5;" text="Set your max price and let the system bid automatically." textFill="WHITE" wrapText="true" />
@@ -100,37 +105,56 @@
 
                             <Region VBox.vgrow="ALWAYS" />
 
-                            <Label style="-fx-font-size: 10px; -fx-opacity: 0.2; -fx-letter-spacing: 1px;" text="© 2026 NETBID — LTNC PROJECT" textFill="WHITE" />
+                            <Label style="-fx-font-size: 10px; -fx-opacity: 0.7; -fx-letter-spacing: 1px;" text="© 2026 NETBID — LTNC PROJECT" textFill="WHITE" />
                         </VBox>
                     </children></AnchorPane>
             </AnchorPane>
 
-            <VBox fx:id="vboxWelcome" alignment="CENTER" prefWidth="400.0" style="-fx-background-color: rgba(18,8,10,0.97); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+            <VBox fx:id="vboxWelcome" alignment="CENTER" prefWidth="400.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-                <HBox maxHeight="3" maxWidth="Infinity" prefHeight="3" style="-fx-background-color: linear-gradient(to right, #722f37, #c0c43f, #722f37);" />
+                <HBox maxHeight="3" maxWidth="Infinity" prefHeight="3" style="-fx-background-color: linear-gradient(to right, #722f37,#D7CCB7 , #722f37);" />
 
                 <VBox alignment="CENTER_LEFT" spacing="0" VBox.vgrow="ALWAYS">
                     <padding><Insets bottom="30" left="45" right="45" top="50" /></padding>
 
                     <HBox alignment="CENTER_RIGHT">
                         <VBox.margin><Insets bottom="24" /></VBox.margin>
-                        <Label style="-fx-background-color: rgba(192,196,63,0.1); -fx-border-color: rgba(192,196,63,0.3); -fx-text-fill: #c0c43f; -fx-font-size: 10px; -fx-padding: 3 10; -fx-letter-spacing: 1px; -fx-background-radius: 10; -fx-border-radius: 10;" text="v3.6" />
+                        <Label style="-fx-background-color: #543735; -fx-border-color: rgba(192,196,63,0.3); -fx-padding: 3 10; -fx-letter-spacing: 1px; -fx-background-radius: 10; -fx-border-radius: 10;" text="v3.6" textFill="WHITE">
+                        <font>
+                           <Font size="10.0" />
+                        </font></Label>
                         <Region HBox.hgrow="ALWAYS" />
                     </HBox>
 
-                    <Label text="Welcome Back" textFill="WHITE">
+                    <Label text="Welcome Back">
                         <font><Font name="Times New Roman Bold" size="36.0" /></font>
                         <VBox.margin><Insets bottom="6" /></VBox.margin>
+                     <textFill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="0.843137264251709" green="0.800000011920929" blue="0.7176470756530762" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="1.0" green="1.0" blue="1.0" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </textFill>
                     </Label>
                   <Region layoutX="55.0" layoutY="456.0" maxHeight="20.0" prefWidth="20.0" VBox.vgrow="SOMETIMES" />
 
-                    <Button fx:id="loginButton" maxWidth="Infinity" onAction="#loginButtonOnAction" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #722f37, #5a2028); -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 2px; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 6;" text="LOGIN" textFill="#c0c43f">
+                    <Button fx:id="loginButton" maxWidth="Infinity" onAction="#loginButtonOnAction" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #D7CCB7); -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 2px; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 6;" text="LOGIN" textFill="#c0c43f">
                         <font><Font name="Bell MT Bold" size="14.0" /></font>
                         <padding><Insets bottom="14" top="14" /></padding>
                         <VBox.margin><Insets bottom="12.0" top="35.0" /></VBox.margin>
                     </Button>
 
-                    <Button fx:id="registerButton" maxWidth="Infinity" onAction="#registerButtonOnAction" style="-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 2px; -fx-border-color: rgba(192,196,63,0.4); -fx-border-radius: 6;" text="REGISTER" textFill="#c0c43f">
+                    <Button fx:id="registerButton" maxWidth="Infinity" onAction="#registerButtonOnAction" style="-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 2px; -fx-border-color: #D7CCB7; -fx-border-radius: 6;" text="REGISTER" textFill="#d7ccb7">
                         <font><Font name="Bell MT Bold" size="14.0" /></font>
                         <padding><Insets bottom="14" top="14" /></padding>
                         <VBox.margin><Insets bottom="20" /></VBox.margin>
@@ -138,17 +162,17 @@
 
                     <HBox alignment="CENTER" spacing="10">
                         <VBox.margin><Insets bottom="12" /></VBox.margin>
-                        <HBox prefHeight="1" style="-fx-background-color: rgba(255,255,255,0.08);" HBox.hgrow="ALWAYS" />
-                        <Label style="-fx-font-size: 10px; -fx-opacity: 0.25; -fx-letter-spacing: 1px;" text="ADMIN ACCESS" textFill="WHITE" />
-                        <HBox prefHeight="1" style="-fx-background-color: rgba(255,255,255,0.08);" HBox.hgrow="ALWAYS" />
+                        <HBox prefHeight="1" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #D7CCB7);" HBox.hgrow="ALWAYS" />
+                        <Label style="-fx-font-size: 10px; -fx-opacity: 0.7; -fx-letter-spacing: 1px;" text="ADMIN ACCESS" textFill="#d7ccb7" />
+                        <HBox prefHeight="1" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #D7CCB7);" HBox.hgrow="ALWAYS" />
                     </HBox>
 
-                    <Button fx:id="adminButton" maxWidth="Infinity" onAction="#adminButtonOnAction" prefHeight="50.0" prefWidth="279.0" style="-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 2px; -fx-border-color: rgba(192,196,63,0.4); -fx-border-radius: 6;" text="ADMIN " textFill="#c0c43f">
+                    <Button fx:id="adminButton" maxWidth="Infinity" onAction="#adminButtonOnAction" prefHeight="50.0" prefWidth="279.0" style="-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 2px; -fx-border-color: #D7CCB7; -fx-border-radius: 6;" text="ADMIN " textFill="#d7ccb7">
                         <font><Font name="Bell MT Bold" size="14.0" /></font>
                         <padding><Insets bottom="10" top="10" /></padding>
                         <VBox.margin><Insets bottom="0" /></VBox.margin>
                     </Button>
-                    <Button fx:id="exitButton" maxWidth="Infinity" onAction="#exitButtonOnAction" prefHeight="51.0" prefWidth="279.0" style="-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 1px; -fx-border-color: rgba(192,196,63,0.4); -fx-border-radius: 6;" text="✕  EXIT" textFill="#c0c43f">
+                    <Button fx:id="exitButton" maxWidth="Infinity" onAction="#exitButtonOnAction" prefHeight="51.0" prefWidth="279.0" style="-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand; -fx-letter-spacing: 1px; -fx-border-color: #D7CCB7; -fx-border-radius: 6;" text="✕  EXIT" textFill="#d7ccb7">
                         <font><Font name="Bell MT Bold" size="14.0" /></font>
                         <padding><Insets bottom="8" top="8" /></padding>
                         <VBox.margin><Insets top="10.0" /></VBox.margin>
@@ -156,7 +180,7 @@
 
                           <Region VBox.vgrow="ALWAYS" />
 
-                    <Label alignment="CENTER" maxWidth="Infinity" style="-fx-font-size: 9px; -fx-opacity: 0.12; -fx-letter-spacing: 1px;" text="NETBID AUCTION SYSTEM · BUILD 2026" textFill="WHITE">
+                    <Label alignment="CENTER" maxWidth="Infinity" style="-fx-font-size: 9px; -fx-opacity: 0.7; -fx-letter-spacing: 1px;" text="NETBID AUCTION SYSTEM · BUILD 2026" textFill="WHITE">
                         <VBox.margin><Insets top="12" /></VBox.margin>
                     </Label>
 
