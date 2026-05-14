@@ -72,8 +72,8 @@ public class BidderDashboardController implements Initializable {
     private static final String STYLE_FILTER_ACTIVE =
             "-fx-background-color: #722f37; -fx-text-fill: #c0c43f; -fx-background-radius: 15; -fx-font-weight: bold;";
     private static final String STYLE_FILTER_NORMAL =
-            "-fx-background-color: transparent; -fx-text-fill: white; -fx-background-radius: 15; -fx-font-weight: normal;";
-    private static final String STYLE_NAV_NOMAL =
+            "-fx-background-color: transparent; -fx-text-fill: #ffffff; -fx-background-radius: 15; -fx-font-weight: bold;";
+    private static final String STYLE_NAV_NORMAL =
             "-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #fff; -fx-background-radius: 10;";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
@@ -405,22 +405,21 @@ public class BidderDashboardController implements Initializable {
     }
 
     private void setActiveNav(Button active){
-        active.setStyle(STYLE_NAV_ACTIVE);
+        btnNavWon.setStyle(STYLE_NAV_NORMAL);
+        btnNavAuctions.setStyle(STYLE_NAV_NORMAL);
+        btnNavHistory.setStyle(STYLE_NAV_NORMAL);
 
-        btnNavWon.setStyle(STYLE_NAV_NOMAL);
-        btnNavAuctions.setStyle(STYLE_NAV_NOMAL);
-        btnNavHistory.setStyle(STYLE_NAV_NOMAL);
-        active.setStyle(STYLE_NAV_NOMAL);
+        active.setStyle(STYLE_NAV_ACTIVE);
     }
 
     private  void updateCategoryStyles(ToggleButton active){
-        active.setStyle(STYLE_FILTER_ACTIVE);
-
         btnArt.setStyle(STYLE_FILTER_NORMAL);
         btnElectronics.setStyle(STYLE_FILTER_NORMAL);
         btnVehicles.setStyle(STYLE_FILTER_NORMAL);
         btnAll.setStyle(STYLE_FILTER_NORMAL);
-        active.setStyle(STYLE_FILTER_NORMAL);
+
+        active.setStyle(STYLE_FILTER_ACTIVE);
+
     }
 
     private String getCategoryIcon(String category){
