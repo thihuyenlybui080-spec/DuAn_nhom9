@@ -3,9 +3,9 @@ name: Code Style Check
 # Cấu hình để workflow chạy khi có ai đó push hoặc tạo Pull Request
 on:
   push:
-    branches: [ "main", "dev_Thuy" ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main", "dev_Thuy" ]
+    branches: [ "main", "dev" ]
 
 jobs:
   checkstyle:
