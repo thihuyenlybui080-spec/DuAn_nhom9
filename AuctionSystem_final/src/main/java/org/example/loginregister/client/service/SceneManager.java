@@ -34,4 +34,18 @@ public class SceneManager {
             e.printStackTrace();
         }
     }
+    public <T> T switchSceneAndGetController(Stage stage, String fxmlFile, String title) {
+        try {
+            FXMLLoader loader = new FXMLLoader(resourceClass.getResource(FXML_BASE_PATH + fxmlFile));
+            Scene scene = new Scene(loader.load());
+            stage.setTitle(title);
+            stage.setScene(scene);
+            stage.show();
+            return loader.getController();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

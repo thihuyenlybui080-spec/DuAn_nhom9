@@ -437,7 +437,7 @@ public class SellerDashboardController implements Initializable {
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    Seller.deleteItem(item);
+                    seller.deleteItem(item);
                     myItems.remove(item);
                     loadMyItems();
                     lblStatusBar.setText("Item deleted: " + item.getItemName());
@@ -547,6 +547,7 @@ public class SellerDashboardController implements Initializable {
         }
 
         Item item = factory.createItem(itemName, seller, description, startingPrice, startTime, endTime);
+        seller.addItem(item);
         seller.listItemForAuction(item);
 
         onClearForm();

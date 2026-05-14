@@ -26,6 +26,12 @@ import java.util.ResourceBundle;
 
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
+import org.example.loginregister.client.controller.SellerDashboardController;
+import org.example.loginregister.client.controller.AdminDashboardController;
+import org.example.loginregister.client.controller.BidderDashboardController;
+import org.example.loginregister.server.model.entity.user.Admin;
+import org.example.loginregister.server.model.entity.user.Seller;
+import org.example.loginregister.server.model.entity.user.Bidder;
 
 public class LoginController implements Initializable {
     @FXML
@@ -93,9 +99,21 @@ public class LoginController implements Initializable {
                 pause.setOnFinished(e -> {
                     Stage stage = (Stage) rootStackPane.getScene().getWindow();
                     switch (role) {
-                        case "ADMIN"  -> sceneManager.switchScene(stage, "admin_dashboard.fxml",  "Admin Dashboard");
-                        case "SELLER" -> sceneManager.switchScene(stage, "seller_dashboard.fxml", "Seller Dashboard");
-                        default       -> sceneManager.switchScene(stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+                        case "ADMIN" -> {
+                            AdminDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                                    stage, "admin_dashboard.fxml", "Admin Dashboard");
+                            if (ctrl != null) ctrl.setCurrentAdmin((Admin) user);
+                        }
+                        case "SELLER" -> {
+                            SellerDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                                    stage, "seller_dashboard.fxml", "Seller Dashboard");
+                            if (ctrl != null) ctrl.setCurrentUser((Seller) user);
+                        }
+                        default -> {
+                            BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                                    stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+                            if (ctrl != null) ctrl.setCurrent((Bidder) user);
+                        }
                     }
                 });
                 pause.play();

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 
 public class Seller extends User {
-    private static List<Item> ownedItems;
+    private List<Item> ownedItems;
 
     public Seller( String name, String password, String email, String fullName){
         super( name, password, email, fullName);
@@ -43,7 +43,7 @@ public class Seller extends User {
         System.out.println("Added " + item.getItemName() + " to the auction list");
     }
 
-    public static void deleteItem(Item item){
+    public void deleteItem(Item item){
         //ktra seller có sở hữu item này không
         if (!ownedItems.contains(item)) throw new IllegalArgumentException("Seller does not own this item");
 
