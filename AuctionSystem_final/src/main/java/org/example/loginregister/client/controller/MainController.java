@@ -43,8 +43,6 @@ public class MainController implements Initializable {
     private Button registerButton;
     @FXML
     private Button exitButton;
-    @FXML
-    private Button adminButton;
     private final SceneManager sceneManager = new SceneManager(getClass());
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -65,12 +63,6 @@ public class MainController implements Initializable {
         setActiveNav(registerButton);
         sceneManager.switchScene(event, REGISTER_FXML, REGISTER_TITLE);
     }
-
-    @FXML
-    public void adminButtonOnAction(ActionEvent event) {
-        setActiveNav(adminButton);
-        sceneManager.switchScene(event, ADMIN_FXML, ADMIN_TITLE);
-    }
     public void exitButtonOnAction(ActionEvent event) {
         setActiveNav(exitButton);
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -80,7 +72,6 @@ public class MainController implements Initializable {
         loginButton.setStyle(STYLE_NAV_NORMAL);
         registerButton.setStyle(STYLE_NAV_NORMAL);
         exitButton.setStyle(STYLE_NAV_NORMAL);
-        adminButton.setStyle(STYLE_NAV_NORMAL);
 
         active.setStyle(STYLE_NAV_ACTIVE);
     }
