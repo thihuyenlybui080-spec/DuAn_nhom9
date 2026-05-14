@@ -19,6 +19,8 @@ public class Request implements Serializable {
     public static final String ACTION_GET_AUCTION_BY_ID = "GET_AUCTION_BY_ID";
     public static final String ACTION_PLACE_BID = "PLACE_BID";
     public static final String ACTION_GET_BID_HISTORY = "GET_BID_HISTORY";
+    public static  final String ACTION_WATCH_AUCTION = "WATCH_AUCTION";
+    public static final String ACTION_LEAVE_AUCTION = "LEAVE_AUCTION";
 
     /** tên hành động client muốn thực hiện */
     private final String action;

@@ -3,6 +3,7 @@ package org.example.loginregister.server;
 import javafx.scene.Node;
 import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.InvalidBidException;
+import org.example.loginregister.common.network.NotificationMessage;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
@@ -98,6 +99,8 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_GET_AUCTION_BY_ID, this :: handleGetAuctionById);
         handlers.put(Request.ACTION_PLACE_BID, this :: handlePlaceBid);
         handlers.put(Request.ACTION_GET_BID_HISTORY, this :: handleGetBidHistory);
+        handlers.put(Request.ACTION_WATCH_AUCTION, this :: handleWatchAuction);
+        handlers.put(Request.ACTION_LEAVE_AUCTION, this :: handleLeaveAuction);
     }
 
     /**
@@ -236,6 +239,11 @@ public class ClientHandler implements Runnable{
 
             AuctionManager.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
 
+            ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
+                    NotificationMessage.TYPE_BID_UPDATED,
+                    auctionId,
+                    auction
+            ));
             logger.info("Bid placed: user = {} auction = {} amount = {}", loggedInUser.getFullname(), auctionId, amount);
 
             return Response.ok("Bid placed successfully.", auction);
@@ -261,6 +269,29 @@ public class ClientHandler implements Runnable{
         } catch (Exception e){
             return Response.error("Failed to get bid history");
         }
+    }
+
+    /**
+     * Tham gia vào phiên đấu giá
+     * @param request yêu cầu từ khách hàng
+     * @return phản hồi từ server
+     */
+    private Response handleWatchAuction(Request request){
+        String auctionId = (String) request.getData();
+        ClientRegistry.getInstance().register(auctionId, outputStream);
+        return Response.ok("Watching auction: " + auctionId, null);
+
+    }
+
+    /**
+     * Thoát khỏi phiên đấu giá
+     * @param request yêu cầu từ khách hàng
+     * @return phản hồi từ server
+     */
+    private Response handleLeaveAuction(Request request){
+        String auctionId = (String) request.getData();
+        ClientRegistry.getInstance().unregister(auctionId, outputStream);
+        return Response.ok("Left auction: " + auctionId, null);
     }
 
     /**

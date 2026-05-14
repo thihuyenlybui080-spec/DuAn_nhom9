@@ -1,0 +1,197 @@
+package org.example.loginregister.client.service;
+
+import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.BidTransaction;
+import org.example.loginregister.server.model.entity.user.User;
+import org.example.loginregister.server.network.Request;
+import org.example.loginregister.server.network.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Giao tiếp với server qua socket
+ */
+public class AuctionClientService {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionClientService.class.getName());
+    private static AuctionClientService instance;
+
+    public static AuctionClientService getInstance() {
+        if (instance == null) {
+            instance = new AuctionClientService();
+        }
+        return instance;
+    }
+
+    private AuctionClientService() {
+    }
+
+    /**
+     * Đăng nhập một tài khoản đã có
+     *
+     * @param username tên đăng nhập
+     * @param password mật khẩu
+     * @return
+     */
+    public User login(String username, String password) {
+        Map<String, String> data = new HashMap<>();
+
+        data.put("username", username);
+        data.put("password", password);
+
+        Response response = sendRequest(new Request(Request.ACTION_LOGIN, data));
+
+        if (response.isSuccess()) {
+            return (User) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Đăng kí một tài khoản mới
+     *
+     * @param username    tên người dùng
+     * @param password    mật khẩu
+     * @param fullName    họ tên
+     * @param email       email
+     * @param phoneNumber số điện thoại
+     * @param gender      giới tính
+     * @param role        vai trò : Bidder hoặc Seller
+     */
+    public void register(String username, String password, String fullName,
+                         String email, String phoneNumber, String gender, String role) {
+        Map<String, String> data = new HashMap<>();
+
+        data.put("username", username);
+        data.put("password", password);
+        data.put("fullName", fullName);
+        data.put("email", email);
+        data.put("phoneNumber", phoneNumber);
+        data.put("gender", gender);
+        data.put("role", role);
+
+        Response response = sendRequest(new Request(Request.ACTION_REGISTER, data));
+
+        if (!response.isSuccess()) {
+            throw new RuntimeException(response.getMessage());
+        }
+    }
+
+    /**
+     * Lấy danh sách các phiên đấu giá
+     *
+     * @return trả về danh sách các phiên đấu giá
+     */
+    @SuppressWarnings("unchecked")
+    public List<Auction> getAllAuctions() {
+        Response response = sendRequest(new Request(Request.ACTION_GET_AUCTIONS, null));
+        if (response.isSuccess()) {
+            return (List<Auction>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Lấy thông tin 1 phiên đấu giá theo ID
+     *
+     * @param auctionId ID của phiên đấu giá
+     * @return Auction hoặc null nếu không tìm thấy
+     */
+    public Auction getAuctionById(String auctionId) {
+        Response response = sendRequest(new Request(Request.ACTION_GET_AUCTION_BY_ID, auctionId));
+
+        if (response.isSuccess()) {
+            return (Auction) response.getData();
+        }
+        return null;
+    }
+
+    /**
+     * Đặt giá cho một phiên đấu giá
+     *
+     * @param auctionId ID phiên đấu giá
+     * @param bidderId  ID người đặt giá
+     * @param amount    số tiền đặt giá
+     * @return
+     */
+    public Auction placeBid(String auctionId, String bidderId, double amount) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("auctionId", auctionId);
+        data.put("bidderId", bidderId);
+        data.put("amount", amount);
+        Response response = sendRequest(new Request(Request.ACTION_PLACE_BID, data));
+
+        if (response.isSuccess()) {
+            return (Auction) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Lấy lịch sử bid của một phiên
+     *
+     * @param auctionId ID của một phiên đấu giá
+     * @return danh sách giao dịch bid
+     */
+    public List<BidTransaction> getBidHistory(String auctionId) {
+        Response response = sendRequest(new Request(Request.ACTION_GET_BID_HISTORY, auctionId));
+        if (response.isSuccess()) {
+            return (List<BidTransaction>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Gửi Request lên Servẻ và đợi Response
+     *
+     * @param request yêu cầu cần gửi
+     * @return phản hồi từ server
+     */
+    private synchronized Response sendRequest(Request request) {
+        ConnectionManager connectionManager = ConnectionManager.getInstance();
+        if (!connectionManager.isConnected()) {
+            logger.warn("Connection lost. Attempting to reconnect");
+            if (!connectionManager.reconnect()) {
+                throw new RuntimeException("Cannot connect to server. Please try again");
+            }
+        }
+        try{
+            connectionManager.getOutputStream().writeObject(request);
+            connectionManager.getOutputStream().flush();
+            connectionManager.getOutputStream().reset();
+
+            Response response = (Response) connectionManager.getInputStream().readObject();
+            logger.info("Response: " + response);
+            return response;
+        } catch (IOException e){
+            logger.warn("IO error during request: {}", request.getAction(), e);
+            connectionManager.disconnect();
+            throw new RuntimeException("Connection error: " + e.getMessage());
+        } catch (ClassNotFoundException e){
+            logger.warn("Unknow response type", e);
+            throw new RuntimeException("Invalid response from server");
+        }
+    }
+
+    /**
+     * Báo server biết client đang xem phiên này -> nhận thông báo
+     * gọi khi mở màn BiddingController
+     * @param auctionId
+     */
+    public void watchAuction(String auctionId){
+        sendRequest(new Request(Request.ACTION_WATCH_AUCTION, auctionId));
+    }
+
+    /**
+     * Báo server biết client thoát phiên này -> không nhận thông báo nữa
+     * @param auctionId
+     */
+    public void leaveAuction(String auctionId){
+        sendRequest(new Request(Request.ACTION_LEAVE_AUCTION, auctionId));
+    }
+}

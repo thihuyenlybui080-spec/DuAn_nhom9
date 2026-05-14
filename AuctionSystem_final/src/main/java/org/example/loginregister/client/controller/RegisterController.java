@@ -30,7 +30,7 @@ import static org.example.loginregister.client.controller.MainController.LOGIN_F
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
 
 public class RegisterController implements Initializable {
-    private final String AUCTION_REGISTER_IMAGE_PATH = "auctionres.png";
+    private final String AUCTION_REGISTER_IMAGE_PATH = "mini.png";
 
 
     private static final String ROLE_BIDDER = "Bidder";

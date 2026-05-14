@@ -32,6 +32,7 @@ public class AuctionServer {
     private final ExecutorService threadPool = Executors.newVirtualThreadPerTaskExecutor();
     private volatile boolean running = false;
 
+
     /**
      * Khởi động server
      * chạy vòng lặp vô hạn cho đến khi gọi stop()
