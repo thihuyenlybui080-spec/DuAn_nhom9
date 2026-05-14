@@ -60,7 +60,7 @@ public class DatabaseConfig {
 
         DB_HOST = props.getProperty("db.host", "localhost").trim();
         DB_PORT = props.getProperty("db.port", "3306").trim();
-        DB_NAME = props.getProperty("db.name", "loginregister").trim();
+        DB_NAME = props.getProperty("db.name", "auction_system").trim();
         DB_USER = props.getProperty("db.user", "root").trim();
         DB_PASS = props.getProperty("db.pass", "root").trim();
 
