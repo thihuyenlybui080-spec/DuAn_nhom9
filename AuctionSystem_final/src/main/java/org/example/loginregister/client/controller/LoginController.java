@@ -75,7 +75,6 @@ public class LoginController implements Initializable {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
-
     public void validateLogin() {
         String username = usernameTF.getText();
         String password = passwordTF.getText();
@@ -85,9 +84,9 @@ public class LoginController implements Initializable {
 
             if (user != null) {
                 int userId = Integer.parseInt(user.getId());
-                String role = user.getRole();
+                String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";  
 
-                LoginHistoryDAO.saveLoginHistory(userId, username, "SUCCESS");  // gọi thẳng
+                LoginHistoryDAO.saveLoginHistory(userId, username, "SUCCESS");
                 messageLabel.setText("Login successful! Welcome, " + user.getName());
 
                 PauseTransition pause = new PauseTransition(Duration.seconds(1));
