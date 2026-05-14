@@ -1,5 +1,6 @@
 package org.example.loginregister.server.dao;
 
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.server.database.DatabaseConfig;
 
 import java.sql.*;

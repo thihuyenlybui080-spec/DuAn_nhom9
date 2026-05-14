@@ -16,4 +16,6 @@ module org.example.loginregister {
     exports org.example.loginregister.server.database;
     exports org.example.loginregister.server.dao;
     opens org.example.loginregister.client.controller to javafx.fxml;
+    exports org.example.loginregister.server;
+    opens org.example.loginregister.server to javafx.fxml;
 }

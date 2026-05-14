@@ -17,9 +17,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.loginregister.client.service.AuctionClientService;
+import org.example.loginregister.client.service.NotificationListener;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.InvalidBidException;
+import org.example.loginregister.common.network.NotificationMessage;
 import org.example.loginregister.common.observer.Observer;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
@@ -30,7 +32,6 @@ import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.util.AuctionHistoryManager;
 import org.example.loginregister.server.util.AuctionManager;
 
-import javax.management.NotificationListener;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.Duration;
@@ -122,7 +123,28 @@ public class BiddingController implements Initializable, Observer {
         }
         populateView();
         AuctionClientService.getInstance().watchAuction(auction.getId());
-        NotificationListener.
+        NotificationListener.getInstance().register(auction.getId(), notification -> {
+            switch (notification.getType()){
+                case NotificationMessage.TYPE_BID_UPDATED:
+                    Auction updated = (Auction) notification.getData();
+                    Platform.runLater(() -> {
+                        this.auction = updated;
+                        updatePriceArea();
+                        refreshBidHistory();
+                        updateStatusBadge();
+                        updateBidButton();
+                    });
+                    break;
+                case NotificationMessage.TYPE_AUCTION_ENDED:
+                    Platform.runLater(() -> {
+                        this.auction = (Auction) notification.getData();
+                        updateBidButton();
+                        updateStatusBadge();
+                        lblCountdown.setText("ENDED");
+                    });
+                    break;
+            }
+        } );
         startAutoRefresh();
     }
     private void populateView() {
@@ -409,7 +431,8 @@ public class BiddingController implements Initializable, Observer {
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdownNow();
         }
-        auction.removeObserver(this);
+        NotificationListener.getInstance().unregister(auction.getId());
+        AuctionClientService.getInstance().leaveAuction(auction.getId());
     }
 
     // ── Navigation ────────────────────────────────────────────────────────────

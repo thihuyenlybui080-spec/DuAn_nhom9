@@ -22,7 +22,14 @@ import java.util.function.Consumer;
  * </p>
  */
 public class NotificationListener implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(NotificationListener.class)
+    private static final Logger logger = LoggerFactory.getLogger(NotificationListener.class);
+    private static NotificationListener instance;
+    public static NotificationListener getInstance(){
+        if(instance == null){
+            instance = new NotificationListener();
+        }
+        return instance;
+    }
     private final Map<String, Consumer<NotificationMessage>> handlers = new ConcurrentHashMap<>();
     private volatile boolean running = false;
     private Thread ListenerThread;
@@ -75,7 +82,25 @@ public class NotificationListener implements Runnable {
             }
         }
     }
-    
+
+    public void register(String auctionId, Consumer<NotificationMessage> handler){
+        handlers.put(auctionId, handler);
+        logger.info("Handler registered for auction: {}", auctionId);
+    }
+
+    public void unregister(String auctionId){
+        handlers.remove(auctionId);
+        logger.info("Handler unregistered for auction: {}", auctionId);
+    }
+
+    private void dispatch(NotificationMessage notification){
+        Consumer<NotificationMessage> handler = handlers.get(notification.getAuctionId());
+        if(handler != null){
+            handler.accept(notification);
+        } else {
+            logger.info("No handler for auction: {}", notification.getAuctionId());
+        }
+    }
 
 
 
