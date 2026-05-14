@@ -22,7 +22,7 @@ public class Response implements Serializable {
      * @param data dữ liệu phản hồi
      * @return trả về một phản hồi thành công
      */
-    private static Response ok(Object data){
+    public static Response ok(Object data){
         return new Response(true, "OK", data);
     }
 
@@ -32,7 +32,7 @@ public class Response implements Serializable {
      * @param data dữ liệu phản hồi
      * @return một phản hồi
      */
-    private static Response ok(String message, Object data){
+    public static Response ok(String message, Object data){
         return new Response(true, message, data);
     }
 

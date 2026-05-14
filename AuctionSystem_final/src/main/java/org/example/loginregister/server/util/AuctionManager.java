@@ -1,5 +1,7 @@
 package org.example.loginregister.server.util;
 
+import org.example.loginregister.common.exception.AuctionClosedException;
+import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.server.dao.AuctionDAO;
 import org.example.loginregister.server.dao.BidDAO;
 import org.example.loginregister.server.dao.ItemDAO;
@@ -111,7 +113,7 @@ public class AuctionManager {
     /**
      * Đặt giá: xử lý in-memory + lưu vào DB.
      */
-    public boolean placeBid(String auctionId, Bidder bidder, double amount) {
+    public boolean placeBid(String auctionId, Bidder bidder, double amount) throws InvalidBidException, AuctionClosedException {
         Auction auction = activeAuctions.get(auctionId);
         if (auction == null) {
             System.err.println("Error: Auction session does not exist or has already ended!");

@@ -136,6 +136,10 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Phone must be 10 - 11 digits");
             isValid = false;
         }
+        if(!isEmailValid(emailTF.getText())){
+            registrationMessageLabel.setText("Email must be abc@gmail.com");
+            isValid = false;
+        }
         boolean isSuccess = registerUser();
         if (isSuccess) {
             String selectedRole = roleComboBox.getValue();
@@ -156,6 +160,9 @@ public class RegisterController implements Initializable {
                 && !phoneNumberTF.getText().trim().isEmpty()
                 && roleComboBox.getValue() != null
                 && !selectedGender.isEmpty();
+    }
+    private boolean isEmailValid(String email){
+        return email.endsWith("@gmail.com");
     }
 
     private boolean isPhoneNumberValid(String phone) {

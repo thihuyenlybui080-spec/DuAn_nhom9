@@ -17,7 +17,7 @@
 <?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="rootBorderPane" prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.AdminDashboardController"> <left>
-    <VBox alignment="TOP_CENTER" prefHeight="720.0" prefWidth="253.0" style="-fx-background-color: #1a0a0c; -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
+    <VBox alignment="TOP_CENTER" prefHeight="720.0" prefWidth="253.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
 
         <VBox alignment="CENTER" prefHeight="120.0">
             <Label text="NETBID" textFill="#c0c43f">
@@ -77,7 +77,7 @@
 </left>
 
     <center>
-        <VBox style="-fx-background-color: #12080a;"> <HBox alignment="CENTER_LEFT" prefHeight="70.0" spacing="15.0" style="-fx-background-color: #1a0a0c; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);">
+        <VBox style="-fx-background-color: #12080a;"> <HBox alignment="CENTER_LEFT" prefHeight="89.0" prefWidth="897.0" spacing="15.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);">
             <padding><Insets left="20.0" right="20.0" /></padding>
             <VBox alignment="CENTER_LEFT" spacing="2.0">
                 <Label fx:id="lblPageTitle" text="Manage Users" textFill="WHITE">
@@ -129,7 +129,7 @@
                         <Label fx:id="lblUserCount" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="0 USERS LOADED" textFill="#c0c43f" />
                     </HBox>
 
-                    <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: #3d1c21; -fx-border-radius: 15;" VBox.vgrow="ALWAYS">
+                    <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: #000; -fx-border-radius: 15; -fx-background-radius: 15;" VBox.vgrow="ALWAYS">
                         <VBox fx:id="userListContainer" spacing="10.0">
 
                         </VBox>

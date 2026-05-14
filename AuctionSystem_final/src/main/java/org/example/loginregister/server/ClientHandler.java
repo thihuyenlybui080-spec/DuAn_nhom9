@@ -1,18 +1,26 @@
 package org.example.loginregister.server;
 
+import javafx.scene.Node;
+import org.example.loginregister.common.exception.AuctionClosedException;
+import org.example.loginregister.common.exception.InvalidBidException;
+import org.example.loginregister.server.dao.UserDAO;
+import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.network.Request;
 import org.example.loginregister.server.network.Response;
+import org.example.loginregister.server.util.AuctionHistoryManager;
 import org.example.loginregister.server.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
 
+import javax.print.attribute.HashPrintRequestAttributeSet;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -80,14 +88,6 @@ public class ClientHandler implements Runnable{
             cleanup();
         }
     }
-
-    /**
-     * Gửi phản hồi cho Client
-     * @param response phản hồi
-     */
-    private void sendResponse(Response response) {
-    }
-
     /**
      * Khởi tạo các trình xử lý sự kiện
      */
@@ -108,7 +108,7 @@ public class ClientHandler implements Runnable{
     private Response handleRequest(Request request){
         Function<Request, Response> handler = handlers.get(request.getAction());
         if(handler == null){
-            return Response.error("Unknow action: " + request.getAction());
+            return Response.error("Unknow action: {} " + request.getAction());
         }
         return handler.apply(request);
     }
@@ -125,9 +125,168 @@ public class ClientHandler implements Runnable{
                 return Response.error("Username and password are required.");
             }
 
-            User user = AuctionManager.getInstance().
+            User user = UserDAO.getUserByCredentials(userName, password);
+
+            if(user == null){
+                return Response.error("Invalid username or password");
+            }
+
+            if(!user.isActive()){
+                return Response.error("This account has been locked");
+            }
+
+            this.loggedInUser = user;
+            logger.info("User logged in: {}", userName);
+
+            return Response.ok("Login successful.", user);
+        } catch (Exception e){
+            logger.warn("Login error: {}", e.getMessage());
+            return Response.error("Login failed: " + e.getMessage());
         }
     }
 
+    /**
+     * Xử lý đăng kí từ Client
+     * @param request yêu cầu từ client
+     * @return trả về phản hồi
+     */
+    private Response handleRegister(Request request){
+        try{
+            @SuppressWarnings("unchecked")
+            Map<String, String> info = (Map<String, String>) request.getData();
+
+            String username = info.get("username");
+            String password = info.get("password");
+            String role = info.get("role");
+            String fullName = info.get("fullName");
+            String gender = info.get("gender");
+            String phoneNumber = info.get("phoneNumber");
+            String email = info.get("email");
+
+            if(username == null || password == null || role == null){
+                return Response.error("Missing required fields");
+            }
+
+            boolean success = UserDAO.registerUser(username, password, fullName, email, gender, phoneNumber, role );
+
+            if(!success){
+                return Response.error("User already exists");
+            }
+
+            return Response.ok("Registration successful.", null);
+        } catch (Exception e){
+            logger.warn("Register error: {}", e.getMessage());
+            return Response.error("Registration failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * lấy danh sách tất cả phiên đấu giá
+     * @param request yêu cầu từ client
+     * @return một phản hồi
+     */
+    private Response handleGetAuctions(Request request){
+        try{
+            List<Auction> auctions = AuctionManager.getInstance().getAllAuctions();
+            return Response.ok(auctions);
+        } catch (Exception e){
+            logger.warn("GetAuctions error: {}", e.getMessage());
+            return Response.error("Failed to get auctions");
+        }
+    }
+
+    private Response handleGetAuctionById(Request request){
+        try{
+            String auctionId = (String) request.getData();
+            Auction auction = AuctionManager.getInstance().getAuction(auctionId);
+
+            if(auctionId == null){
+                return Response.error("Auction not found: " + auctionId);
+            }
+
+            return Response.ok(auction);
+        } catch (Exception e){
+            logger.warn("GetAuctionById error: {} ", e.getMessage());
+            return Response.error("Failed to get auctions");
+        }
+    }
+
+    /**
+     * Xử lý đặt giá
+     * @param request yêu cầu từ client
+     * @return phản hồi từ server
+     */
+    private Response handlePlaceBid(Request request) {
+        try{
+            @SuppressWarnings("unchecked")
+            Map<String, Object> bidData = (Map<String, Object>) request.getData();
+
+            String auctionId = (String) bidData.get("auctionId");
+            double amount = ((Number) bidData.get("amount")).doubleValue();
+
+            Auction auction = AuctionManager.getInstance().getAuction(auctionId);
+
+            if(auction == null){
+                return Response.error("Auction not found");
+            }
+
+            if(!(loggedInUser instanceof Bidder)){
+                return Response.error("only bidders can place bids");
+            }
+
+            AuctionManager.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
+
+            logger.info("Bid placed: user = {} auction = {} amount = {}", loggedInUser.getFullname(), auctionId, amount);
+
+            return Response.ok("Bid placed successfully.", auction);
+        }catch (InvalidBidException e){
+            return Response.error(e.getMessage());
+        } catch (AuctionClosedException e){
+            return Response.error("Auction is closed");
+        } catch (Exception e){
+            logger.warn("PlaceBid error: {}", e.getMessage());
+            return Response.error("Failed to place bid: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lấy lịch sử bid của một phiên
+     * @param request yêu cầu từ khách hàng
+     * @return một phản hồi từ server
+     */
+    private Response handleGetBidHistory(Request request){
+        try{
+            String auctionId = (String) request.getData();
+            return Response.ok(AuctionHistoryManager.getInstance().getResult(auctionId));
+        } catch (Exception e){
+            return Response.error("Failed to get bid history");
+        }
+    }
+
+    /**
+     * gửi phản hồi cho client
+     * @param response phản hồi từ server
+     * synchronized để tránh hai thread gửi cùng một lúc làm nhầm dữ liệu
+     */
+    private synchronized void sendResponse(Response response){
+        try{
+            outputStream.writeObject(response);
+            outputStream.flush();
+            outputStream.reset();
+        } catch (IOException e){
+            logger.warn("Failed to send response: {}", e.getMessage());
+        }
+    }
+
+    private void cleanup(){
+        try{
+            if(inputStream != null) inputStream.close();
+            if(outputStream != null) outputStream.close();
+            if(!clientSocket.isClosed()) clientSocket.close();
+        } catch (IOException e) {
+            logger.warn("Cleanup error: " + e.getMessage());
+        }
+    }
 
 }
+
