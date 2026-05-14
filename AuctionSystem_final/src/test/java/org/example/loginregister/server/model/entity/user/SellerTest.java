@@ -12,7 +12,7 @@ class SellerTest {
     @BeforeEach
     void setUp() {
         // Khởi tạo đối tượng Admin trước mỗi bài test
-        seller = new Seller("AD01", "duong", "123456", "admin@gmail.com", "Nguyen Van Admin");
+        seller = new Seller("duong", "123456", "admin@gmail.com", "Nguyen Van Admin");
     }
 
     @Test

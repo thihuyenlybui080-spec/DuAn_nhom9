@@ -4,7 +4,7 @@ import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.common.observer.Observer;
 import org.example.loginregister.server.model.entity.Auction;
-import org.example.loginregister.server.model.entity.Bid;
+import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.item.Electronics;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
@@ -29,19 +29,19 @@ class AuctionTest {
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
 
-        item = new Electronics("SP01", "Laptop Dell", "Levono intel",1000, 1000, start, end);
-        seller1 = new Seller("S01","Seller1", "987654321","sell@gmail.com","Nguye Van Sell");
+        item = new Electronics("Laptop Dell", seller1, item.getDescription(), 1000, start, end);
+        seller1 = new Seller("Seller1", "987654321","sell@gmail.com","Nguye Van Sell");
         // Khởi tạo phiên đấu giá kéo dài 3600 giây (1 giờ)
-        auction = new Auction("A01", item, seller1,3600);
+        auction = new Auction(seller1,item);
 
-        bidder1 = new Bidder("P1","Duong", "123456789", "duong@gmail.com","Tran Lam Duong");
-        bidder2 = new Bidder("P2","Duong2", "1234567890", "duong2@gmail.com","Tran Lam Duong2");
+        bidder1 = new Bidder("Duong", "123456789", "duong@gmail.com","Tran Lam Duong");
+        bidder2 = new Bidder("Duong2", "1234567890", "duong2@gmail.com","Tran Lam Duong2");
     }
 
     @Test
     void testInitialAuctionState() {
         // Kiểm tra trạng thái ban đầu khi mới tạo phiên đấu giá
-        assertEquals(Auction.OPEN, auction.getStatus(), "Trạng thái ban đầu phải là OPEN");
+        assertEquals(AuctionStatus.OPEN, auction.getStatus(), "Trạng thái ban đầu phải là OPEN");
         assertEquals(1000.0, auction.getCurrentPrice(), "Giá hiện tại phải bằng giá khởi điểm");
         assertNull(auction.getHighestBidder(), "Chưa có người đấu giá thì highestBidder phải là null");
         assertTrue(auction.getSecondsRemaining() > 0, "Thời gian còn lại phải lớn hơn 0");
@@ -51,10 +51,10 @@ class AuctionTest {
     void testPlaceValidBidSuccess() {
         // Kiểm tra đặt giá hợp lệ (lớn hơn giá hiện tại)
         assertDoesNotThrow(() -> {
-            auction.placeBid(new Bid(bidder1, 1500.0));
+            auction.placeBid(new BidTransaction(bidder1, item,1500.0));
         });
 
-        assertEquals(Auction.RUNNING, auction.getStatus());
+        assertEquals(AuctionStatus.RUNNING, auction.getStatus());
         assertEquals(1500.0, auction.getCurrentPrice());
         assertEquals(bidder1, auction.getHighestBidder());
         assertEquals(1, auction.getBids().size());
@@ -64,22 +64,22 @@ class AuctionTest {
     void testPlaceInvalidBid_ThrowsException() {
         // Kiểm tra ném ngoại lệ khi đặt giá thấp hơn hoặc bằng giá hiện tại
         assertThrows(InvalidBidException.class, () -> {
-            auction.placeBid(new Bid(bidder1, 500.0)); // 500 < 1000 (giá khởi điểm)
+            auction.placeBid(new BidTransaction(bidder1, item,500.0)); // 500 < 1000 (giá khởi điểm)
         });
 
         // Trạng thái và giá không được thay đổi
-        assertEquals(Auction.OPEN, auction.getStatus());
+        assertEquals(AuctionStatus.OPEN, auction.getStatus());
         assertEquals(1000.0, auction.getCurrentPrice());
     }
 
     @Test
     void testPlaceBidWhenAuctionClosed_ThrowsException() {
         // Kết thúc phiên đấu giá
-        auction.finishAuction();
+        auction.finishAuction(AuctionStatus.FINISHED);
 
         // Cố tình đặt giá khi phiên đã đóng
         assertThrows(AuctionClosedException.class, () -> {
-            auction.placeBid(new Bid(bidder1, 2000.0));
+            auction.placeBid(new BidTransaction(bidder1, item, 20000.0));
         });
     }
 
@@ -98,9 +98,9 @@ class AuctionTest {
         // Đặt giá trước khi đóng
         auction.processBid(bidder1, 2000.0);
 
-        auction.finishAuction();
+        auction.finishAuction(AuctionStatus.RUNNING);
 
-        assertEquals(Auction.FINISHED, auction.getStatus());
+        assertEquals(AuctionStatus.FINISHED, auction.getStatus());
         assertEquals(bidder1, auction.getHighestBidder(), "Vẫn phải giữ nguyên người thắng cuộc");//???????
     }
 

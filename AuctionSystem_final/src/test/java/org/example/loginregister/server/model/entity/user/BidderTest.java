@@ -12,7 +12,7 @@ class BidderTest {
     @BeforeEach
     void setUp() {
         // Khởi tạo đối tượng Admin trước mỗi bài test
-        bidder = new Bidder("AD01", "duong", "123456", "admin@gmail.com", "Nguyen Van Admin");
+        bidder = new Bidder("duong", "123456", "admin@gmail.com", "Nguyen Van Admin");
     }
 
     @Test

@@ -11,7 +11,7 @@ class AdminTest {
     @BeforeEach
     void setUp() {
         // Khởi tạo đối tượng Admin trước mỗi bài test
-        admin = new Admin("AD01", "duong", "123456", "admin@gmail.com", "Nguyen Van Admin");
+        admin = new Admin("duong", "123456", "admin@gmail.com", "Nguyen Van Admin");
     }
 
     @Test
