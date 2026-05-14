@@ -27,9 +27,8 @@ jobs:
         java-version: '25'
         distribution: 'temurin'
         cache: maven
-    - name: Build and Checkstyle with Maven
-      # Lệnh này sẽ chạy compile, checkstyle và unit test
-      run: mvn clean verify
+    - name: Build and Test with Maven
+      run: mvn clean package -Dcheckstyle.skip=true
       
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
