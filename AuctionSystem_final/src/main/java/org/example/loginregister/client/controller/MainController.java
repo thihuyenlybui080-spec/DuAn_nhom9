@@ -23,9 +23,6 @@ public class MainController implements Initializable {
     static final String LOGIN_TITLE    = "Login";
     private static final String REGISTER_TITLE = "Register";
 
-    static final String ADMIN_TITLE = "Admin";
-    static final String ADMIN_FXML = "admin_dashboard.fxml";
-
     private static final String STYLE_NAV_ACTIVE =
             "-fx-background-color:  linear-gradient(to bottom right, #8b3a44, #722f37, #5a2028);" +
                     "-fx-border-color:  rgba(192,196,63,0.2); -fx-border-radius: 6;" +
