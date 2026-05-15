@@ -405,22 +405,21 @@ public class BidderDashboardController implements Initializable {
     }
 
     private void setActiveNav(Button active){
-        active.setStyle(STYLE_NAV_ACTIVE);
-
         btnNavWon.setStyle(STYLE_NAV_NORMAL);
         btnNavAuctions.setStyle(STYLE_NAV_NORMAL);
         btnNavHistory.setStyle(STYLE_NAV_NORMAL);
 
+        active.setStyle(STYLE_NAV_ACTIVE);
+
     }
 
     private  void updateCategoryStyles(ToggleButton active){
-        active.setStyle(STYLE_FILTER_ACTIVE);
-
         btnArt.setStyle(STYLE_FILTER_NORMAL);
         btnElectronics.setStyle(STYLE_FILTER_NORMAL);
         btnVehicles.setStyle(STYLE_FILTER_NORMAL);
         btnAll.setStyle(STYLE_FILTER_NORMAL);
 
+        active.setStyle(STYLE_FILTER_ACTIVE);
     }
 
     private String getCategoryIcon(String category){

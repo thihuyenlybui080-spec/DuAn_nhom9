@@ -7,6 +7,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.User;
@@ -58,6 +60,7 @@ public class AuctionDetailController implements Initializable {
     @FXML private Button btnBack;
     @FXML private Label lblAuctionIdBar;
     @FXML private Label lblConnectionStatus;
+    @FXML private BorderPane rootBorderPane;
 
     static final String BIDDER_DASHBOARD_FXML = "bidder_dashboard.fxml";
     static final String BIDDER_DASHBOARD_TITLE = "bidder";
@@ -69,7 +72,12 @@ public class AuctionDetailController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
-
+        Platform.runLater(() ->{
+            if(rootBorderPane != null) {
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                stage.setFullScreen(true);
+            }
+        });
     }
     public void setData(Auction auction, User currentUser){
         System.out.println("✅ Đã nhận dữ liệu Auction: " + (auction != null ? auction.getId() : "NULL"));

@@ -10,12 +10,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.NotificationListener;
 import org.example.loginregister.client.service.SceneManager;
@@ -67,6 +65,7 @@ public class BiddingController implements Initializable, Observer {
     @FXML private Label lblCategory;
     @FXML private Label lblCountdown;
     @FXML private Label lblStatusBadge;
+    @FXML private Button btnBack;
 
     // ── FXML – Cột trái ───────────────────────────────────────────────────────
 
@@ -76,6 +75,9 @@ public class BiddingController implements Initializable, Observer {
     @FXML private Label lblAuctionId;
     @FXML private Label lblBidCount;
     @FXML private VBox bidHistoryContainer;
+    @FXML private Button btnNavAuctions;
+    @FXML private Button btnSignOut;
+    @FXML private Button btnNavMyAuctions;
 
     // ── FXML – Cột phải ───────────────────────────────────────────────────────
 
@@ -102,6 +104,7 @@ public class BiddingController implements Initializable, Observer {
 
     @FXML private Label lblConnectionStatus;
     @FXML private Label lblLastUpdate;
+    @FXML private BorderPane rootBorderPane;
 
     private Auction auction;
     private Bidder bidder;
@@ -112,7 +115,12 @@ public class BiddingController implements Initializable, Observer {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
-
+        Platform.runLater(() ->{
+            if(rootBorderPane != null) {
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                stage.setFullScreen(true);
+            }
+        });
     }
 
     public void setData(Auction auction, Bidder bidder){
@@ -437,26 +445,21 @@ public class BiddingController implements Initializable, Observer {
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
-    @FXML
     private void onBack(ActionEvent event) {
         stopScheduler();
         sceneManager.switchScene(event, BIDDER_DASHBOARD_FXML, BIDDER_DASHBOARD_TITLE);
     }
-
-    @FXML
-    private void onNavMyAuctions(ActionEvent event) {
-        onBack(event);
-    }
-
-    @FXML
     private void onNavAuctions(ActionEvent event) {
         onBack(event);
     }
 
-    @FXML
     private void onSignOut(ActionEvent event) {
         stopScheduler();
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
+    }
+
+    private void onNavMyAuctions(ActionEvent event){
+        sceneManager.switchScene(event, "bidding.fxml", "Bidding");
     }
 
     // ── UI helpers ────────────────────────────────────────────────────────────
