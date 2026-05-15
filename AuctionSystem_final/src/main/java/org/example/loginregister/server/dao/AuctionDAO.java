@@ -160,6 +160,7 @@ public class AuctionDAO {
         Item item = ItemDAO.mapItem(rs, seller);
 
         Auction auction = new Auction(seller, item);
+        auction.setId("auction-" + rs.getInt("auction_id"));
         auction.setCurrentPrice(rs.getDouble("auction_current_price"));
 
         int highestBidderId = rs.getInt("highest_bidder_id");
