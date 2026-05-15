@@ -3,17 +3,22 @@ package org.example.loginregister.client.controller;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.util.AuctionManager;
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.Duration;
@@ -62,6 +67,7 @@ public class AuctionDetailController implements Initializable {
     @FXML private Label lblConnectionStatus;
     @FXML private BorderPane rootBorderPane;
 
+
     static final String BIDDER_DASHBOARD_FXML = "bidder_dashboard.fxml";
     static final String BIDDER_DASHBOARD_TITLE = "bidder";
 
@@ -79,10 +85,16 @@ public class AuctionDetailController implements Initializable {
             }
         });
     }
-    public void setData(Auction auction, User currentUser){
+
+    private String comingFromFxml;
+    private String comingFromTitle;
+    public void setData(Auction auction, User currentUser,
+                        String comingFromFxml, String comingFromTitle){
         System.out.println("received auction data: " + (auction != null ? auction.getId() : "NULL"));
         this.auction = auction;
         this.currentUser = currentUser;
+        this.comingFromFxml = comingFromFxml;
+        this.comingFromTitle = comingFromTitle;
         populateView();
         startAutoRefresh();
     }
@@ -144,6 +156,31 @@ public class AuctionDetailController implements Initializable {
         lblBidCount.setText(auction.getBids().size() + " bids placed");
     }
 
+    @FXML
+    private void onPlaceBid(ActionEvent event){
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/bidding.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            BiddingController ctrl = loader.getController();
+            ctrl.setData(
+                    auction,
+                    (Bidder)currentUser,
+                    "auction_detail.fxml",  // ← Back từ Bidding → quay lại AuctionDetail
+                    "Auction Detail"
+            );
+
+            Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Bidding");
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void updateBidButton(){
         boolean canBid = auction.getStatus() == RUNNING;
         btnPlaceBid.setDisable(!canBid);
@@ -170,12 +207,11 @@ public class AuctionDetailController implements Initializable {
         );
     }
 
-    // cập nhật mỗi 5s
     private void tick(){
         updateCountdown();
         long elapsed = Duration.between(auction.getItem().getStartTime(), LocalDateTime.now()).getSeconds();
         if(elapsed % 5 == 0){
-            Auction updated = AuctionManager.getInstance().getAuction(auction.getId());
+            Auction updated = AuctionClientService.getInstance().getAuctionById(auction.getId());
             if(updated != null){
                 this.auction = updated;
                 updatePriceArea();
@@ -207,7 +243,7 @@ public class AuctionDetailController implements Initializable {
         long  h = totalSecs / 3600;
         long m = (totalSecs % 3600) / 60;
         long s = totalSecs % 60;
-        lblCountDown.setText(h + ":" + m + ":" + s);
+        lblCountDown.setText(String.format("%02d:%02d:%02d", h, m, s));
 
         if(totalSecs <= 300){
             lblCountDown.setStyle(
@@ -232,7 +268,7 @@ public class AuctionDetailController implements Initializable {
 
     public void onBack(ActionEvent event){
         stopAutoRefresh();
-        sceneManager.switchScene(event, BIDDER_DASHBOARD_FXML, BIDDER_DASHBOARD_TITLE);
+        sceneManager.switchScene(event, comingFromFxml, comingFromTitle);
     }
 
     public void onNavAuctions(ActionEvent event){

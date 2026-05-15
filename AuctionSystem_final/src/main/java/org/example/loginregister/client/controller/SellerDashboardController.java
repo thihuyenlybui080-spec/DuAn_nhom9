@@ -5,15 +5,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -27,6 +30,7 @@ import org.example.loginregister.server.model.factory.VehicleFactory;
 import org.example.loginregister.server.util.AuctionManager;
 
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -203,8 +207,7 @@ public class SellerDashboardController implements Initializable {
     // ── My Auctions ───────────────────────────────────────────────────────────
 
     private void loadMyAuctions() {
-        List<Auction> list = AuctionManager.getInstance()
-                .getAuctionsBySeller(seller.getId());
+        List<Auction> list = AuctionManager.getInstance().getAuctionsBySeller(seller.getId());
         myAuctions = FXCollections.observableArrayList(list);
         renderAuctions(myAuctions);
     }
@@ -414,13 +417,11 @@ public class SellerDashboardController implements Initializable {
 
     @FXML
     private void onAddItem() {
-        // Chuyển sang tab Create Auction để điền thông tin item mới
         onNavCreateAuction();
         lblStatusBar.setText("Fill in the form to create a new auction.");
     }
 
     private void onEditItem(Item item) {
-        // Chuyển sang form và điền sẵn thông tin item
         onNavCreateAuction();
         txtItemName.setText(item.getItemName());
         cmbCategory.setValue(item.getCategory());
@@ -464,8 +465,25 @@ public class SellerDashboardController implements Initializable {
 
     private void onViewAuction(Auction auction) {
         lblStatusBar.setText("Viewing: " + auction.getItem().getItemName());
-        Stage stage = (Stage) auctionListContainer.getScene().getWindow();
-        sceneManager.switchScene(stage, "auction_detail.fxml", "Auction detail");
+        try{
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/auction_detail.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            AuctionDetailController ctrl = loader.getController();
+            ctrl.setData(
+                    auction,
+                    seller,
+                    "seller_dashboard.fxml",
+                    "Seller"
+            );
+            Stage stage = (Stage) auctionListContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Auction detail");
+            stage.show();
+        }  catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     private void onDeleteAuction(Auction auction) {

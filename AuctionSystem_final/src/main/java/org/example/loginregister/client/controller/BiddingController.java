@@ -55,6 +55,8 @@ public class BiddingController implements Initializable, Observer {
 
     static final String BIDDER_DASHBOARD_FXML  = "bidder_dashboard.fxml";
     static final String BIDDER_DASHBOARD_TITLE = "Bidder Dashboard";
+    private String comingFromFile;
+    private String comingFromTitle;
 
 
     @FXML private Label lblUsername;
@@ -123,9 +125,11 @@ public class BiddingController implements Initializable, Observer {
         });
     }
 
-    public void setData(Auction auction, Bidder bidder){
+    public void setData(Auction auction, Bidder bidder, String fromFXML, String fromTitle){
         this.auction = auction;
         this.bidder = bidder;
+        this.comingFromFile = fromFXML;
+        this.comingFromTitle = fromTitle;
         if(this.auction != null){
             this.auction.addObserver(this);
         }
@@ -340,7 +344,7 @@ public class BiddingController implements Initializable, Observer {
 
     }
     private void refreshBidHistory(){
-        List<BidTransaction> txList = AuctionResult.getBidHistory();
+        List<BidTransaction> txList = AuctionClientService.getInstance().getBidHistory(auction.getId());
         bidHistoryContainer.getChildren().clear();
 
         if(txList.isEmpty()){
@@ -447,7 +451,7 @@ public class BiddingController implements Initializable, Observer {
 
     private void onBack(ActionEvent event) {
         stopScheduler();
-        sceneManager.switchScene(event, BIDDER_DASHBOARD_FXML, BIDDER_DASHBOARD_TITLE);
+        sceneManager.switchScene(event, comingFromFile, comingFromTitle);
     }
     private void onNavAuctions(ActionEvent event) {
         onBack(event);

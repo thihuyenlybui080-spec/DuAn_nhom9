@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
@@ -378,16 +379,61 @@ public class BidderDashboardController implements Initializable {
         return empty;
     }
 
-    private void onBidClicked(Auction auction){
-        if(auction.getStatus() == FINISHED) {
+
+    private void onBidClicked(Auction auction) {
+        if (auction.getStatus() == FINISHED) {
             new Alert(Alert.AlertType.INFORMATION, "This auction has ended.").showAndWait();
             return;
         }
-        navigateTo("bidding.fxml", "bidding");
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/bidding.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            BiddingController ctrl = loader.getController();
+            ctrl.setData(
+                    auction,
+                    bidder,
+                    "bidder_dashboard.fxml",  // ← màn quay lại
+                    "Bidder Dashboard"
+            );
+
+            Stage stage = (Stage) auctionContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Bidding");
+            stage.show();
+            stopAutoRefresh();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
     }
 
     private void onDetailClicked(Auction auction){
-        navigateTo("auction_detail.fxml", "auction detail");
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/auction_detail.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            AuctionDetailController ctrl = loader.getController();
+            ctrl.setData(
+                    auction,
+                    bidder,
+                    "bidder_dashboard.fxml",  // ← màn quay lại
+                    "Bidder Dashboard"
+            );
+
+            Stage stage = (Stage) auctionContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Auction detail");
+            stage.show();
+            stopAutoRefresh();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
     }
 
     private void navigateTo(String fxmlFile, String title){

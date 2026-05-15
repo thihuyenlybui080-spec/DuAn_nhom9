@@ -168,15 +168,11 @@ public class Auction implements Subject {
             lock.unlock();
         }
     }
-
-    /**
-     * Chỉ dùng nội bộ (Admin.cancelAuction).
-     * Dùng lock để đảm bảo an toàn khi set status.
-     */
     public boolean tryExtendForAntiSnipe(long thresholdSec, long extensionSec) {
         lock.lock();
         try {
-            // Anti-snipe kích hoạt cả khi phiên đang OPEN (chưa có bid) hoặc RUNNING phòng trường TH thời gian khi khởi tạo quá ngắn
+            // Anti-snipe kích hoạt cả khi phiên đang OPEN (chưa có bid)
+            // hoặc RUNNING phòng trường TH thời gian khi khởi tạo quá ngắn
 
             if (status != AuctionStatus.OPEN && status != AuctionStatus.RUNNING) return false;
             if (getSecondsRemaining() >= thresholdSec) return false;
