@@ -80,20 +80,18 @@ public class AuctionDetailController implements Initializable {
         });
     }
     public void setData(Auction auction, User currentUser){
-        System.out.println("✅ Đã nhận dữ liệu Auction: " + (auction != null ? auction.getId() : "NULL"));
+        System.out.println("received auction data: " + (auction != null ? auction.getId() : "NULL"));
         this.auction = auction;
         this.currentUser = currentUser;
         populateView();
         startAutoRefresh();
     }
-
-    // điền toàn bộ thông tin lên màn
     private void populateView(){
         if (currentUser != null) {
             lblUsername.setText(currentUser.getName());
         } else {
             lblUsername.setText("Guest");
-            System.out.println("⚠️ CẢNH BÁO: currentUser đang bị NULL!");
+            System.out.println("Warning: currentUser is null");
         }
 
         updateStatusBadge();
