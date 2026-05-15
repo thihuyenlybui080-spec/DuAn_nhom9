@@ -49,7 +49,7 @@ public class AdminDashboardController implements Initializable {
     private static final NumberFormat VND_FORMAT =
             NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    @FXML private Label lblUserName;
+    @FXML private Label lblUsername;
     @FXML private Button btnNavUsers;
     @FXML private Button btnNavAuctions;
 
@@ -96,7 +96,7 @@ public class AdminDashboardController implements Initializable {
      */
     public void setCurrentAdmin(Admin admin){
         this.admin = admin;
-        lblUserName.setText(admin.getName());
+        lblUsername.setText(admin.getName());
         loadUsers();
         loadAuctions();
         startAutoRefresh();
@@ -138,6 +138,8 @@ public class AdminDashboardController implements Initializable {
 
     private void loadUsers(){
         List<User> list = AuctionManager.getInstance().getAllUsers();
+        System.out.println("DEBUG loadUsers: " + list.size() + " users");  // thêm
+        list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));  // thêm
         allUsers = FXCollections.observableArrayList(list);
         applyUserFilter();
     }
