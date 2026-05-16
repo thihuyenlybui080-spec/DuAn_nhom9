@@ -21,6 +21,11 @@ public class Request implements Serializable {
     public static final String ACTION_GET_BID_HISTORY = "GET_BID_HISTORY";
     public static  final String ACTION_WATCH_AUCTION = "WATCH_AUCTION";
     public static final String ACTION_LEAVE_AUCTION = "LEAVE_AUCTION";
+    public static final String ACTION_GET_ALL_USERS = "GET_ALL_USERS";
+    public static final String ACTION_FORCE_END_AUCTION = "FORCE_END_AUCTION";
+    public static final String ACTION_CANCEL_AUCTION = "CANCEL_AUCTION";
+    public static final String ACTION_GET_AUCTIONS_BY_SELLER = "GET_AUCTIONS_BY_SELLER";
+    public static final String ACTION_TOGGLE_USER_LOCK = "TOGGLE_USER_LOCK";
 
     /** tên hành động client muốn thực hiện */
     private final String action;

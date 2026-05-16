@@ -17,6 +17,7 @@ import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.database.DatabaseConfig;
+import org.example.loginregister.server.model.entity.user.Seller;
 
 import java.io.IOException;
 import java.net.URL;
@@ -140,13 +141,40 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Email must be abc@gmail.com");
             isValid = false;
         }
+        if (!isValid) return;
         boolean isSuccess = registerUser();
         if (isSuccess) {
             String selectedRole = roleComboBox.getValue();
             if (ROLE_SELLER.equalsIgnoreCase(selectedRole)) {
-                sceneManager.switchScene(event, "seller_dashboard.fxml", "Seller Dashboard");
+                String fullName = firstNameTF.getText() + lastnameTF.getText();
+                try{
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/org/example/loginregister/seller_dashboard.fxml"));
+                    Scene scene = new Scene(loader.load());
+
+                    SellerDashboardController ctrl = loader.getController();
+                    ctrl.setCurrentUser(new Seller(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName ));
+                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+                    stage.setScene(scene);
+                    stage.show();
+                }  catch (IOException e){
+                    e.printStackTrace();
+                }
             } else {
-                sceneManager.switchScene(event, "bidder_dashboard.fxml", "Bidder Dashboard");
+                String fullName = firstNameTF.getText() + lastnameTF.getText();
+                try{
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/org/example/loginregister/bidder_dashboard.fxml"));
+                    Scene scene = new Scene(loader.load());
+
+                    SellerDashboardController ctrl = loader.getController();
+                    ctrl.setCurrentUser(new Seller(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
+                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+                    stage.setScene(scene);
+                    stage.show();
+                }  catch (IOException e){
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -399,10 +399,10 @@ public class BidderDashboardController implements Initializable {
             );
 
             Stage stage = (Stage) auctionContainer.getScene().getWindow();
+            stopAutoRefresh();
             stage.setScene(scene);
             stage.setTitle("Bidding");
             stage.show();
-            stopAutoRefresh();
 
         } catch (IOException e) {
             e.printStackTrace();

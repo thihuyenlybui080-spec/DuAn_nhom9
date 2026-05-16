@@ -2,6 +2,7 @@ package org.example.loginregister.server.util;
 
 import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.InvalidBidException;
+import org.example.loginregister.server.AuctionServer;
 import org.example.loginregister.server.dao.AuctionDAO;
 import org.example.loginregister.server.dao.BidDAO;
 import org.example.loginregister.server.dao.ItemDAO;
@@ -169,9 +170,9 @@ public class AuctionManager {
     }
 
     /** Kết thúc phiên đấu giá, lưu kết quả vào DB. */
-    public void endAuction(String auctionId) {
+    public Auction endAuction(String auctionId) {
         Auction auction = activeAuctions.get(auctionId);
-        if (auction == null) return;
+        if (auction == null) return null;
 
         AuctionStatus finalStatus = (auction.getHighestBidder() != null)
                 ? AuctionStatus.FINISHED : AuctionStatus.CANCELED;
@@ -201,6 +202,7 @@ public class AuctionManager {
         if (finalStatus == AuctionStatus.FINISHED) {
             schedulePaymentDeadline(auctionId);
         }
+        return auction;
     }
 
     // ===== GETTER =====

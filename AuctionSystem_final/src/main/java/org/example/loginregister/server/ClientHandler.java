@@ -101,6 +101,11 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_GET_BID_HISTORY, this :: handleGetBidHistory);
         handlers.put(Request.ACTION_WATCH_AUCTION, this :: handleWatchAuction);
         handlers.put(Request.ACTION_LEAVE_AUCTION, this :: handleLeaveAuction);
+        handlers.put(Request.ACTION_GET_AUCTIONS_BY_SELLER, this::handleGetAuctionsBySeller);
+        handlers.put(Request.ACTION_CANCEL_AUCTION, this :: handleCancelAuction);
+        handlers.put(Request.ACTION_FORCE_END_AUCTION, this :: handleForceEndAuction);
+        handlers.put(Request.ACTION_GET_ALL_USERS, this :: handleGetAllUsers);
+        handlers.put(Request.ACTION_TOGGLE_USER_LOCK, this :: handleToggleUserLock);
     }
 
     /**
@@ -292,6 +297,63 @@ public class ClientHandler implements Runnable{
         String auctionId = (String) request.getData();
         ClientRegistry.getInstance().unregister(auctionId, outputStream);
         return Response.ok("Left auction: " + auctionId, null);
+    }
+
+    private Response handleGetAuctionsBySeller(Request request){
+        try {
+            String sellerId = (String) request.getData();
+            if (sellerId == null) {
+                return Response.error("SellerID not found");
+            }
+            List<Auction> auctions = AuctionManager.getInstance().getAuctionsBySeller(sellerId);
+            return Response.ok(auctions);
+        } catch (Exception e){
+            logger.warn("GetAuctionsBySeller error", e);
+            return Response.error("Failed to get auctions");
+        }
+    }
+
+    private Response handleCancelAuction(Request request){
+        try{
+            String auctionId = (String) request.getData();
+            if(auctionId == null){
+                return Response.error("AuctionID not found");
+            }
+            AuctionManager.getInstance().cancelAuction(auctionId);
+            return Response.ok("auction is canceled", null);
+
+        }catch (Exception e){
+            logger.warn("Cancel auction error", e);
+            return Response.error("Failed to cancel auction");
+        }
+    }
+
+    private Response handleForceEndAuction(Request request){
+        try{
+            String auctionId = (String) request.getData();
+            if(auctionId == null){
+                return Response.error("AuctionID not found");
+            }
+            Auction auction = AuctionManager.getInstance().endAuction(auctionId);
+            return Response.ok(auction);
+        }catch (Exception e){
+            logger.warn("ForceEndAuction error", e);
+            return Response.error("Failed to force end auction");
+        }
+    }
+
+    private Response handleGetAllUsers(Request request){
+        try{
+            List<User> users = AuctionManager.getInstance().getAllUsers();
+            return Response.ok(users);
+        } catch (Exception e){
+            logger.warn("GetUsers error", e);
+            return Response.error("Failed to get users");
+        }
+    }
+
+    private Response handleToggleUserLock(Request request){
+
     }
 
     /**

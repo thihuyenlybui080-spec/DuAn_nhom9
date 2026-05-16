@@ -259,11 +259,11 @@ public class BiddingController implements Initializable, Observer {
         }
 
         try{
-            auction.placeBid(new BidTransaction(bidder, auction.getItem(), amount ));
+            AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
             txtBidAmount.clear();
-        } catch (InvalidBidException e) {
-            showBidError(e.getMessage());
-        } catch (AuctionClosedException e) {
+            updatePriceArea();
+            refreshBidHistory();
+        } catch (RuntimeException e) {
             showBidError(e.getMessage());
         }
     }
@@ -449,19 +449,24 @@ public class BiddingController implements Initializable, Observer {
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
+    @FXML
     private void onBack(ActionEvent event) {
         stopScheduler();
         sceneManager.switchScene(event, comingFromFile, comingFromTitle);
     }
+
+    @FXML
     private void onNavAuctions(ActionEvent event) {
         onBack(event);
     }
 
+    @FXML
     private void onSignOut(ActionEvent event) {
         stopScheduler();
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
     }
 
+    @FXML
     private void onNavMyAuctions(ActionEvent event){
         sceneManager.switchScene(event, "bidding.fxml", "Bidding");
     }

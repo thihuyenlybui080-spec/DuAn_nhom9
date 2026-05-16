@@ -16,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -137,7 +138,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private void loadUsers(){
-        List<User> list = AuctionManager.getInstance().getAllUsers();
+        List<User> list = AuctionClientService.getInstance().
         System.out.println("DEBUG loadUsers: " + list.size() + " users");  // thêm
         list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));  // thêm
         allUsers = FXCollections.observableArrayList(list);
@@ -180,6 +181,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private void renderUsers(List<User> list){
+        userListContainer.getChildren().clear();
         if(list.isEmpty()){
             userListContainer.getChildren().add(
                     buildEmptyState("👤", "No users found", "Try changing the filter."));
@@ -290,8 +292,7 @@ public class AdminDashboardController implements Initializable {
                         + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
                         + "-fx-font-size: 11px; -fx-cursor: hand;");
                 lblStatusBar.setText("Unlocked: " + user.getFullname());
-            }
-            if(user.getStatus() == UserStatus.ACTIVE){
+            } else if (user.getStatus() == UserStatus.ACTIVE){
                 admin.manageUser(user, UserStatus.BANNED);
                 user.onStatusChanged(UserStatus.BANNED);
                 btn.setText("🔓 Unlock");
@@ -431,9 +432,9 @@ public class AdminDashboardController implements Initializable {
 
     private void onForceAuction(Auction auction, Button button){
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle(button.getText() == "Force End" ? "Force End Auction" : "Cancel Auction");
+        confirm.setTitle(button.getText().equals("Force End") ? "Force End Auction" : "Cancel Auction");
         confirm.setHeaderText(null);
-        confirm.setContentText(button.getText() == "Force End" ?
+        confirm.setContentText(button.getText().equals("Force End") ?
                 "Force end auction \"" + auction.getItem().getItemName() + "\"?\n"
                         + "This will immediately close the session."
                 : "Are you sure you want to cancel auction ? This will be delete forever");
