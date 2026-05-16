@@ -10,8 +10,9 @@ import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.network.Request;
 import org.example.loginregister.server.network.Response;
+import org.example.loginregister.server.service.AuctionService;
+import org.example.loginregister.server.service.BidService;
 import org.example.loginregister.server.util.AuctionHistoryManager;
-import org.example.loginregister.server.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,7 +191,7 @@ public class ClientHandler implements Runnable{
      */
     private Response handleGetAuctions(Request request){
         try{
-            List<Auction> auctions = AuctionManager.getInstance().getAllAuctions();
+            List<Auction> auctions = AuctionService.getInstance().getAllAuctions();
             return Response.ok(auctions);
         } catch (Exception e){
             logger.warn("GetAuctions error: {}", e.getMessage());
@@ -201,7 +202,7 @@ public class ClientHandler implements Runnable{
     private Response handleGetAuctionById(Request request){
         try{
             String auctionId = (String) request.getData();
-            Auction auction = AuctionManager.getInstance().getAuction(auctionId);
+            Auction auction = AuctionService.getInstance().getAuction(auctionId);
 
             if(auctionId == null){
                 return Response.error("Auction not found: " + auctionId);
@@ -227,7 +228,7 @@ public class ClientHandler implements Runnable{
             String auctionId = (String) bidData.get("auctionId");
             double amount = ((Number) bidData.get("amount")).doubleValue();
 
-            Auction auction = AuctionManager.getInstance().getAuction(auctionId);
+            Auction auction = AuctionService.getInstance().getAuction(auctionId);
 
             if(auction == null){
                 return Response.error("Auction not found");
@@ -237,7 +238,7 @@ public class ClientHandler implements Runnable{
                 return Response.error("only bidders can place bids");
             }
 
-            AuctionManager.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
+            BidService.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
 
             ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
                     NotificationMessage.TYPE_BID_UPDATED,

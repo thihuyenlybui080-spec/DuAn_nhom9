@@ -3,7 +3,7 @@ package org.example.loginregister.server.model.entity.auto_bidding;
 import org.example.loginregister.common.observer.Observer;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
-import org.example.loginregister.server.util.AuctionManager;
+import org.example.loginregister.server.service.BidService;
 
 public class AutoBidAgent implements Observer {
 
@@ -16,28 +16,22 @@ public class AutoBidAgent implements Observer {
         this.bidder = bidder;
         this.auction= auction;
         this.config = config;
-        auction.addObserver(this);   // bắt đầu lắng nghe
+        auction.addObserver(this);
     }
 
     @Override
     public void update(String auctionId, double currentPrice, String highestBidder) {
         if (!active) return;
 
-        //  đang dẫn đầu , không cần làm gì
         if (bidder.getName().equals(highestBidder)) return;
 
         double nextBid = currentPrice + config.getIncrement();
 
         if (nextBid > config.getMaxBid()) {
-            stop();   // hết ngân sách
+            stop();
             return;
         }
-        try {
-            bidder.bid(auction, nextBid);
-
-        }catch(Exception e){
-            System.err.println("[AutoBid] " + bidder.getName() + " failed to place bid in auction " + auctionId + ": " + e.getMessage());
-        }
+        BidService.getInstance().processAutoBid(bidder, auction, nextBid);
     }
 
     public void stop() {

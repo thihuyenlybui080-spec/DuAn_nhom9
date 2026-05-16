@@ -1,6 +1,6 @@
 package org.example.loginregister.server;
 
-import org.example.loginregister.server.util.AuctionManager;
+import org.example.loginregister.server.service.AuctionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public class AuctionServer {
             serverSocket = new ServerSocket(PORT);
             running = true;
 
-            AuctionManager.getInstance().getActiveAuctions();
+            AuctionService.getInstance().getActiveAuctions();
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept();

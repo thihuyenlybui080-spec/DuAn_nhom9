@@ -1,7 +1,6 @@
 package org.example.loginregister.server.model.entity.user;
 
 import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.AuthenticationException;
 import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
@@ -10,8 +9,9 @@ import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidAgent;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.item.Item;
+import org.example.loginregister.server.service.BidService;
+import org.example.loginregister.server.service.PaymentService;
 import org.example.loginregister.server.util.AuctionHistoryManager;
-import org.example.loginregister.server.util.AuctionManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,21 +30,9 @@ public class Bidder extends User  {
         super( name, password, email, fullName);
     }
 
-    //hành động sau khi bị BAN hoặc DELETED
-    @Override
-    public void onStatusChanged(UserStatus newStatus) {
-        if (newStatus == UserStatus.BANNED || newStatus == UserStatus.DELETED) {
-
-            // Huỷ tất cả bid đang chạy của bidder này
-            AuctionManager.getInstance().getActiveAuctions().forEach(auction -> auction.cancelBidsFrom(this));
-
-            System.out.println("[Bidder] " + getName() + " was set to " + newStatus + ": all bids were canceled");
-        }
-    }
-
     /**
      * Bidder chủ động đặt giá vào một phiên đấu giá.
-     * Kiểm tra tài khoản trước, sau đó chuyển toàn bộ logic xuống AuctionManager.*/
+     */
     public boolean bid(Auction auction, double amount) throws InvalidBidException, AuctionClosedException {
         if (!isActive()) {
             throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot place bids");
@@ -52,7 +40,7 @@ public class Bidder extends User  {
         if (auction == null) {
             throw new IllegalArgumentException("[Bidder] " + getName() + ": invalid auction");
         }
-        return AuctionManager.getInstance().placeBid(auction.getId(), this, amount);
+        return BidService.getInstance().placeBid(auction.getId(), this, amount);
     }
 
     //Lưu lịch sử giao dịch sau khi đặt giá thành công.
@@ -62,11 +50,7 @@ public class Bidder extends User  {
         System.out.println(this.getName() + " placed a bid of " + amount + " for item " + item.getItemName());
     }
 
-
-
-
     // Cập nhật danh sách auction đã thắng từ AuctionHistoryManager
-
     public void refreshWonAuctions() {
         wonAuctions.clear();
         List<AuctionResult> allResults = AuctionHistoryManager.getInstance().getAllResults();
@@ -78,59 +62,18 @@ public class Bidder extends User  {
         }
     }
 
-
-
-
-
     // Kiểm tra xem bidder có thắng phiên này không
     public boolean hasWonAuction(String auctionId) {
         return getWonAuction(auctionId).isPresent();
     }
 
-
-    // Giả lập thanh toán cho phiên đấu giá đã thắng
+    /** Thanh toán phiên đã thắng qua {@link PaymentService}. */
     public boolean payForAuction(String auctionId) {
-        Optional<AuctionResult> resultOpt = getWonAuction(auctionId);
-
-        if (resultOpt.isEmpty()) {
-            System.err.println("You are not the winner of this auction.");
-            return false;
-        }
-
-        AuctionResult result = resultOpt.get();
-
-        if (result.getStatus() == AuctionStatus.PAID) {
-            System.out.println("This auction has already been paid.");
-            return true;
-        }
-
-        if (result.getStatus() != AuctionStatus.FINISHED) {
-            System.err.println("This auction cannot be paid at this time.");
-            return false;
-        }
-
-        // Giả lập thanh toán
-        System.out.println(getName() + " is paying " + result.getFinalPrice()  + " for item: " + result.getItem().getItemName());
-        AuctionHistoryManager ahm=AuctionHistoryManager.getInstance();
-
-        //thay đổi trạng thái của auction từ FINISHED->PAID
-        ahm.updateStatus(auctionId,AuctionStatus.PAID);
-
-        System.out.println("Payment completed successfully.");
-
-        // Refresh lại danh sách
-        refreshWonAuctions();
-        return true;
+        return PaymentService.getInstance().processPayment(this, auctionId);
     }
-
-
-
-
-
 
     //=====AUTO BIDDING====
     public void enableAutoBid(Auction auction, AutoBidConfig config) {
-        // Dừng agent cũ nếu đã tồn tại cho phiên này
         AutoBidAgent existing = agents.get(auction.getId());
         if (existing != null) {
             existing.stop();
@@ -145,21 +88,16 @@ public class Bidder extends User  {
         System.out.println("[AutoBid] " + getName() + " disabled auto-bid for auction " + auctionId);
     }
 
-
-
-
     /**=====GETTER===== */
     public List<BidTransaction> getHistory() {
         return Collections.unmodifiableList(history);
     }
 
-    // Lấy danh sách các phiên đã thắng
     public List<AuctionResult> getWonAuctions() {
-        refreshWonAuctions(); // Luôn lấy dữ liệu mới nhất
+        refreshWonAuctions();
         return new ArrayList<>(wonAuctions.values());
     }
 
-    // Lấy thông tin chi tiết một phiên đã thắng theo auctionId
     public Optional<AuctionResult> getWonAuction(String auctionId) {
         refreshWonAuctions();
         return Optional.ofNullable(wonAuctions.get(auctionId));
