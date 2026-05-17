@@ -65,4 +65,33 @@ public class BidDAO {
             System.err.println("[BidDAO] insertBidTransaction: " + e.getMessage());
         }
     }
+    /** Lấy lịch sử bid của một phiên đấu giá. */
+    public static List<BidTransaction> getBidsByAuction(int auctionDbId) {
+        List<BidTransaction> list = new ArrayList<>();
+        String sql = "SELECT u.username, u.full_name, b.amount, b.bid_time "
+                + "FROM bids b "
+                + "JOIN users u ON b.bidder_id = u.id "
+                + "WHERE b.auction_id = ? "
+                + "ORDER BY b.bid_time DESC";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, auctionDbId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Bidder bidder = new Bidder(
+                            rs.getString("username"),
+                            "",
+                            "",
+                            rs.getString("full_name")
+                    );
+                    BidTransaction tx = new BidTransaction(bidder, null, rs.getDouble("amount"));
+                    tx.setTimestamp(rs.getTimestamp("bid_time").toLocalDateTime());
+                    list.add(tx);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[BidDAO] getBidsByAuction: " + e.getMessage());
+        }
+        return list;
+    }
 }

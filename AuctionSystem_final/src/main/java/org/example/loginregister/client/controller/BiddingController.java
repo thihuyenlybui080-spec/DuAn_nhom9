@@ -21,6 +21,8 @@ import org.example.loginregister.common.exception.AuctionClosedException;
 import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.common.network.NotificationMessage;
 import org.example.loginregister.common.observer.Observer;
+import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.BidDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -343,11 +345,15 @@ public class BiddingController implements Initializable, Observer {
         });
 
     }
-    private void refreshBidHistory(){
-        List<BidTransaction> txList = AuctionClientService.getInstance().getBidHistory(auction.getId());
+    private void refreshBidHistory() {
+        int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+        List<BidTransaction> txList = (auctionDbId > 0)
+                ? BidDAO.getBidsByAuction(auctionDbId)
+                : AuctionClientService.getInstance().getBidHistory(auction.getId()); // fallback
+
         bidHistoryContainer.getChildren().clear();
 
-        if(txList.isEmpty()){
+        if (txList.isEmpty()) {
             Label empty = new Label("No bids yet. Be the first!");
             empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 12px;");
             empty.setPadding(new Insets(8, 0, 0, 0));
@@ -355,10 +361,11 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        for(int i = 0; i < txList.size(); i++){
+        for (int i = 0; i < txList.size(); i++) {
             bidHistoryContainer.getChildren().add(buildBidRow(txList.get(i), i == 0));
         }
 
+        lblBidCount.setText(txList.size() + " bids");
     }
 
     private HBox buildBidRow(BidTransaction tx, boolean isTop){
