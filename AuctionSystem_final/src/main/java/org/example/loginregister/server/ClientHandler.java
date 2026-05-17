@@ -6,12 +6,17 @@ import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.common.network.NotificationMessage;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.item.Item;
+import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
+import org.example.loginregister.server.model.entity.user.UserStatus;
 import org.example.loginregister.server.network.Request;
 import org.example.loginregister.server.network.Response;
 import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.service.BidService;
+import org.example.loginregister.server.service.ItemService;
+import org.example.loginregister.server.service.UserService;
 import org.example.loginregister.server.util.AuctionHistoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +112,8 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_FORCE_END_AUCTION, this :: handleForceEndAuction);
         handlers.put(Request.ACTION_GET_ALL_USERS, this :: handleGetAllUsers);
         handlers.put(Request.ACTION_TOGGLE_USER_LOCK, this :: handleToggleUserLock);
+        handlers.put(Request.ACTION_GET_ITEMS_BY_SELLER, this :: handleGetItemsBySeller);
+        handlers.put(Request.ACTION_CREATE_AUCTION_ITEM, this :: handleCreateAuctionAndItem);
     }
 
     /**
@@ -204,6 +211,7 @@ public class ClientHandler implements Runnable{
         }
     }
 
+
     private Response handleGetAuctionById(Request request){
         try{
             String auctionId = (String) request.getData();
@@ -263,6 +271,17 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    private Response handleCreateAuctionAndItem(Request request){
+        try{
+            Item item= (Item) request.getData();
+            Auction auction = AuctionService.getInstance().startAuction(item);
+            return Response.ok(auction);
+        }catch (Exception e){
+            logger.warn("CreateAuctionAndItem erre", e);
+            return Response.error("Failed to create auction and item");
+        }
+    }
+
     /**
      * Lấy lịch sử bid của một phiên
      * @param request yêu cầu từ khách hàng
@@ -306,7 +325,7 @@ public class ClientHandler implements Runnable{
             if (sellerId == null) {
                 return Response.error("SellerID not found");
             }
-            List<Auction> auctions = AuctionManager.getInstance().getAuctionsBySeller(sellerId);
+            List<Auction> auctions = AuctionService.getInstance().getAuctionsBySeller(sellerId);
             return Response.ok(auctions);
         } catch (Exception e){
             logger.warn("GetAuctionsBySeller error", e);
@@ -320,7 +339,7 @@ public class ClientHandler implements Runnable{
             if(auctionId == null){
                 return Response.error("AuctionID not found");
             }
-            AuctionManager.getInstance().cancelAuction(auctionId);
+            AuctionService.getInstance().cancelAuction(auctionId);
             return Response.ok("auction is canceled", null);
 
         }catch (Exception e){
@@ -335,7 +354,7 @@ public class ClientHandler implements Runnable{
             if(auctionId == null){
                 return Response.error("AuctionID not found");
             }
-            Auction auction = AuctionManager.getInstance().endAuction(auctionId);
+            Auction auction = AuctionService.getInstance().endAuction(auctionId);
             return Response.ok(auction);
         }catch (Exception e){
             logger.warn("ForceEndAuction error", e);
@@ -343,9 +362,23 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    private Response handleGetItemsBySeller(Request request){
+        try {
+            String sellerId = (String) request.getData();
+            if (sellerId == null) {
+                return Response.error("SellerID not found");
+            }
+            List<Item> items = ItemService.getInstance().getItemsBySeller(sellerId);
+            return Response.ok(items);
+        } catch (Exception e){
+            logger.warn("GetItemsBySeller error", e);
+            return Response.error("Failed to get items");
+        }
+    }
+
     private Response handleGetAllUsers(Request request){
         try{
-            List<User> users = AuctionManager.getInstance().getAllUsers();
+            List<User> users = UserService.getInstance().getAllUsers();
             return Response.ok(users);
         } catch (Exception e){
             logger.warn("GetUsers error", e);
@@ -354,7 +387,21 @@ public class ClientHandler implements Runnable{
     }
 
     private Response handleToggleUserLock(Request request){
-
+        try{
+            User user = (User) request.getData();
+            if(user instanceof Admin){
+                return Response.error("Admin only can lock/unlock bidder or seller");
+            }
+            if(user == null){
+                return Response.error("Invalid user");
+            }
+            UserService.getInstance().toggleUserLock(user);
+            UserService.getInstance().applyStatusSideEffects(user, UserStatus.BANNED);
+            return Response.ok(user);
+        } catch (RuntimeException e){
+            logger.error("handleToggleUserLock error", e);
+            return  Response.error("Failed to lock user");
+        }
     }
 
     /**

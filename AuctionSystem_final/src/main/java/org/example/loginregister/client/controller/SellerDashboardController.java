@@ -27,6 +27,8 @@ import org.example.loginregister.server.model.factory.ArtFactory;
 import org.example.loginregister.server.model.factory.ElectronicsFactory;
 import org.example.loginregister.server.model.factory.ItemFactory;
 import org.example.loginregister.server.model.factory.VehicleFactory;
+import org.example.loginregister.server.service.AuctionService;
+import org.example.loginregister.server.service.ItemService;
 import org.example.loginregister.server.util.AuctionManager;
 
 
@@ -207,7 +209,7 @@ public class SellerDashboardController implements Initializable {
     // ── My Auctions ───────────────────────────────────────────────────────────
 
     private void loadMyAuctions() {
-        List<Auction> list = AuctionManager.getInstance().getAuctionsBySeller(seller.getId());
+        List<Auction> list = AuctionClientService.getInstance().getAuctionsBySeller(seller.getId());
         myAuctions = FXCollections.observableArrayList(list);
         renderAuctions(myAuctions);
     }
@@ -335,8 +337,7 @@ public class SellerDashboardController implements Initializable {
 
 
     private void loadMyItems() {
-        List<Item> list = AuctionManager.getInstance()
-                .getItemsBySeller(seller.getId());
+        List<Item> list = AuctionClientService.getInstance().getItemsBySeller(seller.getId());
         myItems = FXCollections.observableArrayList(list);
         renderItems(myItems);
     }
@@ -494,7 +495,7 @@ public class SellerDashboardController implements Initializable {
                 "Cancel auction for \"" + auction.getItem().getItemName() + "\"?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                AuctionManager.getInstance().cancelAuction(auction.getId());
+                AuctionService.getInstance().cancelAuction(auction.getId());
                 loadMyAuctions();
                 lblStatusBar.setText("Auction cancelled.");
             }
@@ -565,9 +566,7 @@ public class SellerDashboardController implements Initializable {
         }
 
         Item item = factory.createItem(itemName, seller, description, startingPrice, startTime, endTime);
-        seller.addItem(item);
-        seller.listItemForAuction(item);
-
+        AuctionClientService.getInstance().createItemAndAuction(item);
         onClearForm();
         loadMyAuctions();
         loadMyItems();

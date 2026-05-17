@@ -54,26 +54,22 @@ public class AuctionService {
 
     /**
      * Tạo auction mới: lưu item + auction vào DB, rồi lên lịch mở phiên.
-     *
-     * @param auctionId id gợi ý (có thể bị ghi đè bởi id từ DB)
-     * @param seller    người bán
      * @param item      sản phẩm đấu giá
      */
-    public void startAuction(String auctionId, Seller seller, Item item) {
+
+    public Auction startAuction(Item item) {
         LocalDateTime now = LocalDateTime.now();
         long startDelay = ChronoUnit.SECONDS.between(now, item.getStartTime());
         long endDelay = ChronoUnit.SECONDS.between(now, item.getEndTime());
 
         if (item.getEndTime().isBefore(item.getStartTime())) {
             logger.error("End time must be after start time for item {}", item.getItemName());
-            return;
         }
         if (endDelay <= 0) {
             logger.error("Auction end time is in the past for item {}", item.getItemName());
-            return;
         }
 
-        int sellerId = AuctionDAO.parseDbId(seller.getId());
+        int sellerId = AuctionDAO.parseDbId(item.getSellerId());
         int itemDbId = ItemDAO.insertItem(item, sellerId);
         if (itemDbId > 0) {
             item.setId("item-" + itemDbId);
@@ -85,7 +81,7 @@ public class AuctionService {
         int auctionDbId = AuctionDAO.insertAuction(itemDbId, item.getStartingPrice(),
                 durationSeconds, endTimeMillis);
 
-        Auction auction = new Auction(seller, item);
+        Auction auction = new Auction(item);
         if (auctionDbId > 0) {
             auction.setId("auction-" + auctionDbId);
         }
@@ -97,6 +93,7 @@ public class AuctionService {
                     () -> openAuction(auction), startDelay, TimeUnit.SECONDS);
             logger.info("Auction {} scheduled to open in {}s", auction.getId(), startDelay);
         }
+        return auction;
     }
 
     /**
@@ -116,11 +113,10 @@ public class AuctionService {
      *
      * @param auctionId id phiên đấu giá
      */
-    public void endAuction(String auctionId) {
+    public Auction endAuction(String auctionId) {
         Auction auction = auctionManager.getActive(auctionId);
         if (auction == null) {
             logger.warn("endAuction: auction {} not found in memory", auctionId);
-            return;
         }
 
         AuctionStatus finalStatus = (auction.getHighestBidder() != null)
@@ -149,6 +145,7 @@ public class AuctionService {
             paymentService.schedulePaymentDeadline(auctionId);
         }
         logger.info("Auction {} ended with status {}", auctionId, finalStatus);
+        return auction;
     }
 
     /**

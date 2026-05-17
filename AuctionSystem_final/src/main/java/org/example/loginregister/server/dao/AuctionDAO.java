@@ -159,7 +159,7 @@ public class AuctionDAO {
 
         Item item = ItemDAO.mapItem(rs, seller);
 
-        Auction auction = new Auction(seller, item);
+        Auction auction = new Auction(item);
         auction.setId("auction-" + rs.getInt("auction_id"));
         auction.setCurrentPrice(rs.getDouble("auction_current_price"));
 

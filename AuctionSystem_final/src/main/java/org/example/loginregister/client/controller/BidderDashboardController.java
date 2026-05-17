@@ -17,11 +17,13 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
+import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.util.AuctionManager;
 
 import java.io.IOException;
@@ -187,8 +189,7 @@ public class BidderDashboardController implements Initializable {
     }
 
     private void loadAuctions(){
-        List<Auction> list = AuctionManager.getInstance().getActiveAuctions();
-        // để khi thêm sửa xóa dữ liệu trong danh sách thì javFX sẽ tự động vẽ lại
+        List<Auction> list = AuctionClientService.getInstance().getAllAuctions();
         allAutions = FXCollections.observableArrayList(list);
         renderAuctions(allAutions);
         updateSubtitle();
@@ -250,7 +251,7 @@ public class BidderDashboardController implements Initializable {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(
                 () -> Platform.runLater(() -> {
-                    List<Auction> updated = AuctionManager.getInstance().getActiveAuctions();
+                    List<Auction> updated = AuctionClientService.getInstance().getAllAuctions();
                     allAutions.setAll(updated);
                     applyFilter();
                     updateSubtitle();

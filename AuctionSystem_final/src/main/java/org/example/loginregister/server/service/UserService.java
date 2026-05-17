@@ -60,7 +60,7 @@ public class UserService {
         logger.info("Admin {} set user {} status to {}", admin.getName(), user.getName(), status);
     }
 
-    private void applyStatusSideEffects(User user, UserStatus status) {
+    public void applyStatusSideEffects(User user, UserStatus status) {
         if (status != UserStatus.BANNED && status != UserStatus.DELETED) {
             return;
         }
@@ -70,6 +70,15 @@ public class UserService {
             handleSellerRestricted(seller, status);
         }
     }
+
+     public User toggleUserLock(User user){
+         if (user instanceof Bidder bidder) {
+             handleBidderRestricted(bidder, UserStatus.BANNED);
+         } else if (user instanceof Seller seller) {
+             handleSellerRestricted(seller, UserStatus.BANNED);
+         }
+         return user;
+     }
 
     private void handleBidderRestricted(Bidder bidder, UserStatus status) {
         auctionService.getActiveAuctions().forEach(auction -> auction.cancelBidsFrom(bidder));

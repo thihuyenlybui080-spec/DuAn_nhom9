@@ -40,15 +40,6 @@ public class Seller extends User {
         }
     }
 
-    public String listItemForAuction(Item item) {
-        if (!ownedItems.contains(item))
-            throw new IllegalArgumentException("You do not own this item");
-
-        String auctionId = "AUC-" + item.getItemName() + "-" + System.currentTimeMillis();
-        AuctionService.getInstance().startAuction(auctionId, this, item);
-        return auctionId;
-    }
-
     @Override
     protected String getIdPrefix(){
         return "seller";

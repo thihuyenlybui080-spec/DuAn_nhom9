@@ -23,6 +23,7 @@ import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.model.entity.user.UserStatus;
+import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.util.AuctionManager;
 
 import java.net.URL;
@@ -138,7 +139,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private void loadUsers(){
-        List<User> list = AuctionClientService.getInstance().
+        List<User> list = AuctionClientService.getInstance().getAllUsers();
         System.out.println("DEBUG loadUsers: " + list.size() + " users");  // thêm
         list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));  // thêm
         allUsers = FXCollections.observableArrayList(list);
@@ -286,7 +287,7 @@ public class AdminDashboardController implements Initializable {
                 return;
             }
             if(user.getStatus() == UserStatus.BANNED){
-                admin.manageUser(user, UserStatus.ACTIVE);
+                AuctionClientService.getInstance().toggleUserLock(user);
                 btn.setText("🔒 Lock");
                 btn.setStyle("-fx-background-color: #transparent; -fx-text-fill: #c0c43f;"
                         + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
@@ -309,7 +310,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private void loadAuctions(){
-        List<Auction> list = AuctionManager.getInstance().getAllAuctions();
+        List<Auction> list = AuctionClientService.getInstance().getAllAuctions();
         allAuctions = FXCollections.observableArrayList(list);
         applyAuctionFilter();
     }
@@ -443,12 +444,12 @@ public class AdminDashboardController implements Initializable {
                 return;
             }
             if(button.getText() == "Force End"){
-                AuctionManager.getInstance().endAuction(auction.getId());
+                AuctionClientService.getInstance().forceEndAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Force End: " + auction.getItem().getItemName());
             }
             else{
-                AuctionManager.getInstance().cancelAuction(auction.getId());
+                AuctionClientService.getInstance().cancelAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Cancel: " + auction.getItem().getItemName());
             }

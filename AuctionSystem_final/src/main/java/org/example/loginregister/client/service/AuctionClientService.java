@@ -2,9 +2,11 @@ package org.example.loginregister.client.service;
 
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.BidTransaction;
+import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.network.Request;
 import org.example.loginregister.server.network.Response;
+import org.example.loginregister.server.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +99,73 @@ public class AuctionClientService {
     }
 
     /**
+     * Lấy danh sách phiên của seller
+     * @param sellerId id của seller
+     * @return danh sách phiên của seller
+     */
+    @SuppressWarnings("unchecked")
+    public List<Auction> getAuctionsBySeller(String sellerId){
+        Response response = sendRequest(new Request(Request.ACTION_GET_AUCTIONS_BY_SELLER, sellerId));
+        if(response.isSuccess()){
+            return (List<Auction>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+
+    }
+
+    /**
+     * Lấy danh sách item của seller
+     * @param sellerId id của seller
+     * @return danh sách item của seller
+     */
+    public List<Item> getItemsBySeller(String sellerId){
+        Response response = sendRequest(new Request(Request.ACTION_GET_ITEMS_BY_SELLER, sellerId));
+        if(response.isSuccess()){
+            return (List<Item>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+
+    }
+
+    /**
+     * Hủy phiên đấu giá
+     * @param auctionId id của phiên cần hủy
+     * @return phiên đã hủy
+     */
+    public Auction cancelAuction(String auctionId){
+        Response response = sendRequest(new Request(Request.ACTION_CANCEL_AUCTION, auctionId));
+        if(response.isSuccess()){
+            return (Auction) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Lấy tất cả danh sách user
+     * @return danh sách user
+     */
+    public List<User> getAllUsers(){
+        Response response = sendRequest(new Request(Request.ACTION_GET_ALL_USERS, null));
+        if (response.isSuccess()) {
+            return (List<User>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * admin lock user
+     * @param user người bị lock
+     * @return người bị lock
+     */
+    public User toggleUserLock(User user){
+        Response response = sendRequest(new Request(Request.ACTION_TOGGLE_USER_LOCK, user));
+        if (response.isSuccess()) {
+            return (User) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
      * Lấy thông tin 1 phiên đấu giá theo ID
      *
      * @param auctionId ID của phiên đấu giá
@@ -109,6 +178,14 @@ public class AuctionClientService {
             return (Auction) response.getData();
         }
         return null;
+    }
+
+    public Auction createItemAndAuction(Item item){
+        Response response = sendRequest(new Request(Request.ACTION_CREATE_AUCTION_ITEM, item));
+        if(response.isSuccess()){
+            return (Auction) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
     }
 
     /**
@@ -127,6 +204,14 @@ public class AuctionClientService {
         Response response = sendRequest(new Request(Request.ACTION_PLACE_BID, data));
 
         if (response.isSuccess()) {
+            return (Auction) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    public Auction forceEndAuction(String auctionId){
+        Response response = sendRequest(new Request(Request.ACTION_FORCE_END_AUCTION, auctionId));
+        if(response.isSuccess()){
             return (Auction) response.getData();
         }
         throw new RuntimeException(response.getMessage());
@@ -177,7 +262,6 @@ public class AuctionClientService {
             throw new RuntimeException("Invalid response from server");
         }
     }
-
     /**
      * Báo server biết client đang xem phiên này -> nhận thông báo
      * gọi khi mở màn BiddingController

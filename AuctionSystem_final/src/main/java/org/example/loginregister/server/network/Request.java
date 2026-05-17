@@ -26,6 +26,8 @@ public class Request implements Serializable {
     public static final String ACTION_CANCEL_AUCTION = "CANCEL_AUCTION";
     public static final String ACTION_GET_AUCTIONS_BY_SELLER = "GET_AUCTIONS_BY_SELLER";
     public static final String ACTION_TOGGLE_USER_LOCK = "TOGGLE_USER_LOCK";
+    public static final String ACTION_GET_ITEMS_BY_SELLER = "GET_ITEMS_BY_SELLER";
+    public static final String ACTION_CREATE_AUCTION_ITEM = "CREATE_AUCTION";
 
     /** tên hành động client muốn thực hiện */
     private final String action;
@@ -42,7 +44,6 @@ public class Request implements Serializable {
         this.action = action;
         this.data = data;
     }
-
     public String getAction() {
         return action;
     }
