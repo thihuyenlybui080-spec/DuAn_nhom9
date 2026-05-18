@@ -231,6 +231,14 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
+    public List<BidTransaction> getBidsByAuction(String auctionId){
+        Response response = sendRequest(new Request(Request.ACTION_GET_BIDS_BY_AUCTION, auctionId));
+        if(response.isSuccess()){
+            return (List<BidTransaction>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
     /**
      * Gửi Request lên Servẻ và đợi Response
      *

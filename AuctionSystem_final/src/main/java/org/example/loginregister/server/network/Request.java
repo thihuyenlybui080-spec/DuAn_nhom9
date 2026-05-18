@@ -28,6 +28,8 @@ public class Request implements Serializable {
     public static final String ACTION_TOGGLE_USER_LOCK = "TOGGLE_USER_LOCK";
     public static final String ACTION_GET_ITEMS_BY_SELLER = "GET_ITEMS_BY_SELLER";
     public static final String ACTION_CREATE_AUCTION_ITEM = "CREATE_AUCTION";
+    public static final String ACTION_GET_BIDS_BY_AUCTION = "GET_BIDS_BY_AUCTION";
+    public static final String ACTION_DELETE_AUCTION = "DELETE_AUCTION";
 
     /** tên hành động client muốn thực hiện */
     private final String action;

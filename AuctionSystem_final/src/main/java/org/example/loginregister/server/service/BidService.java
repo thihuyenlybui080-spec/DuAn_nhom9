@@ -5,10 +5,13 @@ import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.server.dao.AuctionDAO;
 import org.example.loginregister.server.dao.BidDAO;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Dịch vụ đặt giá: manual bid, anti-snipe và auto-bid.
@@ -90,6 +93,12 @@ public class BidService {
         }
     }
 
+    public List<BidTransaction> getBidsByAuction(String auctionId){
+        int auctionDbId = AuctionDAO.parseDbId(auctionId);
+        List<BidTransaction> bidTransactionList = BidDAO.getBidsByAuction(auctionDbId);
+        return  bidTransactionList;
+
+    }
     private void persistBid(String auctionId, Bidder bidder, double amount) {
         int auctionDbId = AuctionDAO.parseDbId(auctionId);
         int bidderId = AuctionDAO.parseDbId(bidder.getId());

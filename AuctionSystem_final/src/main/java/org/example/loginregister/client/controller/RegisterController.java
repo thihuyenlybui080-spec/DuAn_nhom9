@@ -17,6 +17,7 @@ import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.database.DatabaseConfig;
+import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
 import java.io.IOException;
@@ -167,8 +168,8 @@ public class RegisterController implements Initializable {
                             getClass().getResource("/org/example/loginregister/bidder_dashboard.fxml"));
                     Scene scene = new Scene(loader.load());
 
-                    SellerDashboardController ctrl = loader.getController();
-                    ctrl.setCurrentUser(new Seller(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
+                    BidderDashboardController ctrl = loader.getController();
+                    ctrl.setCurrent(new Bidder(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
                     Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
                     stage.setScene(scene);
                     stage.show();

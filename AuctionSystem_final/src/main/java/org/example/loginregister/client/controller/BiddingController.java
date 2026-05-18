@@ -346,11 +346,7 @@ public class BiddingController implements Initializable, Observer {
 
     }
     private void refreshBidHistory() {
-        int auctionDbId = AuctionDAO.parseDbId(auction.getId());
-        List<BidTransaction> txList = (auctionDbId > 0)
-                ? BidDAO.getBidsByAuction(auctionDbId)
-                : AuctionClientService.getInstance().getBidHistory(auction.getId()); // fallback
-
+       List<BidTransaction> txList = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
         bidHistoryContainer.getChildren().clear();
 
         if (txList.isEmpty()) {

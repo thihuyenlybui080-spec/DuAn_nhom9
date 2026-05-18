@@ -141,7 +141,7 @@ public class AdminDashboardController implements Initializable {
     private void loadUsers(){
         List<User> list = AuctionClientService.getInstance().getAllUsers();
         System.out.println("DEBUG loadUsers: " + list.size() + " users");  // thêm
-        list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));  // thêm
+        list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));
         allUsers = FXCollections.observableArrayList(list);
         applyUserFilter();
     }

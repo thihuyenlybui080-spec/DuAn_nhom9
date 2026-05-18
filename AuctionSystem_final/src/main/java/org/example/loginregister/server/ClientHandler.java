@@ -6,6 +6,7 @@ import org.example.loginregister.common.exception.InvalidBidException;
 import org.example.loginregister.common.network.NotificationMessage;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Bidder;
@@ -114,6 +115,8 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_TOGGLE_USER_LOCK, this :: handleToggleUserLock);
         handlers.put(Request.ACTION_GET_ITEMS_BY_SELLER, this :: handleGetItemsBySeller);
         handlers.put(Request.ACTION_CREATE_AUCTION_ITEM, this :: handleCreateAuctionAndItem);
+        handlers.put(Request.ACTION_GET_BIDS_BY_AUCTION, this :: handleGetBidsByAuction);
+        handlers.put(Request.ACTION_DELETE_AUCTION, this :: handleDeleteAuction);
     }
 
     /**
@@ -277,8 +280,19 @@ public class ClientHandler implements Runnable{
             Auction auction = AuctionService.getInstance().startAuction(item);
             return Response.ok(auction);
         }catch (Exception e){
-            logger.warn("CreateAuctionAndItem erre", e);
+            logger.warn("CreateAuctionAndItem error", e);
             return Response.error("Failed to create auction and item");
+        }
+    }
+
+    private Response handleGetBidsByAuction(Request request){
+        try{
+            String auctionId = (String) request.getData();
+            List<BidTransaction> list = BidService.getInstance().getBidsByAuction(auctionId);
+            return Response.ok(list);
+        } catch (Exception e){
+            logger.warn("GetBidsByAuction error", e);
+            return Response.error("Failed to get bids by auction");
         }
     }
 
@@ -401,6 +415,13 @@ public class ClientHandler implements Runnable{
         } catch (RuntimeException e){
             logger.error("handleToggleUserLock error", e);
             return  Response.error("Failed to lock user");
+        }
+    }
+
+    private Response handleDeleteAuction(Request request){
+        try{
+            String auctionId = (String) request.getData();
+
         }
     }
 
