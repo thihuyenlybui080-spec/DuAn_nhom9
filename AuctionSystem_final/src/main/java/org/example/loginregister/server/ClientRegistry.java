@@ -1,6 +1,6 @@
 package org.example.loginregister.server;
 
-import org.example.loginregister.common.network.NotificationMessage;
+import org.example.loginregister.server.common.network.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

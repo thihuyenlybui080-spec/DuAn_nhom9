@@ -1,4 +1,4 @@
-package org.example.loginregister.common.observer;
+package org.example.loginregister.server.common.observer;
 
 public interface Subject {
     void addObserver(Observer observer);

@@ -4,14 +4,12 @@ import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.User;
-import org.example.loginregister.server.network.Request;
-import org.example.loginregister.server.network.Response;
-import org.example.loginregister.server.service.UserService;
+import org.example.loginregister.server.common.network.Request;
+import org.example.loginregister.server.common.network.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -258,22 +256,22 @@ public class AuctionClientService {
             connectionManager.getOutputStream().flush();
             connectionManager.getOutputStream().reset();
 
-            Response response = (Response) connectionManager.getInputStream().readObject();
+            Response response = (Response) MessageRouter.getInstance().takeResponse();
             logger.info("Response: " + response);
             return response;
         } catch (IOException e){
             logger.warn("IO error during request: {}", request.getAction(), e);
             connectionManager.disconnect();
             throw new RuntimeException("Connection error: " + e.getMessage());
-        } catch (ClassNotFoundException e){
-            logger.warn("Unknow response type", e);
-            throw new RuntimeException("Invalid response from server");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Request interrupted");
         }
     }
     /**
      * Báo server biết client đang xem phiên này -> nhận thông báo
      * gọi khi mở màn BiddingController
-     * @param auctionId
+     * @param auctionId id của phiên đấu giá
      */
     public void watchAuction(String auctionId){
         sendRequest(new Request(Request.ACTION_WATCH_AUCTION, auctionId));
@@ -281,7 +279,7 @@ public class AuctionClientService {
 
     /**
      * Báo server biết client thoát phiên này -> không nhận thông báo nữa
-     * @param auctionId
+     * @param auctionId id của phiên đấu giá
      */
     public void leaveAuction(String auctionId){
         sendRequest(new Request(Request.ACTION_LEAVE_AUCTION, auctionId));

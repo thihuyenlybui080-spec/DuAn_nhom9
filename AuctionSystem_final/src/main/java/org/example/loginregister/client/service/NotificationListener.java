@@ -1,6 +1,6 @@
 package org.example.loginregister.client.service;
 
-import org.example.loginregister.common.network.NotificationMessage;
+import org.example.loginregister.server.common.network.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  *     </pre>
  * </p>
  */
-public class NotificationListener implements Runnable {
+public class NotificationListener {
     private static final Logger logger = LoggerFactory.getLogger(NotificationListener.class);
     private static NotificationListener instance;
     public static NotificationListener getInstance(){
@@ -31,57 +31,6 @@ public class NotificationListener implements Runnable {
         return instance;
     }
     private final Map<String, Consumer<NotificationMessage>> handlers = new ConcurrentHashMap<>();
-    private volatile boolean running = false;
-    private Thread ListenerThread;
-
-    public void start(){
-        if (running){
-            return;
-        }
-        running = true;
-        ListenerThread = new Thread(this, "NotificationListener");
-        ListenerThread.setDaemon(true);
-        ListenerThread.start();
-        logger.info("NotificationListener started");
-    }
-
-    /**
-     * Dừng Listener thread
-     * gọi khi app tắt
-     */
-    public void stop(){
-        running = false;
-        if(ListenerThread != null){
-            ListenerThread.interrupt();
-        }
-        logger.info("NotificationListener stopped");
-    }
-
-    /**
-     * Vòng lặp chính: đọc thông báo từ Server liên tục
-     */
-    @Override
-    public void run(){
-        ObjectInputStream inputStream = ConnectionManager.getInstance().getInputStream();
-        while(running){
-            try{
-                Object obj = inputStream.readObject();
-                if(obj instanceof NotificationMessage){
-                    NotificationMessage notification = (NotificationMessage) obj;
-                    logger.info("Notification received: " + notification);
-                    dispatch(notification);
-                }
-            } catch (IOException e){
-                if(running){
-                    logger.warn("Connection lost in NotificationListener.");
-                    running = false;
-                }
-                break;
-            } catch (ClassNotFoundException e){
-                logger.warn("Unknow notification type: {}", e.getMessage());
-            }
-        }
-    }
 
     public void register(String auctionId, Consumer<NotificationMessage> handler){
         handlers.put(auctionId, handler);
@@ -93,7 +42,7 @@ public class NotificationListener implements Runnable {
         logger.info("Handler unregistered for auction: {}", auctionId);
     }
 
-    private void dispatch(NotificationMessage notification){
+    public void dispatch(NotificationMessage notification){
         Consumer<NotificationMessage> handler = handlers.get(notification.getAuctionId());
         if(handler != null){
             handler.accept(notification);

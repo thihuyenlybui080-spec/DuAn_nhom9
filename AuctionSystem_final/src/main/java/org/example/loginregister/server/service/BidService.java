@@ -1,7 +1,7 @@
 package org.example.loginregister.server.service;
 
-import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.InvalidBidException;
+import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.InvalidBidException;
 import org.example.loginregister.server.dao.AuctionDAO;
 import org.example.loginregister.server.dao.BidDAO;
 import org.example.loginregister.server.model.entity.Auction;

@@ -31,7 +31,7 @@
             <VBox spacing="8.0" VBox.vgrow="ALWAYS">
                <padding><Insets left="15.0" right="15.0" top="10.0" /></padding>
                <children>
-                  <Button fx:id="btnNavAuctions" alignment="BASELINE_LEFT" maxWidth="Infinity" style="-fx-background-color: #722f37; -fx-background-radius: 8;" text=" ● Auctions" textFill="#c0c43f">
+                  <Button fx:id="btnNavAuctions" alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#onNavAuctions" style="-fx-background-color: #722f37; -fx-background-radius: 8;" text=" ● Auctions" textFill="#c0c43f">
                      <font><Font name="System Bold" size="12.0" /></font>
                      <padding><Insets bottom="10" left="10" top="10" /></padding>
                   </Button>

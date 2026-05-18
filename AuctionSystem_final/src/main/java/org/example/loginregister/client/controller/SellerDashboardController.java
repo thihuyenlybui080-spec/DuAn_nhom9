@@ -495,7 +495,7 @@ public class SellerDashboardController implements Initializable {
                 "Cancel auction for \"" + auction.getItem().getItemName() + "\"?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                AuctionService.getInstance().cancelAuction(auction.getId());
+                AuctionClientService.getInstance().cancelAuction(auction.getId());
                 loadMyAuctions();
                 lblStatusBar.setText("Auction cancelled.");
             }

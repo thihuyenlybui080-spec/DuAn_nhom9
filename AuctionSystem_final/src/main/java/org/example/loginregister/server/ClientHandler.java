@@ -1,9 +1,8 @@
 package org.example.loginregister.server;
 
-import javafx.scene.Node;
-import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.InvalidBidException;
-import org.example.loginregister.common.network.NotificationMessage;
+import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.InvalidBidException;
+import org.example.loginregister.server.common.network.NotificationMessage;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.BidTransaction;
@@ -12,8 +11,8 @@ import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.model.entity.user.UserStatus;
-import org.example.loginregister.server.network.Request;
-import org.example.loginregister.server.network.Response;
+import org.example.loginregister.server.common.network.Request;
+import org.example.loginregister.server.common.network.Response;
 import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.service.BidService;
 import org.example.loginregister.server.service.ItemService;
@@ -22,7 +21,6 @@ import org.example.loginregister.server.util.AuctionHistoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.print.attribute.HashPrintRequestAttributeSet;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -116,7 +114,6 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_GET_ITEMS_BY_SELLER, this :: handleGetItemsBySeller);
         handlers.put(Request.ACTION_CREATE_AUCTION_ITEM, this :: handleCreateAuctionAndItem);
         handlers.put(Request.ACTION_GET_BIDS_BY_AUCTION, this :: handleGetBidsByAuction);
-        handlers.put(Request.ACTION_DELETE_AUCTION, this :: handleDeleteAuction);
     }
 
     /**
@@ -415,13 +412,6 @@ public class ClientHandler implements Runnable{
         } catch (RuntimeException e){
             logger.error("handleToggleUserLock error", e);
             return  Response.error("Failed to lock user");
-        }
-    }
-
-    private Response handleDeleteAuction(Request request){
-        try{
-            String auctionId = (String) request.getData();
-
         }
     }
 

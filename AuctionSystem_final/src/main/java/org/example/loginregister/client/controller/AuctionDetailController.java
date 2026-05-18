@@ -281,11 +281,6 @@ public class AuctionDetailController implements Initializable {
         onBack(event);
     }
 
-    @FXML
-    public void onNavWon(ActionEvent event){
-        onBack(event);
-    }
-
     public void onSignOut(ActionEvent event){
         stopAutoRefresh();
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);

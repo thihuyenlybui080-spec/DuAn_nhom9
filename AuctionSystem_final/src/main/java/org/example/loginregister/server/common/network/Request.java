@@ -1,6 +1,4 @@
-package org.example.loginregister.server.network;
-
-import org.example.loginregister.common.observer.Observer;
+package org.example.loginregister.server.common.network;
 
 import java.io.Serializable;
 
@@ -29,7 +27,6 @@ public class Request implements Serializable {
     public static final String ACTION_GET_ITEMS_BY_SELLER = "GET_ITEMS_BY_SELLER";
     public static final String ACTION_CREATE_AUCTION_ITEM = "CREATE_AUCTION";
     public static final String ACTION_GET_BIDS_BY_AUCTION = "GET_BIDS_BY_AUCTION";
-    public static final String ACTION_DELETE_AUCTION = "DELETE_AUCTION";
 
     /** tên hành động client muốn thực hiện */
     private final String action;

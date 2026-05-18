@@ -1,4 +1,4 @@
-package org.example.loginregister.server.network;
+package org.example.loginregister.server.common.network;
 import java.io.Serializable;
 
 /**

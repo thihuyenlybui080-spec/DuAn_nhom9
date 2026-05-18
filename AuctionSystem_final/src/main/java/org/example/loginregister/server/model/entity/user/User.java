@@ -1,7 +1,7 @@
 package org.example.loginregister.server.model.entity.user;
 
 
-import org.example.loginregister.common.exception.AuthenticationException;
+import org.example.loginregister.server.common.exception.AuthenticationException;
 import org.example.loginregister.server.model.entity.Entity;
 
 public abstract class User extends Entity {

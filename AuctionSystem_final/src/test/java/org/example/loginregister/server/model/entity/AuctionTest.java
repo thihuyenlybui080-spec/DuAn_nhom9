@@ -1,10 +1,8 @@
 package org.example.loginregister.server.model.entity;
 
-import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.InvalidBidException;
-import org.example.loginregister.common.observer.Observer;
-import org.example.loginregister.server.model.entity.Auction;
-import org.example.loginregister.server.model.entity.BidTransaction;
+import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.InvalidBidException;
+import org.example.loginregister.server.common.observer.Observer;
 import org.example.loginregister.server.model.entity.item.Electronics;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;

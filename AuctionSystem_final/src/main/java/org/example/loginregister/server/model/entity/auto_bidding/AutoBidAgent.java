@@ -1,6 +1,6 @@
 package org.example.loginregister.server.model.entity.auto_bidding;
 
-import org.example.loginregister.common.observer.Observer;
+import org.example.loginregister.server.common.observer.Observer;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.service.BidService;

@@ -129,7 +129,7 @@ public class AdminDashboardController implements Initializable {
         lblPageTitle.setText("Manage Auctions");
         lblSubtitle.setText("View and manage all auction sessions");
         txtSearch.clear();
-        applyUserFilter();
+        applyAuctionFilter();
     }
 
     @FXML
@@ -140,7 +140,7 @@ public class AdminDashboardController implements Initializable {
 
     private void loadUsers(){
         List<User> list = AuctionClientService.getInstance().getAllUsers();
-        System.out.println("DEBUG loadUsers: " + list.size() + " users");  // thêm
+        System.out.println("DEBUG loadUsers: " + list.size() + " users");
         list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));
         allUsers = FXCollections.observableArrayList(list);
         applyUserFilter();
@@ -228,15 +228,8 @@ public class AdminDashboardController implements Initializable {
 
         info.getChildren().addAll(row1, emailLabel, idLabel);
 
-        VBox action = new VBox(5);
-        action.setAlignment(Pos.CENTER);
-
-        Button btnDelete = buildDeleteButton(user);
         Button btnToggle = buildLockButton(user);
-
-        action.getChildren().addAll(btnToggle, btnDelete);
-
-        card.getChildren().addAll(avatar, info, action);
+        card.getChildren().addAll(avatar, info, btnToggle);
         return card;
 
     }
@@ -247,32 +240,16 @@ public class AdminDashboardController implements Initializable {
         btnLockOrUnlock.setDisable(isSelf);
 
         btnLockOrUnlock.setStyle(user.isActive()
-                ? "-fx-background-color: #transparent; -fx-text-fill: #c0c43f;"
+                ? "-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
                 + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
                 + "-fx-font-size: 11px; -fx-cursor: hand;"
-                : "-fx-background-color: #transparent; -fx-text-fill: #fff;"
+                : "-fx-background-color: transparent; -fx-text-fill: #fff;"
                 + "-fx-border-color: #fff; -fx-border-radius: 4;"
                 + "-fx-font-size: 11px; -fx-cursor: hand;");
 
         btnLockOrUnlock.setPadding(new Insets(6));
         btnLockOrUnlock.setOnAction(e -> onToggleLock(user, btnLockOrUnlock));
         return btnLockOrUnlock;
-    }
-
-    private Button buildDeleteButton(User user){
-        boolean isSelf = user.getId().equals(admin.getId());
-        Button btnDelete = new Button("Delete");
-        btnDelete.setDisable(isSelf);
-        btnDelete.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
-                + "-fx-backgound-radius: 4;");
-        btnDelete.setOnAction(e -> onDeleteUser(user, btnDelete));
-        return btnDelete;
-    }
-
-    private void onDeleteUser(User user, Button btnDelete) {
-        admin.manageUser(user, UserStatus.DELETED);
-        user.onStatusChanged(UserStatus.DELETED);
-        btnDelete.setText("deleted");
     }
 
     private void onToggleLock(User user, Button btn){
@@ -289,7 +266,7 @@ public class AdminDashboardController implements Initializable {
             if(user.getStatus() == UserStatus.BANNED){
                 AuctionClientService.getInstance().toggleUserLock(user);
                 btn.setText("🔒 Lock");
-                btn.setStyle("-fx-background-color: #transparent; -fx-text-fill: #c0c43f;"
+                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
                         + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
                         + "-fx-font-size: 11px; -fx-cursor: hand;");
                 lblStatusBar.setText("Unlocked: " + user.getFullname());
@@ -297,7 +274,7 @@ public class AdminDashboardController implements Initializable {
                 admin.manageUser(user, UserStatus.BANNED);
                 user.onStatusChanged(UserStatus.BANNED);
                 btn.setText("🔓 Unlock");
-                btn.setStyle("-fx-background-color: #transparent; -fx-text-fill: #fff;"
+                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
                         + "-fx-border-color: #fff; -fx-border-radius: 4;"
                         + "-fx-font-size: 11px; -fx-cursor: hand;");
                 lblStatusBar.setText("Locked: " + user.getFullname());
@@ -443,7 +420,7 @@ public class AdminDashboardController implements Initializable {
             if(respone != ButtonType.OK){
                 return;
             }
-            if(button.getText() == "Force End"){
+            if(button.getText().equals("Force End")){
                 AuctionClientService.getInstance().forceEndAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Force End: " + auction.getItem().getItemName());
