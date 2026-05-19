@@ -60,7 +60,7 @@ public class LoginController implements Initializable {
         Platform.runLater(() -> {
             if(rootStackPane.getScene() != null) {
                 Stage stage = (Stage) rootStackPane.getScene().getWindow();
-                stage.setFullScreen(true);
+                stage.setFullScreen(false);
             }
         });
     }
@@ -89,7 +89,8 @@ public class LoginController implements Initializable {
             User user = UserDAO.getUserByCredentials(username, password);
 
             if (user != null) {
-                int userId = Integer.parseInt(user.getId());
+                String rawId = user.getId();
+                int userId = Integer.parseInt(rawId.contains("-") ? rawId.substring(rawId.lastIndexOf("-") + 1) : rawId);
                 String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";  
 
                 LoginHistoryDAO.saveLoginHistory(userId, username, "SUCCESS");

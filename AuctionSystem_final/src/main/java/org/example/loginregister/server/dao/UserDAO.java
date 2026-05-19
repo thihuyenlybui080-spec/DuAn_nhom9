@@ -105,12 +105,13 @@ public class UserDAO {
         String role     = rs.getString("role");
 
         User user;
+        String prefix;
         switch (role) {
-            case "SELLER": user = new Seller(username, password, email, fullName); break;
-            case "ADMIN":  user = new Admin(username, password, email, fullName);  break;
-            default:       user = new Bidder(username, password, email, fullName);
+            case "SELLER": user = new Seller(username, password, email, fullName); prefix = "seller"; break;
+            case "ADMIN":  user = new Admin(username, password, email, fullName);  prefix = "admin";  break;
+            default:       user = new Bidder(username, password, email, fullName); prefix = "bidder";
         }
-        user.setId(id);
+        user.setId(prefix + "-" + id);
         return user;
     }
 }

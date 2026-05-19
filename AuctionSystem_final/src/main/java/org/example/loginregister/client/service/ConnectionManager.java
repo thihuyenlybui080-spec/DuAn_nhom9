@@ -40,7 +40,7 @@ public class ConnectionManager {
     public boolean connect(){
         try{
             socket = new Socket(SERVER_HOST, SERVER_PORT);
-            socket.setSoTimeout(CONNECT_TIMEOUT_MS);
+            socket.setSoTimeout(0);
             outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.flush();
             inputStream = new ObjectInputStream(socket.getInputStream());

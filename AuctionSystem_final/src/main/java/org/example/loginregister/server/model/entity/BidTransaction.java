@@ -3,8 +3,10 @@ package org.example.loginregister.server.model.entity;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-public class BidTransaction {
+public class BidTransaction implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Bidder bidder;
     private Item item;
     private double amount;

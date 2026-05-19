@@ -1,6 +1,9 @@
 package org.example.loginregister.server.model.entity.user;
 
-public class UserStatusRecord {
+import java.io.Serializable;
+
+public class UserStatusRecord implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final UserStatus status;
     private final Admin changedBy;
 

@@ -107,6 +107,11 @@
                            </font>
                         </Label>
                         <Label fx:id="lblCategory" text="Category" textFill="#c0c240b1" />
+                        <Label fx:id="lblAuctionId" text="#—" textFill="#c0c240b1" />
+                        <Label fx:id="lblSeller" text="Seller: —" textFill="#c0c240b1" />
+                        <Label fx:id="lblStartPrice" text="Start: —" textFill="#c0c240b1" />
+                        <Label fx:id="lblStartTime" text="Starts: —" textFill="#c0c240b1" />
+                        <Label fx:id="lblEndTime" text="Ends: —" textFill="#c0c240b1" />
                      </children>
                   </VBox>
                   <Region prefHeight="70.0" prefWidth="27.0" HBox.hgrow="ALWAYS" />
@@ -188,7 +193,7 @@
                               </Label>
                               <HBox prefHeight="25.0" prefWidth="131.0">
                                  <children>
-                                    <Label alignment="BASELINE_LEFT" prefHeight="35.0" prefWidth="106.0" text="0000" textFill="#d7d74c">
+                                    <Label fx:id="lblCurrentPrice" alignment="BASELINE_LEFT" prefHeight="35.0" prefWidth="106.0" text="0000" textFill="#d7d74c">
                                        <font>
                                           <Font name="System Bold" size="24.0" />
                                        </font>
@@ -200,7 +205,7 @@
                                     </Label>
                                  </children>
                               </HBox>
-                              <Label prefHeight="18.0" prefWidth="190.0" text="Leader:" textFill="#ffffffa1" />
+                              <Label fx:id="lblLeader" prefHeight="18.0" prefWidth="190.0" text="Leader:" textFill="#ffffffa1" />
                            </children>
                         </VBox>
                         <VBox prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-background-radius: 15; -fx-padding: 20;">
@@ -249,6 +254,7 @@
                                  <TextField fx:id="txtIncrement" promptText="Increment (₫)" style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-border-color: #3d1c21;" />
                                  <Button fx:id="btnEnableAutoBid" maxWidth="Infinity" onAction="#onEnableAutoBid" style="-fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa; -fx-background-radius: 5;" text="⚡ Enable Auto-Bid" />
                               </VBox>
+                              <Label fx:id="lblAutoBidStatus" text="" textFill="#c0c43f" />
                               <Label fx:id="lblAutoBidHint" opacity="0.4" style="-fx-font-size: 10px;" text="Let system bid for you." textFill="WHITE" wrapText="true" />
                            </children>
                         </VBox>

@@ -64,9 +64,9 @@ public class MessageRouter implements Runnable{
                     responseQueue.put(obj);
                 }
             } catch (IOException e){
-                if(running) logger.warn("Connection lost in MessageRouter");
-                running = false;
-                break;
+                logger.warn("Connection lost in MessageRouter", e);
+                //running = false;
+                //break;
             } catch (ClassNotFoundException | InterruptedException e) {
                 logger.warn("Error in MessageRouter: {}", e.getMessage());
             }

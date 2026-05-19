@@ -76,10 +76,8 @@ public class AuctionService {
         }
 
         long durationSeconds = ChronoUnit.SECONDS.between(item.getStartTime(), item.getEndTime());
-        long endTimeMillis = item.getEndTime().atZone(java.time.ZoneId.systemDefault())
-                .toInstant().toEpochMilli();
         int auctionDbId = AuctionDAO.insertAuction(itemDbId, item.getStartingPrice(),
-                durationSeconds, endTimeMillis);
+                durationSeconds, item.getEndTime());
 
         Auction auction = new Auction(item);
         if (auctionDbId > 0) {

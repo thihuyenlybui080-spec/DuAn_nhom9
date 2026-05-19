@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     current_price       DOUBLE      NOT NULL,
     highest_bidder_id   INT         NULL,
     duration_seconds    BIGINT      NOT NULL,
-    end_time_millis     BIGINT      NOT NULL,
+    end_time            DATETIME    NOT NULL,
     created_at          DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT fk_auction_item   FOREIGN KEY (item_id)
@@ -154,7 +154,7 @@ INSERT INTO users (username, password, email, full_name, gender, phone, role) VA
 --   JOIN items i ON a.item_id = i.id
 --   LEFT JOIN users u ON a.highest_bidder_id = u.id
 --   WHERE a.status IN ('OPEN','RUNNING')
---   ORDER BY a.end_time_millis ASC;
+--   ORDER BY a.end_time ASC;
 
 -- [Auction.placeBid()] Đặt giá:
 --   INSERT INTO bids (auction_id, bidder_id, amount) VALUES (?, ?, ?);

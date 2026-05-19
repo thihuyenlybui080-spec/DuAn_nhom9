@@ -381,7 +381,10 @@ public class AdminDashboardController implements Initializable {
         priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
 
         Label timeLabel = new Label(
-                "Ends: " + (auction.getItem().getEndTime() != null
+                "Starts: " + (auction.getItem().getStartTime() != null
+                        ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                        : "—")
+                + "  ·  Ends: " + (auction.getItem().getEndTime() != null
                         ? auction.getItem().getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                         : "—"));
         timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");

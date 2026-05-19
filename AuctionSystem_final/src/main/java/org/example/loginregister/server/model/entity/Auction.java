@@ -10,6 +10,7 @@ import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -20,7 +21,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Auction implements Subject {
+public class Auction implements Subject, Serializable {
+    private static final long serialVersionUID = 1L;
 
     // ===== FIELDS =====
     private String id;

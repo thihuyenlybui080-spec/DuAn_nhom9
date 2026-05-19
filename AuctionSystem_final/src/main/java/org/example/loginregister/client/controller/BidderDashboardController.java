@@ -297,6 +297,11 @@ public class BidderDashboardController implements Initializable {
         bidsLabel.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 11px; -fx-opacity: 0.7;");
         row2.getChildren().addAll(priceLabel, bidsLabel);
 
+        Label startTimeLabel = new Label("Starts: " + (auction.getItem().getStartTime() != null
+                ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                : "—"));
+        startTimeLabel.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 11px; -fx-opacity: 0.7;");
+
         Label timeLabel = new Label("⏱ " + formatTimeRemaining(auction));
         timeLabel.setStyle(getTimeStyle(auction));
 

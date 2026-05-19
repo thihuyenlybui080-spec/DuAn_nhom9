@@ -68,6 +68,7 @@ public class BiddingController implements Initializable, Observer {
 
     @FXML private Label lblSeller;
     @FXML private Label lblStartPrice;
+    @FXML private Label lblStartTime;
     @FXML private Label lblEndTime;
     @FXML private Label lblAuctionId;
     @FXML private Label lblBidCount;
@@ -112,12 +113,7 @@ public class BiddingController implements Initializable, Observer {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
-        Platform.runLater(() ->{
-            if(rootBorderPane != null) {
-                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                stage.setFullScreen(true);
-            }
-        });
+
     }
 
     public void setData(Auction auction, Bidder bidder, String fromFXML, String fromTitle){
@@ -125,6 +121,10 @@ public class BiddingController implements Initializable, Observer {
         this.bidder = bidder;
         this.comingFromFile = fromFXML;
         this.comingFromTitle = fromTitle;
+        Platform.runLater(() -> {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            if (stage != null) stage.setFullScreen(true);
+        });
         if(this.auction != null){
             this.auction.addObserver(this);
         }
@@ -172,6 +172,8 @@ public class BiddingController implements Initializable, Observer {
         lblCategory.setText(auction.getItem().getCategory());
         lblSeller.setText(auction.getSeller().getFullname());
         lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
+        lblStartTime.setText(auction.getItem().getStartTime() != null
+                ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
         lblEndTime.setText(auction.getItem().getEndTime() != null
                 ? auction.getItem().getEndTime().format(DT_FORMAT) : "—");
         lblAuctionId.setText("#" + auction.getId());

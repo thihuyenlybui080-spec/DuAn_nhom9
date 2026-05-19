@@ -475,7 +475,7 @@ public class ClientHandler implements Runnable{
             outputStream.flush();
             outputStream.reset();
         } catch (IOException e){
-            logger.warn("Failed to send response: {}", e.getMessage());
+            logger.error("Failed to send response:", e);
         }
     }
 

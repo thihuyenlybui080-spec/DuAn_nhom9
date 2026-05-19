@@ -19,7 +19,6 @@ public class AuctionDAO {
             + "       a.status           AS auction_status, "
             + "       a.current_price    AS auction_current_price, "
             + "       a.highest_bidder_id, "
-            + "       a.end_time_millis, "
             + "       i.id               AS item_id, "
             + "       i.item_name, "
             + "       i.description, "
@@ -39,7 +38,7 @@ public class AuctionDAO {
     /** Lấy tất cả auction đang OPEN hoặc RUNNING. */
     public static List<Auction> getActiveAuctions(List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') ORDER BY a.end_time_millis ASC";
+        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') ORDER BY a.end_time ASC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -90,15 +89,15 @@ public class AuctionDAO {
     }
 
     /** Lưu auction mới vào DB, trả về id được sinh ra. */
-    public static int insertAuction(int itemId, double startingPrice, long durationSeconds, long endTimeMillis) {
-        String sql = "INSERT INTO auctions (item_id, status, current_price, duration_seconds, end_time_millis) "
+    public static int insertAuction(int itemId, double startingPrice, long durationSeconds, java.time.LocalDateTime endTime) {
+        String sql = "INSERT INTO auctions (item_id, status, current_price, duration_seconds, end_time) "
                 + "VALUES (?, 'OPEN', ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, itemId);
             ps.setDouble(2, startingPrice);
             ps.setLong(3, durationSeconds);
-            ps.setLong(4, endTimeMillis);
+            ps.setTimestamp(4, java.sql.Timestamp.valueOf(endTime));
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -162,6 +161,7 @@ public class AuctionDAO {
         Auction auction = new Auction(item);
         auction.setId("auction-" + rs.getInt("auction_id"));
         auction.setCurrentPrice(rs.getDouble("auction_current_price"));
+        auction.setSeller(seller);
 
         int highestBidderId = rs.getInt("highest_bidder_id");
         if (!rs.wasNull() && allUsers != null) {

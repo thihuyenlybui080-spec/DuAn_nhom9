@@ -3,12 +3,14 @@ package org.example.loginregister.server.model.entity;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.User;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 //lưu kết quả
-public class AuctionResult {
+public class AuctionResult implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final String auctionId;
     private final Item item;
