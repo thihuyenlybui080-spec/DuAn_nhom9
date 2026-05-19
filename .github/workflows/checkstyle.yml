@@ -12,6 +12,11 @@ jobs:
     name: Run Checkstyle
     runs-on: ubuntu-latest
 
+    # THÊM MỚI 1: Cấp quyền cho bot để nó được phép ghi comment vào Pull Request
+    permissions:
+      checks: write
+      pull-requests: write
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -22,6 +27,13 @@ jobs:
         java-version: '25'
         distribution: 'temurin'
         cache: maven
+        
     - name: Execute Checkstyle
       working-directory: ./AuctionSystem_final
       run: mvn checkstyle:check
+      
+    - name: Checkstyle Reviewer Bot
+      uses: jwgmeligmeyling/checkstyle-github-action@master
+      if: always() 
+      with:
+        path: '**/checkstyle-result.xml'
