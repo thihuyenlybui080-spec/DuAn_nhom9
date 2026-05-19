@@ -1,6 +1,6 @@
 name: Code Style Check
 
-# Cấu hình để workflow chạy khi có ai đó push hoặc tạo Pull Request
+
 on:
   push:
     branches: [ "main", "dev" ]
@@ -12,7 +12,6 @@ jobs:
     name: Run Checkstyle
     runs-on: ubuntu-latest
 
-    # THÊM MỚI 1: Cấp quyền cho bot để nó được phép ghi comment vào Pull Request
     permissions:
       checks: write
       pull-requests: write
