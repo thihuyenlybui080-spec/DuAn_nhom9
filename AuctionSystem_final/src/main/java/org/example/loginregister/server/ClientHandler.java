@@ -6,6 +6,7 @@ import org.example.loginregister.server.common.network.NotificationMessage;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.BidTransaction;
+import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Bidder;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +116,8 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_GET_ITEMS_BY_SELLER, this :: handleGetItemsBySeller);
         handlers.put(Request.ACTION_CREATE_AUCTION_ITEM, this :: handleCreateAuctionAndItem);
         handlers.put(Request.ACTION_GET_BIDS_BY_AUCTION, this :: handleGetBidsByAuction);
+        handlers.put(Request.ACTION_DISABLE_AUTO_BID, this :: handleDisableAutoBid);
+        handlers.put(Request.ACTION_ENABLE_AUTO_BID, this :: handleEnableAutoBid);
     }
 
     /**
@@ -251,6 +255,7 @@ public class ClientHandler implements Runnable{
                 return Response.error("only bidders can place bids");
             }
 
+            LocalDateTime endTimeBefore = auction.getItem().getEndTime();
             BidService.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
 
             ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
@@ -258,8 +263,14 @@ public class ClientHandler implements Runnable{
                     auctionId,
                     auction
             ));
-            logger.info("Bid placed: user = {} auction = {} amount = {}", loggedInUser.getFullname(), auctionId, amount);
-
+            if(!auction.getItem().getEndTime().equals(endTimeBefore)){
+                ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
+                        NotificationMessage.TYPE_TIME_EXTENDED,
+                        auctionId,
+                        auction
+                ));
+                logger.info("Anti_snipe broadcast: auction {} extended to {}", auctionId, auction.getItem().getEndTime());
+            }
             return Response.ok("Bid placed successfully.", auction);
         }catch (InvalidBidException e){
             return Response.error(e.getMessage());
@@ -412,6 +423,44 @@ public class ClientHandler implements Runnable{
         } catch (RuntimeException e){
             logger.error("handleToggleUserLock error", e);
             return  Response.error("Failed to lock user");
+        }
+    }
+
+    private Response handleEnableAutoBid(Request request){
+        try{
+            Map<String, Object> data = (Map<String, Object>) request.getData();
+            String auctionId = (String) data.get("auctionId");
+            double maxBid = ((Number) data.get("maxBid")).doubleValue();
+            double increment = ((Number) data.get("increment")).doubleValue();
+
+            Auction auction = AuctionService.getInstance().getAuction(auctionId);
+            if (auction == null){
+                return Response.error("Auction not found");
+            }
+            if(!(loggedInUser instanceof Bidder)){
+                return Response.error("Only Bidders can use auto_bid ");
+            }
+            ((Bidder) loggedInUser).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
+            logger.info("AutoBid enabled: user={} auction={}", loggedInUser.getFullname(), auctionId);
+            return Response.ok("Auto-bid enabled", null);
+        } catch (Exception e){
+            logger.warn("EnableAutoBid error: {}", e.getMessage());
+            return Response.error("Failed to enable auto bid: " + e.getMessage());
+        }
+    }
+
+    private Response handleDisableAutoBid(Request request){
+        try{
+            String auctionId = (String) request.getData();
+            if(!(loggedInUser instanceof Bidder)){
+                return Response.error("Only bidders can use auto bid");
+            }
+            ((Bidder) loggedInUser).disableAutoBid(auctionId);
+            logger.info("AutoBid disabled: user={} auction={}", loggedInUser.getFullname(), auctionId);
+            return Response.ok("Auto bid disabled", null);
+        } catch (Exception e){
+            logger.warn("DisableAutoBid error: {}", e.getMessage());
+            return Response.error("Failed to disable auto-bid: " + e.getMessage());
         }
     }
 

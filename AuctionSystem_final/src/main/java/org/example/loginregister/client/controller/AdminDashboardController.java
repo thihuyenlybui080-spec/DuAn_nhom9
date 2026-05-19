@@ -489,12 +489,12 @@ public class AdminDashboardController implements Initializable {
         }
         return badge;
     }
-    private Label buildUserStatusBadge(boolean isLocked) {
-        Label badge = new Label(isLocked ? "🔒 Locked" : "✓ Active");
-        badge.setStyle(isLocked
-                ? "-fx-background-color: #c0c43f; -fx-text-fill: #e53935;"
-                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;"
-                : "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
+    private Label buildUserStatusBadge(boolean isActive) {
+        Label badge = new Label(isActive ? "✓ Active" : "🔒 Locked");
+        badge.setStyle(isActive
+                ? "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
+                        + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;"
+                : "-fx-background-color: #c0c43f; -fx-text-fill: #e53935;"
                 + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
         return badge;
     }

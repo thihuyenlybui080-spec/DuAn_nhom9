@@ -178,12 +178,39 @@ public class AuctionClientService {
         return null;
     }
 
+    /**
+     * Tạo sản phẩm và tạo luôn phiên đấu giá
+     * @param item sản phẩm cần tạo
+     * @return phiên đấu giá đã tạo
+     */
     public Auction createItemAndAuction(Item item){
         Response response = sendRequest(new Request(Request.ACTION_CREATE_AUCTION_ITEM, item));
         if(response.isSuccess()){
             return (Auction) response.getData();
         }
         throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Bật chế độ auto bid
+     * @param auctionId id của phiên đấu giá
+     * @param maxBix số tiền mà bidder đưa để tự động dấu giá
+     * @param increment bước giá
+     */
+    public void enableAutoBid(String auctionId, double maxBix, double increment){
+        Map<String, Object> data = new HashMap<>();
+        data.put("auctionId", auctionId);
+        data.put("maxBid", maxBix);
+        data.put("increment", increment);
+        sendRequest(new Request(Request.ACTION_ENABLE_AUTO_BID, data));
+    }
+
+    /**
+     * tắt chế độ auto bid
+     * @param auctionId id của phiên đấu giá
+     */
+    public void disableAutoBid(String auctionId){
+        sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, auctionId));
     }
 
     /**

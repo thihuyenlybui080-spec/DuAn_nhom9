@@ -27,6 +27,9 @@ public class Request implements Serializable {
     public static final String ACTION_GET_ITEMS_BY_SELLER = "GET_ITEMS_BY_SELLER";
     public static final String ACTION_CREATE_AUCTION_ITEM = "CREATE_AUCTION";
     public static final String ACTION_GET_BIDS_BY_AUCTION = "GET_BIDS_BY_AUCTION";
+    public static final String ACTION_ENABLE_AUTO_BID = "ENABLE_AUTO_BID";
+    public static final String ACTION_DISABLE_AUTO_BID = "DISABLE_AUTO_BID";
+
 
     /** tên hành động client muốn thực hiện */
     private final String action;

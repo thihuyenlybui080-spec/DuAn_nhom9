@@ -116,8 +116,6 @@ public class SellerDashboardController implements Initializable {
     @FXML
     private TextField txtStartingPrice;
     @FXML
-    private TextField txtIncrement;
-    @FXML
     private DatePicker dpStartDate;
     @FXML
     private TextField txtStartTime;
@@ -280,7 +278,7 @@ public class SellerDashboardController implements Initializable {
         thumb.setPrefSize(64, 64);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
         Label icon = new Label(getCategoryIcon(auction.getItem().getCategory()));
-        icon.setStyle("-fx-font-size: 22px;");
+        icon.setStyle("-fx-font-size: 22px; -fx-text-fill: #722f37");
         Label cat = new Label(auction.getItem().getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
@@ -299,7 +297,7 @@ public class SellerDashboardController implements Initializable {
         Label priceLabel = new Label(
                 "Current: " + formatPrice(auction.getCurrentPrice()) + " ₫"
                         + "  ·  " + auction.getBids().size() + " bids");
-        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #fff; -fx-opacity: 0.7");
 
         Label timeLabel = new Label(
                 "Ends: " + (auction.getItem().getEndTime() != null
@@ -325,8 +323,8 @@ public class SellerDashboardController implements Initializable {
         btnDelete.setMaxWidth(Double.MAX_VALUE);
         btnDelete.setDisable(auction.getStatus() != AuctionStatus.OPEN);
         btnDelete.setStyle(
-                "-fx-background-color: #fff0f0; -fx-border-color: #e53935;"
-                        + "-fx-border-radius: 4; -fx-text-fill: #e53935; -fx-font-size: 11px;");
+                "-fx-background-color: transparent; -fx-border-color: #fff;"
+                        + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
         btnDelete.setOnAction(e -> onDeleteAuction(auction));
 
         actions.getChildren().addAll(btnView, btnDelete);
@@ -360,8 +358,10 @@ public class SellerDashboardController implements Initializable {
         HBox card = new HBox(14);
         card.setPadding(new Insets(12));
         card.setStyle(
-                "-fx-background-color: #fff; -fx-border-color: #eee;"
-                        + "-fx-border-radius: 8; -fx-background-radius: 8;");
+                "-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21);"
+                        + "-fx-border-color: #3d1c21;"
+                        + "-fx-border-radius: 8;"
+                        + "-fx-background-radius: 8;");
 
         // Thumb
         VBox thumb = new VBox(3);
@@ -369,7 +369,7 @@ public class SellerDashboardController implements Initializable {
         thumb.setPrefSize(56, 56);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
         Label icon = new Label(getCategoryIcon(item.getCategory()));
-        icon.setStyle("-fx-font-size: 20px;");
+        icon.setStyle("-fx-font-size: 20px; -fx-text-fill: #722f37;");
         Label cat = new Label(item.getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
@@ -380,12 +380,13 @@ public class SellerDashboardController implements Initializable {
 
         Label nameLabel = new Label(item.getItemName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
+        nameLabel.setStyle("-fx-text-fill: #c0c43f;");
 
         Label descLabel = new Label(item.getDescription());
-        descLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
+        descLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #fff; -fx-opacity: 0.7");
 
         Label priceLabel = new Label("Starting Price: " + formatPrice(item.getStartingPrice()) + " ₫");
-        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #fff;");
 
         info.getChildren().addAll(nameLabel, descLabel, priceLabel);
 
@@ -397,15 +398,15 @@ public class SellerDashboardController implements Initializable {
         Button btnEdit = new Button("Edit");
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #722f37;"
-                        + "-fx-border-radius: 4; -fx-text-fill: #722f37; -fx-font-size: 11px;");
+                "-fx-background-color: transparent; -fx-border-color: #c0c43f;"
+                        + "-fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 11px;");
         btnEdit.setOnAction(e -> onEditItem(item));
 
         Button btnDelete = new Button("Delete");
         btnDelete.setMaxWidth(Double.MAX_VALUE);
         btnDelete.setStyle(
-                "-fx-background-color: #fff0f0; -fx-border-color: #e53935;"
-                        + "-fx-border-radius: 4; -fx-text-fill: #e53935; -fx-font-size: 11px;");
+                "-fx-background-color: transparent; -fx-border-color: #fff;"
+                        + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
         btnDelete.setOnAction(e -> onDeleteItem(item));
 
         actions.getChildren().addAll(btnEdit, btnDelete);
@@ -513,14 +514,13 @@ public class SellerDashboardController implements Initializable {
         String category = cmbCategory.getValue();
         String description = txtDescription.getText().trim();
         String startPriceStr = txtStartingPrice.getText().trim().replaceAll("[^0-9]", "");
-        String incrementStr = txtIncrement.getText().trim().replaceAll("[^0-9]", "");
         LocalDate startDate = dpStartDate.getValue();
         String startTimeStr = txtStartTime.getText().trim();
         LocalDate endDate = dpEndDate.getValue();
         String endTimeStr = txtEndTime.getText().trim();
 
         if (itemName.isEmpty() || category == null || startPriceStr.isEmpty()
-                || incrementStr.isEmpty() || startDate == null || startTimeStr.isEmpty()
+                || startDate == null || startTimeStr.isEmpty()
                 || endDate == null || endTimeStr.isEmpty()) {
             showFormError("Please fill in all required fields (*).");
             return;
@@ -585,7 +585,6 @@ public class SellerDashboardController implements Initializable {
         cmbCategory.getSelectionModel().selectFirst();
         txtDescription.clear();
         txtStartingPrice.clear();
-        txtIncrement.clear();
         dpStartDate.setValue(null);
         txtStartTime.clear();
         dpEndDate.setValue(null);

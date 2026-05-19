@@ -27,7 +27,7 @@
         <AnchorPane fx:id="rootAnchorPaneTotal" maxHeight="900.0" maxWidth="1300.0" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #5a2028);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
             <AnchorPane fx:id="rootAnchorPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="380.0" AnchorPane.topAnchor="0">
                 <ImageView fx:id="welcomeImageView" fitHeight="${rootAnchorPane.height}" fitWidth="${rootAnchorPane.width}" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-                    <image><Image url="@../../../../../../../../Anh_man_hinh/hele.jpg" />
+                    <image><Image url="@hele.jpg" />
                     </image>
                 </ImageView>
                <AnchorPane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 80%);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />

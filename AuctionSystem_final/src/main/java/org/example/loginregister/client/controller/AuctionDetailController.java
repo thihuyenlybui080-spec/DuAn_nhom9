@@ -42,12 +42,8 @@ public class AuctionDetailController implements Initializable {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final NumberFormat VND_FORMAT = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    @FXML private Label lblStatusBadge;
-    @FXML Button btnNavAuctions;
-    @FXML Button btnNavWon;
-    @FXML Button btnNavHistory;
+    @FXML private Label lblStatusBadge;;
     @FXML Button btnSignOut;
-    @FXML private ImageView ivProduct;
     @FXML private Label lblCategory;
     @FXML private Label lblItemName;
     @FXML private Label lblDescription;
@@ -66,6 +62,7 @@ public class AuctionDetailController implements Initializable {
     @FXML private Label lblAuctionIdBar;
     @FXML private Label lblConnectionStatus;
     @FXML private BorderPane rootBorderPane;
+    @FXML Label lblThumbIcon;
 
 
     static final String BIDDER_DASHBOARD_FXML = "bidder_dashboard.fxml";
@@ -107,6 +104,8 @@ public class AuctionDetailController implements Initializable {
         }
 
         updateStatusBadge();
+        lblThumbIcon.setText(getCategoryIcon(auction.getItem().getCategory()));
+        lblCategory.setText(auction.getItem().getCategory());
 
         lblItemId.setText(auction.getItem().getId());
         lblItemName.setText(auction.getItem().getItemName());
@@ -190,15 +189,10 @@ public class AuctionDetailController implements Initializable {
                             + "-fx-font-size: 18px; -fx-font-weight: bold;"
                             + "-fx-background-radius: 8;");
             btnPlaceBid.setText(
-                    auction.getStatus() == OPEN ? "⏳ Not Started" : " \uD83D\uDD12 Auction Ended");
+                    auction.getStatus() == OPEN ? "⏳ Not Started" : "🔒 Auction Ended");
         }
     }
 
-    /* cập nhật liên tục sau 1 giây
-    thời gian chạy lần đầu tiên là 0s
-    thời gian giữa các lần chạy là 1s
-    đơn vị là giây
-     */
     private void startAutoRefresh(){
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(
@@ -225,7 +219,6 @@ public class AuctionDetailController implements Initializable {
     }
 
     private void updateCountdown(){
-        //kiểm tra hai tầng để đề xử lý edge cases ( TH ngoại lệ)
         if(auction.getItem().getEndTime() == null
                 || auction.getStatus() == FINISHED) {
             lblCountDown.setText("ENDED");
@@ -258,9 +251,6 @@ public class AuctionDetailController implements Initializable {
     }
 
     private void stopAutoRefresh(){
-        /* phải kiểm tra null để biết đã được tạo trước đó
-        để không bị văng lỗi nullpointed...
-        */
         if(scheduler != null && !scheduler.isShutdown()){
             scheduler.shutdownNow();
         }
@@ -272,15 +262,6 @@ public class AuctionDetailController implements Initializable {
         sceneManager.switchScene(event, comingFromFxml, comingFromTitle);
     }
 
-    @FXML
-    public void onNavAuctions(ActionEvent event){
-        onBack(event);
-    }
-
-    public void onNavHistory(ActionEvent event){
-        onBack(event);
-    }
-
     public void onSignOut(ActionEvent event){
         stopAutoRefresh();
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
@@ -289,5 +270,16 @@ public class AuctionDetailController implements Initializable {
 
     private String formatPrice(double price){
         return VND_FORMAT.format((long) price);
+    }
+    private String getCategoryIcon(String category) {
+        if (category == null) {
+            return "📦";
+        }
+        switch (category.toLowerCase()) {
+            case "electronics": return "💻";
+            case "art":         return "🎨";
+            case "vehicle":     return "🚗";
+            default:            return "📦";
+        }
     }
 }

@@ -131,7 +131,7 @@ public class BiddingController implements Initializable, Observer {
         populateView();
         AuctionClientService.getInstance().watchAuction(auction.getId());
         NotificationListener.getInstance().register(auction.getId(), notification -> {
-            switch (notification.getType()){
+            switch (notification.getType()) {
                 case NotificationMessage.TYPE_BID_UPDATED:
                     Auction updated = (Auction) notification.getData();
                     Platform.runLater(() -> {
@@ -150,8 +150,20 @@ public class BiddingController implements Initializable, Observer {
                         lblCountdown.setText("ENDED");
                     });
                     break;
+                case NotificationMessage.TYPE_TIME_EXTENDED:
+                    Platform.runLater(() -> {
+                        this.auction = (Auction) notification.getData();
+                        lblCountdown.setStyle(
+                                "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ff9800;");
+                        lblBidError.setText("⏱ Anti-snipe: +60s added!");
+                        lblBidError.setStyle("-fx-text-fill: #ff9800; -fx-font-size: 11px;");
+                        lblBidError.setVisible(true);
+                        lblBidError.setManaged(true);
+                    });
+                    break;
             }
-        } );
+            }
+         );
         startAutoRefresh();
     }
     private void populateView() {
@@ -273,7 +285,7 @@ public class BiddingController implements Initializable, Observer {
 
         if(!on){
             autoBidEnable = false;
-            bidder.disableAutoBid(auction.getId());
+            AuctionClientService.getInstance().disableAutoBid(auction.getId());
             lblAutoBidStatus.setText("");
             btnEnableAutoBid.setText("⚡ Enable Auto-Bid");
             btnEnableAutoBid.setStyle(
@@ -312,7 +324,7 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        bidder.enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
+        AuctionClientService.getInstance().enableAutoBid(auction.getId(), maxBid, increment);
 
         autoBidEnable = true;
         lblAutoBidStatus.setText("✅ Active — Max: " + formatPrice(maxBid) + " ₫"
