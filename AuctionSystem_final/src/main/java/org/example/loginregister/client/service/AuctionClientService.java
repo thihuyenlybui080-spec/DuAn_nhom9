@@ -194,12 +194,14 @@ public class AuctionClientService {
     /**
      * Bật chế độ auto bid
      * @param auctionId id của phiên đấu giá
+     * @param bidderId id của bidder
      * @param maxBix số tiền mà bidder đưa để tự động dấu giá
      * @param increment bước giá
      */
-    public void enableAutoBid(String auctionId, double maxBix, double increment){
+    public void enableAutoBid(String auctionId, String bidderId, double maxBix, double increment){
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
+        data.put("bidderId", bidderId);
         data.put("maxBid", maxBix);
         data.put("increment", increment);
         sendRequest(new Request(Request.ACTION_ENABLE_AUTO_BID, data));
@@ -208,9 +210,13 @@ public class AuctionClientService {
     /**
      * tắt chế độ auto bid
      * @param auctionId id của phiên đấu giá
+     * @param bidderId id của bidder
      */
-    public void disableAutoBid(String auctionId){
-        sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, auctionId));
+    public void disableAutoBid(String auctionId, String bidderId){
+        Map<String, Object> data = new HashMap<>();
+        data.put("auctionId", auctionId);
+        data.put("bidderId", bidderId);
+        sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, data));
     }
 
     /**

@@ -225,7 +225,7 @@ public class BiddingController implements Initializable, Observer {
     }
 
     private void updateBidButton(){
-        boolean canBid = auction.getStatus() == AuctionStatus.RUNNING;
+        boolean canBid = auction.getStatus() == AuctionStatus.RUNNING || auction.getStatus() == AuctionStatus.OPEN;
         btnPlaceBid.setDisable(!canBid);
         txtBidAmount.setDisable(!canBid);
         chkAutoBid.setDisable(!canBid);
@@ -287,7 +287,7 @@ public class BiddingController implements Initializable, Observer {
 
         if(!on){
             autoBidEnable = false;
-            AuctionClientService.getInstance().disableAutoBid(auction.getId());
+            AuctionClientService.getInstance().disableAutoBid(auction.getId(), bidder.getId());
             lblAutoBidStatus.setText("");
             btnEnableAutoBid.setText("⚡ Enable Auto-Bid");
             btnEnableAutoBid.setStyle(
@@ -326,7 +326,7 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        AuctionClientService.getInstance().enableAutoBid(auction.getId(), maxBid, increment);
+        AuctionClientService.getInstance().enableAutoBid(auction.getId(), bidder.getId(), maxBid, increment);
 
         autoBidEnable = true;
         lblAutoBidStatus.setText("✅ Active — Max: " + formatPrice(maxBid) + " ₫"

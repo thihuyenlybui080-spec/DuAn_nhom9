@@ -15,7 +15,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootBorderPane" maxHeight="Infinity" maxWidth="Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BiddingController">
+<BorderPane fx:id="rootBorderPane" maxHeight="700" maxWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BiddingController">
    <left>
       <VBox prefHeight="458.0" prefWidth="180.0" spacing="5.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
          <children>
@@ -210,7 +210,7 @@
                                     <Font name="System Bold" size="11.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtBidAmount" prefHeight="53.0" prefWidth="149.0" promptText="Enter amount . . . " style="-fx-background-color: #0a0405; -fx-border-color: #3d1c21; -fx-background-radius: 10; -fx-border-radius: 10;" />
+                              <TextField fx:id="txtBidAmount" prefHeight="53.0" prefWidth="149.0" promptText="Enter amount . . . " style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-prompt-text-fill: #555; -fx-border-color: #3d1c21; -fx-background-radius: 10; -fx-border-radius: 10;" />
                               <Label fx:id="lblMinBid" prefHeight="18.0" prefWidth="198.0" text="Min bid: ..." textFill="#ffffff8c">
                                  <font>
                                     <Font size="10.0" />
@@ -245,8 +245,8 @@
                                  </children>
                               </HBox>
                               <VBox fx:id="autoBidForm" managed="false" spacing="10.0" visible="false">
-                                 <TextField fx:id="txtMaxBid" promptText="Max Bid (₫)" style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-border-color: #3d1c21;" />
-                                 <TextField fx:id="txtIncrement" promptText="Increment (₫)" style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-border-color: #3d1c21;" />
+                                 <TextField fx:id="txtMaxBid" promptText="Max Bid (₫)" style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-prompt-text-fill: #555; -fx-border-color: #3d1c21;" />
+                                 <TextField fx:id="txtIncrement" promptText="Increment (₫)" style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-prompt-text-fill: #555; -fx-border-color: #3d1c21;" />
                                  <Button fx:id="btnEnableAutoBid" maxWidth="Infinity" onAction="#onEnableAutoBid" style="-fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa; -fx-background-radius: 5;" text="⚡ Enable Auto-Bid" />
                               </VBox>
                               <Label fx:id="lblAutoBidStatus" text="" textFill="#c0c43f" />
