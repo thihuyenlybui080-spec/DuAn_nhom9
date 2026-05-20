@@ -43,8 +43,8 @@ public class ConnectionManager {
     private boolean connected = false;
 
     /**
-     * Load server configuration from application.yaml
-     * First checks for external file, then falls back to resources
+     * đọc cấu hình hệ thống của Server
+     * Đầu tiên kiểm tra thư mục bên ngoài, sau đó vào trong phần mềm trong resources
      */
     private void loadConfig() {
         Yaml yaml = new Yaml();

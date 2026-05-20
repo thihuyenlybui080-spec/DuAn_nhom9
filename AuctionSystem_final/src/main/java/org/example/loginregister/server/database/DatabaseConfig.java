@@ -17,8 +17,8 @@ import java.util.Properties;
  *
  *  Đọc cấu hình từ file config.propertie đặt cùng thư mục với .jar
  *  Nếu không có file ngoài thì đọc file mặc định bên trong jar.
- *
- *  Nội dung config.propertie:
+ * tạo một bể chứa kết nối, chứa sẵn 20 kết nối, mỗi khi gọi => bốc một kết nối có sẵn
+ *  Nội dung config.properties:
  *    db.host=localhost
  *    db.port=3306
  *    db.name=loginregister
@@ -43,9 +43,9 @@ public class DatabaseConfig {
         if (externalConfig.exists()) {
             try (InputStream in = new FileInputStream(externalConfig)) {
                 props.load(in);
-                System.out.println("DatabaseConfig: doc config tu file ngoai: " + externalConfig.getAbsolutePath());
+                System.out.println("DatabaseConfig: read config from external file: " + externalConfig.getAbsolutePath());
             } catch (Exception e) {
-                System.err.println("DatabaseConfig: loi doc config ngoai: " + e.getMessage());
+                System.err.println("DatabaseConfig: read external config failed: " + e.getMessage());
             }
         } else {
             // Ưu tiên 2: đọc config.properties bên TRONG jar
@@ -53,10 +53,10 @@ public class DatabaseConfig {
                     "/org/example/loginregister/config.properties")) {
                 if (in != null) {
                     props.load(in);
-                    System.out.println("DatabaseConfig: doc config tu trong jar");
+                    System.out.println("DatabaseConfig: read config from internal file");
                 }
             } catch (Exception e) {
-                System.err.println("DatabaseConfig: khong doc duoc config, dung mac dinh localhost");
+                System.err.println("DatabaseConfig: can not read internal config, use default config: local host");
             }
         }
 
@@ -66,13 +66,17 @@ public class DatabaseConfig {
         DB_USER = props.getProperty("db.user", "root").trim();
         DB_PASS = props.getProperty("db.pass", "root").trim();
 
+        /**
+         * ghép các biến thành một đường link kết nối chuẩn JDBC cho MySQL
+         * tắt mã hóa SSL, cho phép lấy khóa bảo mật, cài múi giờ Việt Nam
+         * bật hỗ trợ tiếng việt có dấu
+         */
         DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh"
                 + "&useUnicode=true&characterEncoding=UTF-8";
 
         System.out.println("DatabaseConfig -> " + DB_HOST + ":" + DB_PORT + "/" + DB_NAME);
 
-        // Initialize HikariCP connection pool
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DB_URL);
         config.setUsername(DB_USER);

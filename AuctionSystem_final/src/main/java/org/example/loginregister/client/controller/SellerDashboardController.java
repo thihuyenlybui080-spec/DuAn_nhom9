@@ -488,6 +488,10 @@ public class SellerDashboardController implements Initializable {
             stage.show();
         }  catch (IOException e){
             e.printStackTrace();
+            showErrorAlert("Load Error", "Failed to load auction detail: " + e.getMessage());
+        } catch (Exception e){
+            e.printStackTrace();
+            showErrorAlert("Error", "An error occurred: " + e.getMessage());
         }
     }
 
