@@ -21,6 +21,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -211,27 +213,27 @@ public class AuctionService {
     public List<Auction> getActiveAuctions() {
         List<User> allUsers = UserDAO.getAllUsers();
         List<Auction> auctions = AuctionDAO.getActiveAuctions(allUsers);
+        Map<String, AutoBidConfig> autoBidConfigConcurrentHashMap = AutoBidDAO.getAllAutoBidConfig();
         // Register auctions in AuctionManager for in-memory access
         for (Auction auction : auctions) {
             auctionManager.putActive(auction);
             // Restore auto-bid configurations from database
             int auctionDbId = AuctionDAO.parseDbId(auction.getId());
             if (auctionDbId > 0) {
-                allUsers.stream()
-                        .filter(u -> u instanceof Bidder)
-                        .map(u -> (Bidder) u)
-                        .forEach(bidder -> {
-                            int bidderDbId = AuctionDAO.parseDbId(bidder.getId());
-                            if (bidderDbId > 0) {
-                                AutoBidConfig config =
-                                AutoBidDAO.getAutoBidConfig(auctionDbId, bidderDbId);
-                                if (config != null) {
-                                    bidder.enableAutoBid(auction, config);
-                                    logger.debug("Restored auto-bid for bidder {} on auction {} (maxBid={}, increment={})",
-                                            bidder.getName(), auction.getId(), config.getMaxBid(), config.getIncrement());
-                                }
+                for (User user : allUsers) {
+                    if (user instanceof Bidder) {
+                        Bidder bidder = (Bidder) user;
+                        int bidderDbId = AuctionDAO.parseDbId(bidder.getId());
+                        if (bidderDbId > 0) {
+                            AutoBidConfig config = autoBidConfigConcurrentHashMap.get(auctionDbId + "-" + bidderDbId);
+                            if (config != null) {
+                                bidder.enableAutoBid(auction, config);
+                                logger.debug("Restored auto-bid for bidder {} on auction {} (maxBid={}, increment={})",
+                                        bidder.getName(), auction.getId(), config.getMaxBid(), config.getIncrement());
                             }
-                        });
+                        }
+                    }
+                }
             }
         }
         logger.info("Loaded and registered {} active auctions from database", auctions.size());

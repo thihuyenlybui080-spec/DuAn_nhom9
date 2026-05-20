@@ -46,6 +46,7 @@ public class AuctionDAO {
                 Auction a = mapAuction(rs, allUsers);
                 if (a != null) list.add(a);
             }
+            ps.close();
         } catch (SQLException e) {
             System.err.println("[AuctionDAO] getActiveAuctions: " + e.getMessage());
         }
@@ -166,8 +167,7 @@ public class AuctionDAO {
         int highestBidderId = rs.getInt("highest_bidder_id");
         if (!rs.wasNull() && allUsers != null) {
             allUsers.stream()
-                    .filter(u -> u.getId().equals(String.valueOf(highestBidderId)))
-                    .filter(u -> u instanceof Bidder)
+                    .filter(u -> u.getId().equals(String.valueOf(highestBidderId)) && u instanceof Bidder)
                     .findFirst()
                     .ifPresent(u -> {
                         auction.setHighestBidder((Bidder) u);

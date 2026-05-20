@@ -20,6 +20,7 @@ public class UserDAO {
             while (rs.next()) {
                 list.add(mapUser(rs));
             }
+            ps.close();
         } catch (SQLException e) {
             System.err.println("[UserDAO] getAllUsers: " + e.getMessage());
         }

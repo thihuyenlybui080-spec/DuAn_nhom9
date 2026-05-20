@@ -10,6 +10,7 @@ module org.example.loginregister {
     requires java.desktop;
     requires java.management;
     requires org.yaml.snakeyaml;
+    requires com.zaxxer.hikari;
 
     opens org.example.loginregister to javafx.fxml;
     exports org.example.loginregister;

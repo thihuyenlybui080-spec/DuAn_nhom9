@@ -1,10 +1,12 @@
 package org.example.loginregister.server.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -69,10 +71,27 @@ public class DatabaseConfig {
                 + "&useUnicode=true&characterEncoding=UTF-8";
 
         System.out.println("DatabaseConfig -> " + DB_HOST + ":" + DB_PORT + "/" + DB_NAME);
+
+        // Initialize HikariCP connection pool
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(DB_URL);
+        config.setUsername(DB_USER);
+        config.setPassword(DB_PASS);
+        config.setMaximumPoolSize(20);
+        config.setMinimumIdle(2);
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(600000);
+        config.setMaxLifetime(1800000);
+        config.setPoolName("AuctionSystemHikariPool");
+
+        jdbcDataSource = new HikariDataSource(config);
+        System.out.println("DatabaseConfig: HikariCP connection pool initialized");
     }
 
+    public static DataSource jdbcDataSource;
+
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        return jdbcDataSource.getConnection();
     }
 
     public static String getServerInfo() {

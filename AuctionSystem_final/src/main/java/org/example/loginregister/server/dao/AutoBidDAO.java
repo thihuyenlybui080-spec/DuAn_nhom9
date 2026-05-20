@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * DAO cho auto-bid configuration.
@@ -29,6 +33,7 @@ public class AutoBidDAO {
             ps.setDouble(3, maxBid);
             ps.setDouble(4, increment);
             ps.executeUpdate();
+            ps.close();
             logger.info("Saved auto-bid: auctionId={}, bidderId={}", auctionDbId, bidderDbId);
         } catch (SQLException e) {
             logger.error("saveAutoBid ERROR", e);
@@ -43,6 +48,7 @@ public class AutoBidDAO {
             ps.setInt(1, auctionDbId);
             ps.setInt(2, bidderDbId);
             ps.executeUpdate();
+            ps.close();
             logger.info("Deleted auto-bid: auctionId={}, bidderId={}", auctionDbId, bidderDbId);
         } catch (SQLException e) {
             logger.error("deleteAutoBid ERROR", e);
@@ -61,9 +67,32 @@ public class AutoBidDAO {
                     return new AutoBidConfig(rs.getDouble("max_bid"), rs.getDouble("increment"));
                 }
             }
+            ps.close();
         } catch (SQLException e) {
             logger.error("getAutoBidConfig ERROR", e);
         }
         return null;
+    }
+
+    /** Lấy tất cả auto-bid configurations cho một auction. */
+    public static Map<String, AutoBidConfig> getAllAutoBidConfig() {
+        Map<String, AutoBidConfig> configs = new HashMap<>();
+        String sql = "SELECT auction_id, bidder_id, max_bid, increment FROM auto_bids WHERE auction_id is not null and bidder_id is not null";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int auctionId = rs.getInt("auction_id");
+                    int bidderId = rs.getInt("bidder_id");
+                    String key = auctionId + "-" + bidderId;
+                    AutoBidConfig config = new AutoBidConfig(rs.getDouble("max_bid"), rs.getDouble("increment"));
+                    configs.put(key, config);
+                }
+            }
+            ps.close();
+        } catch (SQLException e) {
+            logger.error("getAllAutoBidConfig ERROR", e);
+        }
+        return configs;
     }
 }
