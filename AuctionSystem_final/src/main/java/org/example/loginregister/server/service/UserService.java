@@ -95,6 +95,11 @@ public class UserService {
         logger.info("Bidder {} set to {}: all active bids canceled", bidder.getName(), status);
     }
 
+    public User getUserById(String userId){
+        User user = UserDAO.getUserById(Integer.parseInt(userId.split("-")[1]));
+        return user;
+    }
+
     private void handleSellerRestricted(Seller seller, UserStatus status) {
         List<Auction> sellerAuctions = auctionService.getActiveAuctions().stream()
                 .filter(a -> belongsToSeller(a, seller))

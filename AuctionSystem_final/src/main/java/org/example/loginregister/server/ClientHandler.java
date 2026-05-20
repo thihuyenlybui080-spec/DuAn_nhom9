@@ -449,16 +449,15 @@ public class ClientHandler implements Runnable{
                 return Response.error("Auction not found");
             }
 
-            // Lấy bidder từ database bằng bidderId
-            User bidder = UserDAO.getUserById(Integer.parseInt(bidderId.split("-")[1]));
-            if(bidder == null){
+            loggedInUser = UserService.getInstance().getUserById(bidderId);
+            if(loggedInUser == null){
                 return Response.error("Bidder not found");
             }
-            if(!(bidder instanceof Bidder)){
+            if(!(loggedInUser instanceof Bidder)){
                 return Response.error("Only Bidders can use auto_bid");
             }
 
-            ((Bidder) bidder).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
+            ((Bidder) loggedInUser).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
             return Response.ok("Auto-bid enabled", null);
         } catch (Exception e){
             logger.warn("EnableAutoBid error: {}", e.getMessage());
@@ -472,17 +471,15 @@ public class ClientHandler implements Runnable{
             Map<String, Object> data = (Map<String, Object>) request.getData();
             String auctionId = (String) data.get("auctionId");
             String bidderId = (String) data.get("bidderId");
-
-            // Lấy bidder từ database bằng bidderId
-            User bidder = UserDAO.getUserById(Integer.parseInt(bidderId.split("-")[1]));
-            if(bidder == null){
+            loggedInUser = UserService.getInstance().getUserById(bidderId);
+            if(loggedInUser == null){
                 return Response.error("Bidder not found");
             }
-            if(!(bidder instanceof Bidder)){
+            if(!(loggedInUser instanceof Bidder)){
                 return Response.error("Only bidders can use auto bid");
             }
-            ((Bidder) bidder).disableAutoBid(auctionId);
-            logger.info("AutoBid disabled: user={} auction={}", bidder.getFullName(), auctionId);
+            ((Bidder) loggedInUser).disableAutoBid(auctionId);
+            logger.info("AutoBid disabled: user={} auction={}", loggedInUser.getFullName(), auctionId);
 
             return Response.ok("Auto bid disabled", null);
         } catch (Exception e){

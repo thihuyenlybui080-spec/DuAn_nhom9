@@ -67,6 +67,13 @@
             <artifactId>slf4j-api</artifactId>
             <version>2.0.7</version>
         </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.6</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -133,34 +140,21 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <finalName>${finalName}</finalName>
-                    <archive>
-                        <manifest>
-                            <mainClass>${mainClass}</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>server</id>
-            <properties>
-                <mainClass>org.example.loginregister.server.AuctionServer</mainClass>
-                <finalName>AuctionSystem_final-server-1.0-SNAPSHOT</finalName>
-            </properties>
-        </profile>
-        <profile>
-            <id>client</id>
-            <properties>
-                <mainClass>org.example.loginregister.Launcher</mainClass>
-                <finalName>AuctionSystem_final-client-1.0-SNAPSHOT</finalName>
-            </properties>
-        </profile>
-    </profiles>
 </project>
