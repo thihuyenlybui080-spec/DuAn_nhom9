@@ -252,23 +252,22 @@ public class ClientHandler implements Runnable{
                 return Response.error("Auction not found");
             }
 
-            // Lấy bidder từ database bằng bidderId
-            User bidder = UserDAO.getUserById(Integer.parseInt(bidderId.split("-")[1]));
+            loggedInUser = UserDAO.getUserById(Integer.parseInt(bidderId.split("-")[1]));
 
-            if(bidder == null){
+            if(loggedInUser == null){
                 return Response.error("Bidder not found");
             }
 
-            if(!(bidder instanceof Bidder)){
-                return Response.error("only bidders can place bids. Current user type: " + bidder.getClass().getSimpleName());
+            if(!(loggedInUser instanceof Bidder)){
+                return Response.error("only bidders can place bids. Current user type: " + loggedInUser.getClass().getSimpleName());
             }
 
             logger.info("PlaceBid attempt - Bidder: {}, Bidder class: {}",
-                    bidder.getName(),
-                    bidder.getClass().getSimpleName());
+                    loggedInUser.getName(),
+                    loggedInUser.getClass().getSimpleName());
 
             LocalDateTime endTimeBefore = auction.getItem().getEndTime();
-            BidService.getInstance().placeBid(auctionId, (Bidder) bidder, amount);
+            BidService.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
 
             ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
                     NotificationMessage.TYPE_BID_UPDATED,
@@ -423,14 +422,13 @@ public class ClientHandler implements Runnable{
     private Response handleToggleUserLock(Request request){
         try{
             User user = (User) request.getData();
-            if(user instanceof Admin){
-                return Response.error("Admin only can lock/unlock bidder or seller");
-            }
             if(user == null){
                 return Response.error("Invalid user");
             }
+            if(user instanceof Admin){
+                return Response.error("Admin can't lock another admin");
+            }
             UserService.getInstance().toggleUserLock(user);
-            UserService.getInstance().applyStatusSideEffects(user, UserStatus.BANNED);
             return Response.ok(user);
         } catch (RuntimeException e){
             logger.error("handleToggleUserLock error", e);

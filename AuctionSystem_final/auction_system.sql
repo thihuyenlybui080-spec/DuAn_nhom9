@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS users (
     gender      VARCHAR(10)  NOT NULL DEFAULT 'Other',
     phone       VARCHAR(11)  NOT NULL,
     role        ENUM('BIDDER','SELLER','ADMIN') NOT NULL DEFAULT 'BIDDER',
+    status      ENUM('ACTIVE','BANNED') NOT NULL DEFAULT 'ACTIVE',  -- ← thêm
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- ============================================================
 --  Bảng login_history (lịch sử đăng nhập)
 -- ============================================================

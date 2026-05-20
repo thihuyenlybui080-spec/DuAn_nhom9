@@ -18,7 +18,7 @@ public class AuctionResult implements Serializable {
     private final double finalPrice;
     private final LocalDateTime endTime;
     private static List<BidTransaction> bidHistory;
-    private  AuctionStatus status;//có thể thay đổi từ FINISHED->PAID
+    private  AuctionStatus status;
 
     public AuctionResult(Auction auction) {
         this.auctionId = auction.getId();
@@ -27,7 +27,7 @@ public class AuctionResult implements Serializable {
         this.finalPrice = auction.getCurrentPrice();
         this.status=auction.getStatus();
         this.endTime = LocalDateTime.now();
-        this.bidHistory = new ArrayList<>(auction.getBids()); // copy để tránh thay đổi sau này
+        this.bidHistory = new ArrayList<>(auction.getBids());
     }
 
     public void setStatus(AuctionStatus newStatus){
