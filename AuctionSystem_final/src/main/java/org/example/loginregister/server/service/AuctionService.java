@@ -148,11 +148,26 @@ public class AuctionService {
 
     /**
      * Hủy phiên đang chạy (admin / seller / ban seller).
+     * Tìm phiên nếu trên Ram không có, lấy từ database
      */
     public void cancelAuction(String auctionId) {
         Auction auction = auctionManager.getActive(auctionId);
         if (auction == null) {
-            logger.warn("cancelAuction: auction {} not in memory", auctionId);
+            auction = AuctionDAO.getAuctionById(auctionId);
+            
+            if (auction == null) {
+                logger.warn("cancelAuction: auction {} not found in DB or memory", auctionId);
+                return;
+            }
+            int dbId = AuctionDAO.parseDbId(auctionId);
+            if (dbId > 0) {
+                AuctionDAO.updateAuctionStatus(dbId, AuctionStatus.CANCELED);
+            }
+
+            AuctionManager.getInstance().putActive(auction);
+            AuctionResult result = new AuctionResult(auction);
+            AuctionHistoryManager.getInstance().saveResult(result);
+            logger.info("Auction {} canceled (from DB)", auctionId);
             return;
         }
 
@@ -199,15 +214,8 @@ public class AuctionService {
      * Lấy auction: ưu tiên in-memory, fallback DB.
      */
     public Auction getAuction(String auctionId) {
-        Auction inMemory = auctionManager.getActive(auctionId);
-        if (inMemory != null) {
-            return inMemory;
-        }
-        List<User> allUsers = UserDAO.getAllUsers();
-        return AuctionDAO.getAllAuctions(allUsers).stream()
-                .filter(au -> au.getId().equals(auctionId))
-                .findFirst()
-                .orElse(null);
+        Auction auction = AuctionDAO.getAuctionById(auctionId);
+        return auction;
     }
 
     /** Lấy tất cả auction từ DB (admin). */

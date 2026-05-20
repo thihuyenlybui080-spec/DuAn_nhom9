@@ -60,7 +60,7 @@ public class LoginController implements Initializable {
         Platform.runLater(() -> {
             if(rootStackPane.getScene() != null) {
                 Stage stage = (Stage) rootStackPane.getScene().getWindow();
-                stage.setFullScreen(false);
+                stage.setFullScreen(true);
             }
         });
     }

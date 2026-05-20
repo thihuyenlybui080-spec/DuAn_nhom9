@@ -372,8 +372,17 @@ public class ClientHandler implements Runnable{
             if(auctionId == null){
                 return Response.error("AuctionID not found");
             }
+            Auction auction = AuctionService.getInstance().getAuction(auctionId);
+            if(auction == null){
+                return Response.error("Auction not found");
+            }
             AuctionService.getInstance().cancelAuction(auctionId);
-            return Response.ok("auction is canceled", null);
+            ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
+                    NotificationMessage.TYPE_AUCTION_ENDED,
+                    auctionId,
+                    auction
+            ));
+            return Response.ok(auction);
 
         }catch (Exception e){
             logger.warn("Cancel auction error", e);

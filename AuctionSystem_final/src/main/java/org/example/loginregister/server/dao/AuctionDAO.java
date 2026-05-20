@@ -180,4 +180,25 @@ public class AuctionDAO {
 
         return auction;
     }
+    /** Lấy auction theo ID từ database. */
+    public static Auction getAuctionById(String auctionId) {
+        int dbId = parseDbId(auctionId);
+        if (dbId < 0) {
+            return null;
+        }
+        
+        String sql = AUCTION_SELECT + "WHERE a.id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, dbId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAuction(rs, null);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[AuctionDAO] getAuctionById: " + e.getMessage());
+        }
+        return null;
+    }
 }
