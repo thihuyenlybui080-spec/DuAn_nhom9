@@ -1,6 +1,6 @@
 name: Code Style Check
 
-# Cấu hình để workflow chạy khi có ai đó push hoặc tạo Pull Request
+
 on:
   push:
     branches: [ "main", "dev" ]
@@ -12,6 +12,11 @@ jobs:
     name: Run Checkstyle
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -22,6 +27,13 @@ jobs:
         java-version: '25'
         distribution: 'temurin'
         cache: maven
+        
     - name: Execute Checkstyle
       working-directory: ./AuctionSystem_final
       run: mvn checkstyle:check
+      
+    - name: Checkstyle Reviewer Bot
+      uses: jwgmeligmeyling/checkstyle-github-action@master
+      if: always() 
+      with:
+        path: '**/checkstyle-result.xml'
