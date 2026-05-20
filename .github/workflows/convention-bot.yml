@@ -1,0 +1,25 @@
+name: Java Convention Bot (Reviewdog)
+
+on:
+  pull_request:
+    paths:
+      - '**.java' 
+
+jobs:
+  check-convention:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Lấy code về
+        uses: actions/checkout@v4
+
+      - name: Chạy Reviewdog bắt lỗi Checkstyle
+        uses: reviewdog/action-checkstyle@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          level: warning
+          checkstyle_config: google_checks.xml 
+          fail_on_error: true 
