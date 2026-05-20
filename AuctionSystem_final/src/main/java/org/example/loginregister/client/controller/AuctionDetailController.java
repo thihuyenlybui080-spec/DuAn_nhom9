@@ -105,6 +105,7 @@ public class AuctionDetailController implements Initializable {
 
         updateStatusBadge();
         lblThumbIcon.setText(getCategoryIcon(auction.getItem().getCategory()));
+        lblThumbIcon.setStyle("-fx-font-size: 30px;");
         lblCategory.setText(auction.getItem().getCategory());
 
         lblItemId.setText(auction.getItem().getId());
@@ -258,8 +259,14 @@ public class AuctionDetailController implements Initializable {
 
     @FXML
     public void onBack(ActionEvent event){
-        stopAutoRefresh();
-        sceneManager.switchScene(event, comingFromFxml, comingFromTitle);
+        try {
+            System.out.println("onBack called, going to: " + comingFromFxml);
+            stopAutoRefresh();
+            sceneManager.switchScene(event, comingFromFxml, comingFromTitle);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error in onBack: " + e.getMessage());
+        }
     }
 
     public void onSignOut(ActionEvent event){

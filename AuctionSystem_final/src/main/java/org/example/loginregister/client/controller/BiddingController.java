@@ -66,12 +66,6 @@ public class BiddingController implements Initializable, Observer {
     @FXML private Button btnBack;
 
     // ── FXML – Cột trái ───────────────────────────────────────────────────────
-
-    @FXML private Label lblSeller;
-    @FXML private Label lblStartPrice;
-    @FXML private Label lblStartTime;
-    @FXML private Label lblEndTime;
-    @FXML private Label lblAuctionId;
     @FXML private Label lblBidCount;
     @FXML private VBox bidHistoryContainer;
     @FXML private Button btnNavAuctions;
@@ -202,13 +196,6 @@ public class BiddingController implements Initializable, Observer {
         lblUsername.setText(bidder.getFullName());
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
-        lblSeller.setText(auction.getSeller().getFullName());
-        lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
-        lblStartTime.setText(auction.getItem().getStartTime() != null
-                ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
-        lblEndTime.setText(auction.getItem().getEndTime() != null
-                ? auction.getItem().getEndTime().format(DT_FORMAT) : "—");
-        lblAuctionId.setText("#" + auction.getId());
         updateStatusBadge();
         updatePriceArea();
         refreshBidHistory();
