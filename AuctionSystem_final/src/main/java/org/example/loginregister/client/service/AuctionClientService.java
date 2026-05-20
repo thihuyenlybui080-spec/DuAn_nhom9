@@ -286,9 +286,17 @@ public class AuctionClientService {
     }
 
     public List<BidTransaction> getBidderHistory(String bidderId){
-        Response response = sendRequest(new Request("GET_BIDDER_HISTORY", bidderId));
+        Response response = sendRequest(new Request(Request.ACTION_GET_BIDDER_HISTORY, bidderId));
         if(response.isSuccess()){
             return (List<BidTransaction>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    public Item deleteItem(String itemId){
+        Response response = sendRequest(new Request(Request.ACTION_DELETE_ITEM, itemId));
+        if(response.isSuccess()){
+            return (Item) response.getData();
         }
         throw new RuntimeException(response.getMessage());
     }

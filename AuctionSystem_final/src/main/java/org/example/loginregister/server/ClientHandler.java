@@ -121,7 +121,8 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_DISABLE_AUTO_BID, this :: handleDisableAutoBid);
         handlers.put(Request.ACTION_ENABLE_AUTO_BID, this :: handleEnableAutoBid);
         handlers.put(Request.ACTION_CHECK_AUTO_BID, this :: handleCheckAutoBid);
-        handlers.put("GET_BIDDER_HISTORY", this :: handleGetBidderHistory);
+        handlers.put(Request.ACTION_GET_BIDDER_HISTORY, this :: handleGetBidderHistory);
+        handlers.put(Request.ACTION_DELETE_ITEM, this :: handleDeleteItem);
     }
 
     /**
@@ -299,6 +300,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    private Response handleDeleteItem(Request request){
+        String itemId = (String) request.getData();
+        ItemService.getInstance().deleteItem(itemId);
+        return Response.ok("Item deleted successfully.", null);
+    }
+
     private Response handleCreateAuctionAndItem(Request request){
         try{
             Item item= (Item) request.getData();
@@ -409,6 +416,8 @@ public class ClientHandler implements Runnable{
             return Response.error("Failed to force end auction");
         }
     }
+
+
 
     private Response handleGetItemsBySeller(Request request){
         try {

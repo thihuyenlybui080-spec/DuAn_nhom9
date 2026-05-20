@@ -411,7 +411,8 @@ public class SellerDashboardController implements Initializable {
                 "-fx-background-color: transparent; -fx-border-color: #fff;"
                         + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
         btnDelete.setOnAction(e -> onDeleteItem(item));
-
+        boolean hasAuction = myAuctions.stream().anyMatch(a -> a.getItem().getId().equals(item.getId()));
+        btnDelete.setDisable(hasAuction);
         actions.getChildren().addAll(btnEdit, btnDelete);
 
         card.getChildren().addAll(thumb, info, actions);
@@ -443,7 +444,7 @@ public class SellerDashboardController implements Initializable {
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    seller.deleteItem(item);
+                    AuctionClientService.getInstance().deleteItem(item.getId());
                     myItems.remove(item);
                     loadMyItems();
                     lblStatusBar.setText("Item deleted: " + item.getItemName());

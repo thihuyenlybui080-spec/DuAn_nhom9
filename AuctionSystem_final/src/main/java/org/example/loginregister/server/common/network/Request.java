@@ -31,6 +31,8 @@ public class Request implements Serializable {
     public static final String ACTION_ENABLE_AUTO_BID = "ENABLE_AUTO_BID";
     public static final String ACTION_DISABLE_AUTO_BID = "DISABLE_AUTO_BID";
     public static final String ACTION_CHECK_AUTO_BID = "CHECK_AUTO_BID";
+    public static final String ACTION_GET_BIDDER_HISTORY = "GET_BIDDER_HISTORY";
+    public static final String ACTION_DELETE_ITEM = "DELETE_ITEM";
 
 
     /** tên hành động client muốn thực hiện */

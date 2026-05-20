@@ -174,44 +174,44 @@
                         </VBox>
                      </children>
                   </VBox>
-                  <VBox prefHeight="301.0" prefWidth="416.0" spacing="10.0" HBox.hgrow="ALWAYS">
+                  <VBox prefHeight="301.0" prefWidth="416.0" spacing="15.0" HBox.hgrow="ALWAYS">
                      <children>
                         <VBox prefHeight="20.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21); -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(114,47,55,0.4), 15, 0, 0, 0);" VBox.vgrow="ALWAYS">
                            <padding>
                               <Insets bottom="5.0" left="15.0" right="15.0" top="5.0" />
                            </padding>
                            <children>
-                              <Label text="CURRENT PRICE" textFill="#c0c240bc">
+                              <Label text="CURRENT PRICE" textFill="#c0c240bc" VBox.vgrow="ALWAYS">
                                  <font>
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <HBox prefHeight="25.0" prefWidth="131.0">
+                              <HBox prefHeight="25.0" prefWidth="131.0" VBox.vgrow="ALWAYS">
                                  <children>
-                                    <Label fx:id="lblCurrentPrice" prefHeight="35.0" prefWidth="230.0" text="0000" textFill="#d7d74c">
+                                    <Label fx:id="lblCurrentPrice" prefHeight="84.0" prefWidth="220.0" text="0000" textFill="#d7d74c" HBox.hgrow="ALWAYS">
                                        <font>
-                                          <Font name="System Bold" size="24.0" />
+                                          <Font name="System Bold" size="37.0" />
                                        </font>
                                     </Label>
-                                    <Label prefHeight="36.0" prefWidth="20.0" text="₫" textFill="#c0c2408f">
+                                    <Label prefHeight="90.0" prefWidth="15.0" text="₫" textFill="#c0c2408f" HBox.hgrow="ALWAYS">
                                        <font>
                                           <Font size="14.0" />
                                        </font>
                                     </Label>
                                  </children>
                               </HBox>
-                              <Label fx:id="lblLeader" prefHeight="18.0" prefWidth="190.0" text="Leader:" textFill="#ffffffa1" />
+                              <Label fx:id="lblLeader" prefHeight="18.0" prefWidth="190.0" text="Leader:" textFill="#ffffffa1" VBox.vgrow="ALWAYS" />
                            </children>
                         </VBox>
-                        <VBox prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-background-radius: 15; -fx-padding: 20;" VBox.vgrow="ALWAYS">
+                        <VBox alignment="CENTER" prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-background-radius: 15; -fx-padding: 20;" VBox.vgrow="ALWAYS">
                            <children>
-                              <Label text="PLACE YOUR BID" textFill="#c0c43f">
+                              <Label prefHeight="16.0" prefWidth="302.0" text="PLACE YOUR BID" textFill="#c0c43f" VBox.vgrow="ALWAYS">
                                  <font>
                                     <Font name="System Bold" size="11.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtBidAmount" prefHeight="53.0" prefWidth="149.0" promptText="Enter amount . . . " style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-prompt-text-fill: #555; -fx-border-color: #3d1c21; -fx-background-radius: 10; -fx-border-radius: 10;" />
-                              <Label fx:id="lblMinBid" prefHeight="18.0" prefWidth="198.0" text="Min bid: ..." textFill="#ffffff8c">
+                              <TextField fx:id="txtBidAmount" prefHeight="53.0" prefWidth="149.0" promptText="Enter amount . . . " style="-fx-background-color: #0a0405; -fx-text-fill: white; -fx-prompt-text-fill: #555; -fx-border-color: #3d1c21; -fx-background-radius: 10; -fx-border-radius: 10;" VBox.vgrow="ALWAYS" />
+                              <Label fx:id="lblMinBid" prefHeight="18.0" prefWidth="198.0" text="Min bid: ..." textFill="#ffffff8c" VBox.vgrow="ALWAYS">
                                  <font>
                                     <Font size="10.0" />
                                  </font>
@@ -221,7 +221,7 @@
                                     <Font size="10.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="btnPlaceBid" mnemonicParsing="false" onAction="#onPlaceBid" prefHeight="26.0" prefWidth="180.0" style="-fx-background-color: #c0c43f; -fx-background-radius: 8; -fx-cursor: hand;" text="🔨 PLACE BID" textFill="#722f37">
+                              <Button fx:id="btnPlaceBid" alignment="CENTER" mnemonicParsing="false" onAction="#onPlaceBid" prefHeight="26.0" prefWidth="180.0" style="-fx-background-color: #c0c43f; -fx-background-radius: 8; -fx-cursor: hand;" text="🔨 PLACE BID" textFill="#722f37" VBox.vgrow="ALWAYS">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
@@ -235,13 +235,13 @@
                            <children>
                               <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                                  <children>
-                                    <Label alignment="CENTER" prefHeight="18.0" prefWidth="121.0" text="🤖 AUTO-BID" textFill="#c0c43f">
+                                    <Label alignment="CENTER" prefHeight="18.0" prefWidth="121.0" text="🤖 AUTO-BID" textFill="#c0c43f" HBox.hgrow="ALWAYS">
                                        <font>
                                           <Font name="System Bold" size="11.0" />
                                        </font>
                                     </Label>
                                     <Region prefHeight="18.0" prefWidth="83.0" HBox.hgrow="ALWAYS" />
-                                    <CheckBox fx:id="chkAutoBid" mnemonicParsing="false" onAction="#onToggleAutoBid" prefHeight="18.0" prefWidth="57.0" />
+                                    <CheckBox fx:id="chkAutoBid" mnemonicParsing="false" onAction="#onToggleAutoBid" prefHeight="18.0" prefWidth="57.0" HBox.hgrow="ALWAYS" />
                                  </children>
                               </HBox>
                               <VBox fx:id="autoBidForm" managed="false" spacing="10.0" visible="false">

@@ -362,7 +362,7 @@ public class AdminDashboardController implements Initializable {
         thumb.setPrefSize(64, 64);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
         Label icon = new Label(getCategoryIcon(auction.getItem().getCategory()));
-        icon.setStyle("-fx-font-size: 22px;");
+        icon.setStyle("-fx-font-size: 22px; -fx-background-color: #722f37");
         Label cat = new Label(auction.getItem().getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);

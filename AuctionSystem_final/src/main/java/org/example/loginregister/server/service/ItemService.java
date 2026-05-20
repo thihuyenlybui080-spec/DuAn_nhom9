@@ -7,6 +7,7 @@ import org.example.loginregister.server.model.entity.user.Seller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -58,6 +59,10 @@ public class ItemService {
         List<Item> items = ItemDAO.getItemsBySeller(dbId, dummy);
         logger.debug("Found {} items for seller {}", items.size(), sellerId);
         return items;
+    }
+    public void deleteItem(String itemId){
+        int dbId = ItemDAO.parseDbId(itemId);
+        ItemDAO.deleteItem(dbId);
     }
 
     public static synchronized void resetForTesting() {

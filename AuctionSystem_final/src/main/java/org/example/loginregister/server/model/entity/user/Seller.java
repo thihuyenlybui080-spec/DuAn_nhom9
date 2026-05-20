@@ -2,6 +2,7 @@ package org.example.loginregister.server.model.entity.user;
 
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.service.AuctionService;
+import org.example.loginregister.server.service.ItemService;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ public class Seller extends User {
 
     public Seller( String name, String password, String email, String fullName){
         super( name, password, email, fullName);
-        this.ownedItems = new ArrayList<>();
+        this.ownedItems = ItemService.getInstance().getItemsBySeller(this.getIdPrefix());
     }
 
     public void addItem(Item item){

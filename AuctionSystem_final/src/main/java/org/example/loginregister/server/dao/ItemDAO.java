@@ -79,6 +79,15 @@ public class ItemDAO {
         }
     }
 
+    public static int parseDbId(String itemId) {
+        try {
+            String[] parts = itemId.split("-");
+            return Integer.parseInt(parts[parts.length - 1]);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     /** Map từ JOIN query (dùng alias item_id). */
     public static Item mapItem(ResultSet rs, Seller seller) throws SQLException {
         int    id         = rs.getInt("item_id");
