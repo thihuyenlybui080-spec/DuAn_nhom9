@@ -16,7 +16,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootBorderPane" maxHeight="700.0" maxWidth="1150.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 30, 0, 0, 0);" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.AuctionDetailController">
+<BorderPane fx:id="rootBorderPane" maxHeight="700.0" maxWidth="1150.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 30, 0, 0, 0);" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.AuctionDetailController">
 
    <left>
       <VBox alignment="TOP_CENTER" prefHeight="650.0" prefWidth="203.0" spacing="5.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
@@ -88,7 +88,7 @@
                                        <font><Font name="System Bold" size="12.0" /></font>
                                     </Label>
                                     <Separator opacity="0.1" />
-                                    <GridPane vgap="12.0">
+                                    <GridPane vgap="12.0" VBox.vgrow="ALWAYS">
                                        <columnConstraints>
                                           <ColumnConstraints prefWidth="120" />
                                           <ColumnConstraints hgrow="ALWAYS" />
@@ -100,8 +100,14 @@
                                           <Label fx:id="lblStartPrice" text="1,000,000 ₫" textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label opacity="0.5" text="Start Time" textFill="WHITE" GridPane.rowIndex="2" />
                                           <Label fx:id="lblStartTime" text="2026-05-07 10:00" textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <Label opacity="0.5" text="End Time" textFill="WHITE" GridPane.rowIndex="3" />
+                                          <Label fx:id="lblEndTime" text="2026-05-07 18:00" textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <Label opacity="0.5" text="Item ID" textFill="WHITE" GridPane.rowIndex="4" />
+                                          <Label fx:id="lblItemId" text="12345" textFill="WHITE" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                                        </children>
                                        <rowConstraints>
+                                          <RowConstraints />
+                                          <RowConstraints />
                                           <RowConstraints />
                                           <RowConstraints />
                                           <RowConstraints />
@@ -111,7 +117,6 @@
                               </VBox>
                            </children>
                         </VBox>
-                        <Region HBox.hgrow="ALWAYS" />
 
                         <VBox prefHeight="550.0" prefWidth="407.0" spacing="20.0" HBox.hgrow="ALWAYS">
                            <children>
@@ -157,7 +162,7 @@
                                     <Label text="DESCRIPTION" textFill="#c0c43f">
                                        <font><Font name="System Bold" size="12.0" /></font>
                                     </Label>
-                                    <Label fx:id="lblDescription" opacity="0.8" text="Detailed item description goes here..." textFill="WHITE" wrapText="true" />
+                                    <Label fx:id="lblDescription" opacity="0.8" text="Detailed item description goes here..." textFill="WHITE" wrapText="true" VBox.vgrow="ALWAYS" />
                                  </children>
                               </VBox>
                            </children>
@@ -168,7 +173,7 @@
                </content>
             </ScrollPane>
 
-            <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="10.0" style="-fx-background-color: #0a0405;" VBox.vgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="10.0" style="-fx-background-color: #0a0405;">
                <padding><Insets left="20.0" right="20.0" /></padding>
                <children>
                   <Label fx:id="lblAuctionIdBar" opacity="0.3" text="Auction ID: #99821" textFill="WHITE" HBox.hgrow="ALWAYS" />

@@ -21,7 +21,9 @@ import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
+import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Bidder;
+import org.example.loginregister.server.model.entity.user.Seller;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.util.AuctionManager;
@@ -342,7 +344,7 @@ public class BidderDashboardController implements Initializable {
 
         Button btnDetail = new Button("Details");
         btnDetail.setMaxWidth(Double.MAX_VALUE);
-        btnDetail.setStyle("-fx-background-color: transparent; -fx-border-color: #c0c43f; -fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 12px;");
+        btnDetail.setStyle("-fx-background-color: transparent; -fx-border-color: #c0c43f; -fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 12px; -fx-cursor: hand;");
         btnDetail.setOnAction(e -> onDetailClicked(auction));
         actions.getChildren().addAll(btnBid, btnDetail);
         return actions;
@@ -413,7 +415,10 @@ public class BidderDashboardController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-
+            new Alert(Alert.AlertType.ERROR, "Failed to load bidding screen: " + e.getMessage()).showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).showAndWait();
         }
     }
 
@@ -424,11 +429,14 @@ public class BidderDashboardController implements Initializable {
             Scene scene = new Scene(loader.load());
 
             AuctionDetailController ctrl = loader.getController();
+
+            String dashboardFxml = "bidder_dashboard.fxml";
+            String dashboardTitle = "Bidder Dashboard";
             ctrl.setData(
                     auction,
                     bidder,
-                    "bidder_dashboard.fxml",  // ← màn quay lại
-                    "Bidder Dashboard"
+                    dashboardFxml,
+                    dashboardTitle
             );
 
             Stage stage = (Stage) auctionContainer.getScene().getWindow();
@@ -439,7 +447,10 @@ public class BidderDashboardController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-
+            new Alert(Alert.AlertType.ERROR, "Failed to load auction detail: " + e.getMessage()).showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).showAndWait();
         }
     }
 
