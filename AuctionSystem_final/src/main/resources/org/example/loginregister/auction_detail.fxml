@@ -114,7 +114,7 @@
                               </VBox>
                            </children>
                         </VBox>
-                        <Region prefHeight="550.0" prefWidth="62.0" HBox.hgrow="ALWAYS" />
+                        <Region HBox.hgrow="ALWAYS" />
 
                         <VBox prefHeight="550.0" prefWidth="407.0" spacing="20.0">
                            <children>

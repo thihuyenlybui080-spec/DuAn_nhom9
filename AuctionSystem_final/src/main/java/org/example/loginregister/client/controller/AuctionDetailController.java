@@ -56,7 +56,7 @@ public class AuctionDetailController implements Initializable {
 
     @FXML private Label lblCurrentPrice;
     @FXML private Label lblBidCount;
-    @FXML private Label lblCountDown;
+    @FXML private Label lblCountdown;
     @FXML private Button btnPlaceBid;
     @FXML private Button btnBack;
     @FXML private Label lblAuctionIdBar;
@@ -181,7 +181,7 @@ public class AuctionDetailController implements Initializable {
     }
 
     private void updateBidButton(){
-        boolean canBid = auction.getStatus() == RUNNING;
+        boolean canBid = auction.getStatus() == RUNNING || auction.getStatus() == OPEN;
         btnPlaceBid.setDisable(!canBid);
         if(!canBid){
             btnPlaceBid.setStyle(
@@ -221,14 +221,14 @@ public class AuctionDetailController implements Initializable {
     private void updateCountdown(){
         if(auction.getItem().getEndTime() == null
                 || auction.getStatus() == FINISHED) {
-            lblCountDown.setText("ENDED");
-            lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
+            lblCountdown.setText("ENDED");
+            lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
             stopAutoRefresh();
             return;
         }
         long totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
         if(totalSecs <= 0){
-            lblCountDown.setText("ENDED");
+            lblCountdown.setText("ENDED");
             stopAutoRefresh();
             return;
         }
@@ -236,17 +236,17 @@ public class AuctionDetailController implements Initializable {
         long  h = totalSecs / 3600;
         long m = (totalSecs % 3600) / 60;
         long s = totalSecs % 60;
-        lblCountDown.setText(String.format("%02d:%02d:%02d", h, m, s));
+        lblCountdown.setText(String.format("%02d:%02d:%02d", h, m, s));
 
         if(totalSecs <= 300){
-            lblCountDown.setStyle(
+            lblCountdown.setStyle(
                     "-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #e53935;"
             );
         } else if (totalSecs <= 1800) {
-            lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f57c00;");
+            lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f57c00;");
         }
         else{
-            lblCountDown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
+            lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
         }
     }
 

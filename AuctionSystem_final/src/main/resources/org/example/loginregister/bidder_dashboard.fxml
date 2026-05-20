@@ -100,7 +100,7 @@
                             </children>
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <HBox fx:id="searchBox" alignment="CENTER" prefHeight="67.0" prefWidth="307.0" style="-fx-background-color: #1a0a0c; -fx-background-radius: 20; -fx-border-color: #3d1c21; -fx-border-radius: 20;">
+                        <HBox fx:id="searchBox" alignment="CENTER" prefHeight="40" prefWidth="307.0" style="-fx-background-color: #1a0a0c; -fx-background-radius: 20; -fx-border-color: #3d1c21; -fx-border-radius: 20;">
                             <children>
                                 <Label text=" 🔍 " textFill="#c0c43f">
                                     <font><Font size="16.0" />
