@@ -98,6 +98,7 @@ public class BidderDashboardController implements Initializable {
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 stage.setFullScreen(true);
             }
+
         });
     }
 

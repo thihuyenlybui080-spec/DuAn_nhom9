@@ -72,12 +72,22 @@ public class UserService {
     }
 
      public User toggleUserLock(User user){
-         if (user instanceof Bidder bidder) {
-             handleBidderRestricted(bidder, UserStatus.BANNED);
-         } else if (user instanceof Seller seller) {
-             handleSellerRestricted(seller, UserStatus.BANNED);
-         }
-         return user;
+        if (user.isActive()) {
+            user.updateStatus(new UserStatusRecord(UserStatus.BANNED, null));
+            UserDAO.updateUserStatus(user.getId(), UserStatus.BANNED);
+            if (user instanceof Bidder bidder) {
+                handleBidderRestricted(bidder, UserStatus.BANNED);
+            } else if (user instanceof Seller seller) {
+                handleSellerRestricted(seller, UserStatus.BANNED);
+            }
+            logger.info("User {} locked (BANNED)", user.getName());
+        }
+        else {
+            user.updateStatus(UserStatusRecord.defaultActive());
+            UserDAO.updateUserStatus(user.getId(), UserStatus.ACTIVE);
+            logger.info("User {} unlocked (ACTIVE)", user.getName());
+        }
+        return user;
      }
 
     private void handleBidderRestricted(Bidder bidder, UserStatus status) {

@@ -13,7 +13,7 @@ public class UserDAO {
     /** Lấy toàn bộ danh sách user (Admin + Seller + Bidder). */
     public static List<User> getAllUsers() {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT id, username, password, email, full_name, role FROM users";
+        String sql = "SELECT id, username, password, email, full_name, role, status FROM users";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -28,7 +28,7 @@ public class UserDAO {
 
     /** Lấy user theo username và password (dùng cho login). */
     public static User getUserByCredentials(String username, String password) {
-        String sql = "SELECT id, username, password, email, full_name, role FROM users WHERE username = ? AND password = ?";
+        String sql = "SELECT id, username, password, email, full_name, role, status FROM users WHERE username = ? AND password = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
@@ -42,9 +42,23 @@ public class UserDAO {
         return null;
     }
 
+    /** Cập nhật status user trong DB */
+    public static void updateUserStatus(String userId, UserStatus status) {
+        int dbId = Integer.parseInt(userId.substring(userId.lastIndexOf('-') + 1));
+        String sql = "UPDATE users SET status = ? WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status.name());
+            ps.setInt(2, dbId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("[UserDAO] updateUserStatus: " + e.getMessage());
+        }
+    }
+
     /** Lấy user theo id. */
     public static User getUserById(int userId) {
-        String sql = "SELECT id, username, password, email, full_name, role FROM users WHERE id = ?";
+        String sql = "SELECT id, username, password, email, full_name, role, status FROM users WHERE id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -103,6 +117,7 @@ public class UserDAO {
         String email    = rs.getString("email");
         String fullName = rs.getString("full_name");
         String role     = rs.getString("role");
+        String status   = rs.getString("status");
 
         User user;
         String prefix;
@@ -112,6 +127,9 @@ public class UserDAO {
             default:       user = new Bidder(username, password, email, fullName); prefix = "bidder";
         }
         user.setId(prefix + "-" + id);
+        if ("BANNED".equals(status)) {
+            user.updateStatus(new UserStatusRecord(UserStatus.BANNED, null));
+        }
         return user;
     }
 }

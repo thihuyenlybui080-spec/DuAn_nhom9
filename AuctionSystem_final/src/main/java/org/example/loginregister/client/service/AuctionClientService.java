@@ -155,12 +155,14 @@ public class AuctionClientService {
      * @param user người bị lock
      * @return người bị lock
      */
-    public User toggleUserLock(User user){
+    public void toggleUserLock(User user){
         Response response = sendRequest(new Request(Request.ACTION_TOGGLE_USER_LOCK, user));
-        if (response.isSuccess()) {
-            return (User) response.getData();
+        if (!response.isSuccess()) {
+            throw new RuntimeException(response.getMessage());
         }
-        throw new RuntimeException(response.getMessage());
+        User updated = (User) response.getData();
+        user.updateStatus(updated.getStatusRecord());
+
     }
 
     /**

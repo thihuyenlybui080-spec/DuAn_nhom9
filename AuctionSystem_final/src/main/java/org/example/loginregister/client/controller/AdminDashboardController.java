@@ -265,17 +265,16 @@ public class AdminDashboardController implements Initializable {
             if(respone != ButtonType.OK) {
                 return;
             }
+            boolean wasActive = user.isActive();
             try {
                 AuctionClientService.getInstance().toggleUserLock(user);
-                if (user.getStatus() == UserStatus.BANNED) {
-                    user.updateStatus(UserStatusRecord.defaultActive());
+                if (!wasActive) {
                     btn.setText("🔒 Lock");
                     btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
                             + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Unlocked: " + user.getFullName());
-                } else if (user.getStatus() == UserStatus.ACTIVE) {
-                    user.updateStatus(new UserStatusRecord(UserStatus.BANNED, admin));
+                } else {
                     btn.setText("🔓 Unlock");
                     btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
                             + "-fx-border-color: #fff; -fx-border-radius: 4;"
@@ -437,6 +436,7 @@ public class AdminDashboardController implements Initializable {
                 loadAuctions();
                 lblStatusBar.setText("Cancel: " + auction.getItem().getItemName());
             }
+            loadAuctions();
         });
     }
 

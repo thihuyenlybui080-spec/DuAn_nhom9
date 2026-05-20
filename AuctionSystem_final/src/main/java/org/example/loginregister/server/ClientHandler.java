@@ -425,14 +425,13 @@ public class ClientHandler implements Runnable{
     private Response handleToggleUserLock(Request request){
         try{
             User user = (User) request.getData();
-            if(user instanceof Admin){
-                return Response.error("Admin only can lock/unlock bidder or seller");
-            }
             if(user == null){
                 return Response.error("Invalid user");
             }
+            if(user instanceof Admin){
+                return Response.error("Admin can't lock another admin");
+            }
             UserService.getInstance().toggleUserLock(user);
-            UserService.getInstance().applyStatusSideEffects(user, UserStatus.BANNED);
             return Response.ok(user);
         } catch (RuntimeException e){
             logger.error("handleToggleUserLock error", e);
