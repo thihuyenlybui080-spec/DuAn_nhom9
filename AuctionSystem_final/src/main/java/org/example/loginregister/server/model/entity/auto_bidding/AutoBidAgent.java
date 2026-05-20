@@ -4,17 +4,21 @@ import org.example.loginregister.server.common.observer.Observer;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.service.BidService;
+import org.example.loginregister.server.util.AuctionManager;
 
-public class AutoBidAgent implements Observer {
+import java.io.Serializable;
 
+public class AutoBidAgent implements Observer, Serializable {
+
+    private static final long serialVersionUID = 1L;
     private final Bidder  bidder;
-    private final Auction auction;
+    private final String auctionId;
     private final AutoBidConfig config;
     private boolean active = true;
 
     public AutoBidAgent(Bidder bidder, Auction auction, AutoBidConfig config) {
         this.bidder = bidder;
-        this.auction= auction;
+        this.auctionId = auction.getId();
         this.config = config;
         auction.addObserver(this);
     }
@@ -31,11 +35,18 @@ public class AutoBidAgent implements Observer {
             stop();
             return;
         }
-        BidService.getInstance().processAutoBid(bidder, auction, nextBid);
+        // Get current auction from AuctionManager to ensure we have the latest object
+        Auction currentAuction = AuctionManager.getInstance().getActive(this.auctionId);
+        if (currentAuction != null) {
+            BidService.getInstance().processAutoBid(bidder, currentAuction, nextBid);
+        }
     }
 
     public void stop() {
         active = false;
-        auction.removeObserver(this);
+        Auction currentAuction = AuctionManager.getInstance().getActive(auctionId);
+        if (currentAuction != null) {
+            currentAuction.removeObserver(this);
+        }
     }
 }

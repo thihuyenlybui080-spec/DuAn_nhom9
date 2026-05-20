@@ -219,6 +219,17 @@ public class AuctionClientService {
         sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, data));
     }
 
+    public Map<String, Object> checkAutoBid(String auctionId, String bidderId){
+        Map<String, Object> data = new HashMap<>();
+        data.put("auctionId", auctionId);
+        data.put("bidderId", bidderId);
+        Response response = sendRequest(new Request(Request.ACTION_CHECK_AUTO_BID, data));
+        if (response != null && response.isSuccess() && response.getData() != null) {
+            return (Map<String, Object>) response.getData();
+        }
+        return null;
+    }
+
     /**
      * Đặt giá cho một phiên đấu giá
      *

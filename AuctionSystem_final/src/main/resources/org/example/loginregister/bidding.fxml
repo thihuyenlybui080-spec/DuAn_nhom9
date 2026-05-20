@@ -255,6 +255,12 @@
                                  <Button fx:id="btnEnableAutoBid" maxWidth="Infinity" onAction="#onEnableAutoBid" style="-fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa; -fx-background-radius: 5;" text="⚡ Enable Auto-Bid" />
                               </VBox>
                               <Label fx:id="lblAutoBidStatus" text="" textFill="#c0c43f" />
+                              <Label fx:id="lblAutoBidActiveStatus" style="-fx-font-size: 12px;" text="" />
+                              <Button fx:id="btnDisableAutoBid" managed="false" onAction="#onDisableAutoBid" prefHeight="26.0" prefWidth="180.0" style="-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-size: 12px; -fx-background-radius: 8; -fx-cursor: hand;" text="✕ Disable Auto-Bid" visible="false">
+                                 <cursor>
+                                    <Cursor fx:constant="HAND" />
+                                 </cursor>
+                              </Button>
                               <Label fx:id="lblAutoBidHint" opacity="0.4" style="-fx-font-size: 10px;" text="Let system bid for you." textFill="WHITE" wrapText="true" />
                            </children>
                         </VBox>

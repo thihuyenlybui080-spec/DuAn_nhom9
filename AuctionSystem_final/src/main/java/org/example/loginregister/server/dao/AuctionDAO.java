@@ -169,7 +169,10 @@ public class AuctionDAO {
                     .filter(u -> u.getId().equals(String.valueOf(highestBidderId)))
                     .filter(u -> u instanceof Bidder)
                     .findFirst()
-                    .ifPresent(u -> auction.setHighestBidderName(u.getName()));
+                    .ifPresent(u -> {
+                        auction.setHighestBidder((Bidder) u);
+                        auction.setHighestBidderName(u.getName());
+                    });
         }
 
         try {

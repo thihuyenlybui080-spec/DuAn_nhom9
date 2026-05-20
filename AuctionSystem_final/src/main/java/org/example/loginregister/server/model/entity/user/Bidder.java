@@ -2,6 +2,8 @@ package org.example.loginregister.server.model.entity.user;
 
 import org.example.loginregister.server.common.exception.AuctionClosedException;
 import org.example.loginregister.server.common.exception.InvalidBidException;
+import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.AutoBidDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.BidTransaction;
@@ -11,14 +13,17 @@ import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.service.BidService;
 import org.example.loginregister.server.service.PaymentService;
 import org.example.loginregister.server.util.AuctionHistoryManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Bidder extends User  {
+    private static final Logger logger = LoggerFactory.getLogger(Bidder.class);
     private final List<BidTransaction> history = new CopyOnWriteArrayList<>();
-    private final Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
+    private final transient Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
     private final Map<String, AuctionResult> wonAuctions = new ConcurrentHashMap<>();
 
     public Bidder( String name, String password, String email, String fullName) {
@@ -69,18 +74,43 @@ public class Bidder extends User  {
 
     //=====AUTO BIDDING====
     public void enableAutoBid(Auction auction, AutoBidConfig config) {
+        System.out.println("[Bidder] enableAutoBid called for " + getName());
         AutoBidAgent existing = agents.get(auction.getId());
         if (existing != null) {
             existing.stop();
         }
         AutoBidAgent agent = new AutoBidAgent(this, auction,config);
         agents.put(auction.getId(), agent);
+        // Save to database for persistence
+        int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+        int bidderDbId = AuctionDAO.parseDbId(this.getId());
+        System.out.println("[Bidder] auctionId=" + auction.getId() + " -> auctionDbId=" + auctionDbId + ", bidderId=" + this.getId() + " -> bidderDbId=" + bidderDbId);
+        if (auctionDbId > 0 && bidderDbId > 0) {
+            AutoBidDAO.saveAutoBid(auctionDbId, bidderDbId, config.getMaxBid(), config.getIncrement());
+        } else {
+            System.err.println("[Bidder] FAILED: Invalid IDs");
+        }
     }
 
     public void disableAutoBid(String auctionId) {
         AutoBidAgent agent = agents.remove(auctionId);
         if (agent != null) agent.stop();
+        // Delete from database
+        int auctionDbId = AuctionDAO.parseDbId(auctionId);
+        int bidderDbId = AuctionDAO.parseDbId(this.getId());
+        if (auctionDbId > 0 && bidderDbId > 0) {
+            AutoBidDAO.deleteAutoBid(auctionDbId, bidderDbId);
+        }
         System.out.println("[AutoBid] " + getName() + " disabled auto-bid for auction " + auctionId);
+    }
+
+    /** Re-register auto-bid agent as observer when auction is reloaded from database. */
+    public void reRegisterAutoBidAgent(Auction auction) {
+        AutoBidAgent agent = agents.get(auction.getId());
+        if (agent != null) {
+            auction.addObserver(agent);
+            logger.info("Re-registered auto-bid agent for {} on auction {}", getName(), auction.getId());
+        }
     }
 
     /**=====GETTER===== */

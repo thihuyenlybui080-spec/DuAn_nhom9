@@ -1,13 +1,15 @@
 package org.example.loginregister.server.model.entity.auto_bidding;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * Lưu cấu hình auto-bid mà một Bidder đăng ký cho một phiên đấu giá.
  * Immutable sau khi tạo (chỉ đọc từ bên ngoài).
  */
-public class AutoBidConfig {
+public class AutoBidConfig implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final double maxBid;
     private final double increment;
     private final LocalDateTime registeredAt;

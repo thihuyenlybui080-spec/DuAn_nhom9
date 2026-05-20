@@ -102,9 +102,12 @@ public class BidService {
     private void persistBid(String auctionId, Bidder bidder, double amount) {
         int auctionDbId = AuctionDAO.parseDbId(auctionId);
         int bidderId = AuctionDAO.parseDbId(bidder.getId());
+        logger.info("[BidService] persistBid: auctionId= {} -> auctionDbId= {}, bidderId= {}  -> bidderDbId= {}", auctionId, auctionDbId, bidderId, bidderId);
         if (auctionDbId > 0 && bidderId > 0) {
             BidDAO.insertBid(auctionDbId, bidderId, amount);
             AuctionDAO.updateAuctionBid(auctionDbId, amount, bidderId);
+        } else {
+            logger.error("[BidService] persistBid FAILED: Invalid IDs - auctionDbId= {}, bidderDbId={}", auctionDbId, bidderId);
         }
     }
 

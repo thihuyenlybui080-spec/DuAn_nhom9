@@ -116,6 +116,24 @@ CREATE TABLE IF NOT EXISTS bid_transactions (
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
+--  Bảng auto_bids (lưu cấu hình auto-bid của bidder)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS auto_bids (
+    id              BIGINT      NOT NULL AUTO_INCREMENT,
+    auction_id      INT         NOT NULL,
+    bidder_id       INT         NOT NULL,
+    max_bid         DOUBLE      NOT NULL,
+    increment       DOUBLE      NOT NULL DEFAULT 1.0,
+    created_at      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_auction_bidder (auction_id, bidder_id),
+    CONSTRAINT fk_auto_auction FOREIGN KEY (auction_id)
+    REFERENCES auctions(id) ON DELETE CASCADE,
+    CONSTRAINT fk_auto_bidder  FOREIGN KEY (bidder_id)
+    REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
 --  INDEX
 -- ============================================================
 CREATE INDEX idx_auctions_status ON auctions(status);
