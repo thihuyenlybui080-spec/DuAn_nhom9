@@ -9,6 +9,7 @@ module org.example.loginregister {
     requires ch.qos.logback.core;
     requires java.desktop;
     requires java.management;
+    requires org.yaml.snakeyaml;
 
     opens org.example.loginregister to javafx.fxml;
     exports org.example.loginregister;

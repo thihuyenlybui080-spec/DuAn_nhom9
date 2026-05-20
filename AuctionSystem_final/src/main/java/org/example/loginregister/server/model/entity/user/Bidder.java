@@ -17,12 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Bidder extends User  {
-
-    //lưu những bid thành công
     private final List<BidTransaction> history = new CopyOnWriteArrayList<>();
-    //lưu auto bid
     private final Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
-    //ds lưu những auction mà bidder này thắng
     private final Map<String, AuctionResult> wonAuctions = new ConcurrentHashMap<>();
 
     public Bidder( String name, String password, String email, String fullName) {
