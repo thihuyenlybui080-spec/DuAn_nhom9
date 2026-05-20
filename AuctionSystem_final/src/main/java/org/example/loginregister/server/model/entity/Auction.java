@@ -255,6 +255,20 @@ public class Auction implements Subject, Serializable {
     public List<BidTransaction> getBids() {
         return Collections.unmodifiableList(bids);
     }
+
+    /**
+     * Add multiple bids to the auction (used when loading from database).
+     * Thread-safe: acquires lock before modifying the bids list.
+     */
+    public void addBids(List<BidTransaction> bidsToAdd) {
+        if (bidsToAdd == null) return;
+        lock.lock();
+        try {
+            bids.addAll(bidsToAdd);
+        } finally {
+            lock.unlock();
+        }
+    }
     public long getSecondsRemaining() {
         return Math.max(0, ChronoUnit.SECONDS.between(LocalDateTime.now(), item.getEndTime()));
     }

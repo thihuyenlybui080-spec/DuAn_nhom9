@@ -262,7 +262,21 @@ public class AuctionDetailController implements Initializable {
         try {
             System.out.println("onBack called, going to: " + comingFromFxml);
             stopAutoRefresh();
-            sceneManager.switchScene(event, comingFromFxml, comingFromTitle);
+            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+
+            if (comingFromFxml.equals("seller_dashboard.fxml")) {
+                SellerDashboardController ctrl = sceneManager.switchSceneAndGetController(stage, comingFromFxml, comingFromTitle);
+                if (ctrl != null && currentUser instanceof org.example.loginregister.server.model.entity.user.Seller) {
+                    ctrl.setCurrentUser((org.example.loginregister.server.model.entity.user.Seller) currentUser);
+                }
+            } else if (comingFromFxml.equals("bidder_dashboard.fxml")) {
+                BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(stage, comingFromFxml, comingFromTitle);
+                if (ctrl != null && currentUser instanceof org.example.loginregister.server.model.entity.user.Bidder) {
+                    ctrl.setCurrent((org.example.loginregister.server.model.entity.user.Bidder) currentUser);
+                }
+            } else {
+                sceneManager.switchScene(stage, comingFromFxml, comingFromTitle);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error in onBack: " + e.getMessage());

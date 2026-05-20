@@ -285,6 +285,14 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
+    public List<BidTransaction> getBidderHistory(String bidderId){
+        Response response = sendRequest(new Request("GET_BIDDER_HISTORY", bidderId));
+        if(response.isSuccess()){
+            return (List<BidTransaction>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
     /**
      * Gửi Request lên Server và đăng kí đợi response trong 10 giây
      *đăng kí, chờ nhận, hủy đăng kí
