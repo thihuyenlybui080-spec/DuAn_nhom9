@@ -1,12 +1,14 @@
 package org.example.loginregister.client.service;
 
 import org.example.loginregister.server.common.network.NotificationMessage;
+import org.example.loginregister.server.common.network.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -29,7 +31,7 @@ public class MessageRouter implements Runnable{
         }
         return instance;
     }
-    private final BlockingQueue<Object> responseQueue = new LinkedBlockingQueue<>();
+    private final ConcurrentHashMap<String, LinkedBlockingQueue<Response>> pendingRequest = new ConcurrentHashMap<>();
 
     private volatile boolean running = false;
     private Thread routerThread;
@@ -63,9 +65,15 @@ public class MessageRouter implements Runnable{
 
                 if(obj instanceof NotificationMessage){
                     NotificationListener.getInstance().dispatch((NotificationMessage) obj);
-                }
-                else {
-                    responseQueue.put(obj);
+                } else if (obj instanceof Response response) {
+                    String id = response.getRequestId();
+                    LinkedBlockingQueue<Response> queue = pendingRequest.get(id);
+                    if(queue != null){
+                        queue.put(response);
+                    }
+                    else {
+                        logger.warn("No pending request found for id: {}", id);
+                    }
                 }
             } catch (IOException e){
                 logger.warn("Connection lost in MessageRouter", e);
@@ -75,8 +83,14 @@ public class MessageRouter implements Runnable{
         }
     }
 
-    public Object takeResponse() throws InterruptedException {
-        return responseQueue.take();
+    public LinkedBlockingQueue<Response> registerRequest(String requestId){
+        LinkedBlockingQueue<Response> queue = new LinkedBlockingQueue<>();
+        pendingRequest.put(requestId, queue);
+        return queue;
+    }
+
+    public void unregisterRequest(String requestId){
+        pendingRequest.remove(requestId);
     }
 
 }

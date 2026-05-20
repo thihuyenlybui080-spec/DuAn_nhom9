@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Giao tiếp với server qua socket
@@ -284,8 +286,8 @@ public class AuctionClientService {
     }
 
     /**
-     * Gửi Request lên Servẻ và đợi Response
-     *
+     * Gửi Request lên Server và đăng kí đợi response trong 10 giây
+     *đăng kí, chờ nhận, hủy đăng kí
      * @param request yêu cầu cần gửi
      * @return phản hồi từ server
      */
@@ -297,13 +299,21 @@ public class AuctionClientService {
                 throw new RuntimeException("Cannot connect to server. Please try again");
             }
         }
+        logger.info("Sending request [{}]: action={}", request.getRequestId(), request.getAction());
+        LinkedBlockingQueue<Response> queue = MessageRouter.getInstance().registerRequest(request.getRequestId());
         try{
             connectionManager.getOutputStream().writeObject(request);
             connectionManager.getOutputStream().flush();
             connectionManager.getOutputStream().reset();
 
-            Response response = (Response) MessageRouter.getInstance().takeResponse();
-            logger.info("Response: " + response);
+            Response response = queue.poll(10, TimeUnit.SECONDS);
+            if(response == null){
+                throw new RuntimeException("Request timeout:" + request.getAction());
+            }
+            logger.info("Response [{}]: {}", request.getRequestId(), response);
+            if(!request.getRequestId().equals(response.getRequestId())){
+                logger.error("REQUEST ID MISMATCH! sent={} received={}", request.getRequestId(), response.getRequestId());
+            }
             return response;
         } catch (IOException e){
             logger.warn("IO error during request: {}", request.getAction(), e);
@@ -312,6 +322,9 @@ public class AuctionClientService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Request interrupted");
+        }
+        finally {
+            MessageRouter.getInstance().unregisterRequest(request.getRequestId());
         }
     }
     /**

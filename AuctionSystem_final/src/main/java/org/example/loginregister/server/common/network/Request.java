@@ -1,6 +1,7 @@
 package org.example.loginregister.server.common.network;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Đại diện cho một yêu cầu từ client gửi lên server.
@@ -37,6 +38,7 @@ public class Request implements Serializable {
 
     /** dữ liệu kèm theo (object)*/
     private final Object data;
+    private final String requestId;
 
     /** Yêu cầu của client
      *
@@ -46,6 +48,7 @@ public class Request implements Serializable {
     public Request(String action, Object data){
         this.action = action;
         this.data = data;
+        this.requestId = UUID.randomUUID().toString();
     }
     public String getAction() {
         return action;
@@ -53,6 +56,9 @@ public class Request implements Serializable {
 
     public Object getData() {
         return data;
+    }
+    public String getRequestId() {
+        return requestId;
     }
 
     @Override

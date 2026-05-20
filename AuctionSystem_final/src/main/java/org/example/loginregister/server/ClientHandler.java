@@ -133,7 +133,9 @@ public class ClientHandler implements Runnable{
         if(handler == null){
             return Response.error("Unknow action: {} " + request.getAction());
         }
-        return handler.apply(request);
+        Response response = handler.apply(request);
+        response.setRequestId(request.getRequestId());
+        return response;
     }
 
     private Response handleLogin(Request request) {

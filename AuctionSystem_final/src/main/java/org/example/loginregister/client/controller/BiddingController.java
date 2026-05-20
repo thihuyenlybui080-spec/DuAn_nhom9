@@ -49,8 +49,6 @@ public class BiddingController implements Initializable, Observer {
     private static final NumberFormat VND_FORMAT =
             NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    static final String BIDDER_DASHBOARD_FXML  = "bidder_dashboard.fxml";
-    static final String BIDDER_DASHBOARD_TITLE = "Bidder Dashboard";
     private String comingFromFile;
     private String comingFromTitle;
 
@@ -67,11 +65,6 @@ public class BiddingController implements Initializable, Observer {
 
     // ── FXML – Cột trái ───────────────────────────────────────────────────────
 
-    @FXML private Label lblSeller;
-    @FXML private Label lblStartPrice;
-    @FXML private Label lblStartTime;
-    @FXML private Label lblEndTime;
-    @FXML private Label lblAuctionId;
     @FXML private Label lblBidCount;
     @FXML private VBox bidHistoryContainer;
     @FXML private Button btnNavAuctions;
@@ -153,14 +146,13 @@ public class BiddingController implements Initializable, Observer {
                         // Add new bid from updated auction to local bids list
                         if (updated.getBids() != null && !updated.getBids().isEmpty()) {
                             for (BidTransaction newBid : updated.getBids()) {
-                                // Check if this bid is not already in local bids
                                 boolean exists = this.auction.getBids().stream()
                                         .anyMatch(b -> b.getBidder().getId().equals(newBid.getBidder().getId())
                                                 && b.getAmount() == newBid.getAmount()
                                                 && b.getTimestamp() != null && newBid.getTimestamp() != null
                                                 && b.getTimestamp().equals(newBid.getTimestamp()));
                                 if (!exists) {
-                                    this.auction.getBids().add(0, newBid); // Add at beginning
+                                    this.auction.getBids().add(0, newBid);
                                 }
                             }
                         }
@@ -202,13 +194,6 @@ public class BiddingController implements Initializable, Observer {
         lblUsername.setText(bidder.getFullName());
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
-        lblSeller.setText(auction.getSeller().getFullName());
-        lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
-        lblStartTime.setText(auction.getItem().getStartTime() != null
-                ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
-        lblEndTime.setText(auction.getItem().getEndTime() != null
-                ? auction.getItem().getEndTime().format(DT_FORMAT) : "—");
-        lblAuctionId.setText("#" + auction.getId());
         updateStatusBadge();
         updatePriceArea();
         refreshBidHistory();
