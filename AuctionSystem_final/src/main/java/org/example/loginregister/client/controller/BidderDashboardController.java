@@ -132,6 +132,7 @@ public class BidderDashboardController implements Initializable {
         lblPageTitle.setText("Bidding History");
         lblSubtitle.setText("Your past Bid");
         lblCount.setText("");
+        loadBiddingHistory();
     }
 
     @FXML
@@ -145,6 +146,7 @@ public class BidderDashboardController implements Initializable {
         lblPageTitle.setText("Won Items");
         lblSubtitle.setText("Auctions you won");
         lblCount.setText("");
+        loadWonItems();
     }
     @FXML
     private void onSignOut(ActionEvent event){
@@ -466,6 +468,121 @@ public class BidderDashboardController implements Initializable {
         paneHistory.setVisible(false);
         paneWon.setVisible(false);
         target.setVisible(true);
+    }
+
+    private void loadBiddingHistory() {
+        paneHistory.getChildren().clear();
+
+        if (bidder == null) {
+            Label error = new Label("Bidder information not available");
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneHistory.getChildren().add(error);
+            return;
+        }
+
+        try {
+            List<org.example.loginregister.server.model.entity.BidTransaction> history =
+                    AuctionClientService.getInstance().getBidderHistory(bidder.getId());
+
+            if (history.isEmpty()) {
+                Label empty = new Label("No records found yet.");
+                empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
+                paneHistory.getChildren().add(empty);
+                return;
+            }
+
+            for (org.example.loginregister.server.model.entity.BidTransaction bid : history) {
+                HBox row = new HBox(15);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setPadding(new Insets(10, 0, 10, 0));
+                row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
+
+                // Item name
+                Label lblItem = new Label(bid.getItem() != null ? bid.getItem().getItemName() : "Unknown Item");
+                lblItem.setFont(Font.font("System", FontWeight.BOLD, 13));
+                lblItem.setStyle("-fx-text-fill: #fff;");
+                lblItem.setPrefWidth(200);
+
+                // Amount
+                Label lblAmount = new Label(formatPrice(bid.getAmount()) + " ₫");
+                lblAmount.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
+                lblAmount.setPrefWidth(150);
+
+                // Time
+                Label lblTime = new Label(bid.getTimestamp() != null ? bid.getTimestamp().format(TIME_FORMAT) : "—");
+                lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                row.getChildren().addAll(lblItem, spacer, lblAmount, lblTime);
+                paneHistory.getChildren().add(row);
+            }
+
+            lblCount.setText(history.size() + " records");
+        } catch (Exception e) {
+            Label error = new Label("Failed to load history: " + e.getMessage());
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneHistory.getChildren().add(error);
+            e.printStackTrace();
+        }
+    }
+
+    private void loadWonItems() {
+        paneWon.getChildren().clear();
+
+        if (bidder == null) {
+            Label error = new Label("Bidder information not available");
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneWon.getChildren().add(error);
+            return;
+        }
+
+        try {
+            List<org.example.loginregister.server.model.entity.AuctionResult> wonAuctions = bidder.getWonAuctions();
+
+            if (wonAuctions.isEmpty()) {
+                Label empty = new Label("No won items yet.");
+                empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
+                paneWon.getChildren().add(empty);
+                return;
+            }
+
+            for (org.example.loginregister.server.model.entity.AuctionResult result : wonAuctions) {
+                HBox row = new HBox(15);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setPadding(new Insets(10, 0, 10, 0));
+                row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
+
+                // Item name
+                Label lblItem = new Label(result.getItem() != null ? result.getItem().getItemName() : "Unknown Item");
+                lblItem.setFont(Font.font("System", FontWeight.BOLD, 13));
+                lblItem.setStyle("-fx-text-fill: #fff;");
+                lblItem.setPrefWidth(200);
+
+                // Final price
+                Label lblPrice = new Label(formatPrice(result.getFinalPrice()) + " ₫");
+                lblPrice.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
+                lblPrice.setPrefWidth(150);
+
+                // Status
+                Label lblStatus = new Label(result.getStatus() != null ? result.getStatus().toString() : "—");
+                lblStatus.setStyle("-fx-font-size: 11px; -fx-text-fill: #4ade80; -fx-font-weight: bold;");
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                row.getChildren().addAll(lblItem, spacer, lblPrice, lblStatus);
+                paneWon.getChildren().add(row);
+            }
+
+            lblCount.setText(wonAuctions.size() + " items");
+        } catch (Exception e) {
+            Label error = new Label("Failed to load won items: " + e.getMessage());
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneWon.getChildren().add(error);
+            e.printStackTrace();
+        }
     }
 
     private void setActiveNav(Button active){

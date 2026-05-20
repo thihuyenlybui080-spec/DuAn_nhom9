@@ -181,6 +181,12 @@ public class AuctionDAO {
             auction.setStatus(AuctionStatus.OPEN);
         }
 
+        // Load bids from database
+        int auctionDbId = rs.getInt("auction_id");
+        List<org.example.loginregister.server.model.entity.BidTransaction> bids =
+                BidDAO.getBidsByAuction(auctionDbId);
+        auction.addBids(bids);
+
         return auction;
     }
     /** Lấy auction theo ID từ database. */

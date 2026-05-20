@@ -121,6 +121,7 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_DISABLE_AUTO_BID, this :: handleDisableAutoBid);
         handlers.put(Request.ACTION_ENABLE_AUTO_BID, this :: handleEnableAutoBid);
         handlers.put(Request.ACTION_CHECK_AUTO_BID, this :: handleCheckAutoBid);
+        handlers.put("GET_BIDDER_HISTORY", this :: handleGetBidderHistory);
     }
 
     /**
@@ -539,6 +540,25 @@ public class ClientHandler implements Runnable{
         } catch (Exception e){
             logger.error("CheckAutoBid error", e);
             return Response.error("Failed to check auto-bid: " + e.getMessage());
+        }
+    }
+
+    private Response handleGetBidderHistory(Request request){
+        try{
+            String bidderId = (String) request.getData();
+            int bidderDbId = AuctionDAO.parseDbId(bidderId);
+
+            if (bidderDbId <= 0) {
+                return Response.error("Invalid bidder ID");
+            }
+
+            List<org.example.loginregister.server.model.entity.BidTransaction> history =
+                    org.example.loginregister.server.dao.BidDAO.getBidHistory(bidderDbId, null);
+
+            return Response.ok("Bidder history retrieved", history);
+        } catch (Exception e){
+            logger.error("GetBidderHistory error", e);
+            return Response.error("Failed to get bidder history: " + e.getMessage());
         }
     }
 

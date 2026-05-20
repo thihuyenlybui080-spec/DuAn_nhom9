@@ -44,6 +44,7 @@ public class BidDAO {
                 while (rs.next()) {
                     Item item = ItemDAO.mapItem(rs, null);
                     BidTransaction tx = new BidTransaction(bidder, item, rs.getDouble("bid_amount"));
+                    tx.setTimestamp(rs.getTimestamp("bid_time").toLocalDateTime());
                     list.add(tx);
                 }
             }

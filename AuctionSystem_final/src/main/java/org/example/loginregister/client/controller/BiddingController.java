@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -30,10 +31,7 @@ import java.text.NumberFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -105,6 +103,7 @@ public class BiddingController implements Initializable, Observer {
     private Bidder bidder;
     private boolean autoBidEnable = false;
     private ScheduledExecutorService scheduler;
+    private List<BidTransaction> localBids = new ArrayList<>();
 
     private final SceneManager sceneManager = new SceneManager(getClass());
 
@@ -138,21 +137,30 @@ public class BiddingController implements Initializable, Observer {
                         if (updated.getHighestBidder() != null) {
                             this.auction.setHighestBidder(updated.getHighestBidder());
                             this.auction.setHighestBidderName(updated.getHighestBidder().getName());
+                        } else if (updated.getBids() != null && !updated.getBids().isEmpty()) {
+                            // If highestBidder is null, try to get it from bids list
+                            BidTransaction highestBid = updated.getBids().stream()
+                                    .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
+                                    .orElse(null);
+                            if (highestBid != null && highestBid.getBidder() != null) {
+                                this.auction.setHighestBidder(highestBid.getBidder());
+                                this.auction.setHighestBidderName(highestBid.getBidder().getName());
+                            }
                         }
                         this.auction.setStatus(updated.getStatus());
                         if (updated.getItem() != null && updated.getItem().getEndTime() != null) {
                             this.auction.getItem().setEndTime(updated.getItem().getEndTime());
                         }
-                        // Add new bid from updated auction to local bids list
+                        // Add new bid from updated auction to localBids
                         if (updated.getBids() != null && !updated.getBids().isEmpty()) {
                             for (BidTransaction newBid : updated.getBids()) {
-                                boolean exists = this.auction.getBids().stream()
+                                boolean exists = localBids.stream()
                                         .anyMatch(b -> b.getBidder().getId().equals(newBid.getBidder().getId())
                                                 && b.getAmount() == newBid.getAmount()
                                                 && b.getTimestamp() != null && newBid.getTimestamp() != null
                                                 && b.getTimestamp().equals(newBid.getTimestamp()));
                                 if (!exists) {
-                                    this.auction.getBids().add(0, newBid);
+                                    localBids.add(0, newBid);
                                 }
                             }
                         }
@@ -195,6 +203,24 @@ public class BiddingController implements Initializable, Observer {
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
         updateStatusBadge();
+        // Load bids from database if not already loaded
+        System.out.println("[DEBUG] populateView - Initial localBids count: " + localBids.size());
+        if (localBids.isEmpty()) {
+            try {
+                List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
+                System.out.println("[DEBUG] populateView - Loaded " + bids.size() + " bids from database");
+                localBids.addAll(bids);
+                System.out.println("[DEBUG] populateView - After loading, localBids count: " + localBids.size());
+                if (!bids.isEmpty()) {
+                    for (BidTransaction bid : bids) {
+                        System.out.println("[DEBUG] Bid - Amount: " + bid.getAmount() + ", Bidder: " + (bid.getBidder() != null ? bid.getBidder().getName() : "null"));
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to load bids: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
         updatePriceArea();
         refreshBidHistory();
         updateBidButton();
@@ -230,15 +256,38 @@ public class BiddingController implements Initializable, Observer {
 
     private void updatePriceArea(){
         lblCurrentPrice.setText(formatPrice(auction.getCurrentPrice()));
-        if(auction.getHighestBidder() != null){
-            lblLeader.setText("Leader: 👑 " + auction.getHighestBidder().getName());
-        } else{
+
+        // Try to get leader name from various sources
+        String leaderName = null;
+
+        // 1. Try highestBidder object
+        if (auction.getHighestBidder() != null) {
+            leaderName = auction.getHighestBidder().getName();
+            System.out.println("[DEBUG] Leader from highestBidder: " + leaderName);
+        }
+
+        // 2. Try from localBids list
+        if (leaderName == null && !localBids.isEmpty()) {
+            BidTransaction highestBid = localBids.stream()
+                    .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
+                    .orElse(null);
+            if (highestBid != null && highestBid.getBidder() != null) {
+                leaderName = highestBid.getBidder().getName();
+                System.out.println("[DEBUG] Leader from localBids: " + leaderName);
+            }
+        }
+
+        // 3. Display result
+        if (leaderName != null && !leaderName.isEmpty()) {
+            lblLeader.setText("Leader: 👑 " + leaderName);
+        } else {
             lblLeader.setText("Leader: __");
+            System.out.println("[DEBUG] No leader found. localBids count: " + localBids.size());
         }
 
         double minBid = auction.getCurrentPrice() + 1;
         lblMinBid.setText("Min bid: " + formatPrice(minBid) + " ₫");
-        lblBidCount.setText(auction.getBids().size() + " bids");
+        lblBidCount.setText(localBids.size() + " bids");
     }
 
     private void updateBidButton(){
@@ -353,6 +402,16 @@ public class BiddingController implements Initializable, Observer {
                 + "-fx-font-size: 12px; -fx-font-weight: bold;"
                 + "-fx-background-radius: 6;");
 
+        // Clear input fields after saving
+        txtMaxBid.clear();
+        txtIncrement.clear();
+
+        // Show disable button immediately when auto-bid is enabled
+        if (btnDisableAutoBid != null) {
+            btnDisableAutoBid.setVisible(true);
+            btnDisableAutoBid.setManaged(true);
+        }
+
     }
     @Override
     public void update(String auctionId, double newPrice, String highestBidder){
@@ -386,6 +445,9 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = true;
                     chkAutoBid.setSelected(true);
+                    // Populate form fields with saved values
+                    txtMaxBid.setText(VND_FORMAT.format((long) maxBid));
+                    txtIncrement.setText(VND_FORMAT.format((long) increment));
                 } else {
                     lblAutoBidActiveStatus.setText("");
                     if (btnDisableAutoBid != null) {
@@ -394,6 +456,9 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = false;
                     chkAutoBid.setSelected(false);
+                    // Clear form fields when no active auto-bid
+                    txtMaxBid.clear();
+                    txtIncrement.clear();
                 }
             });
         }
@@ -409,25 +474,24 @@ public class BiddingController implements Initializable, Observer {
         }
         autoBidEnable = false;
         chkAutoBid.setSelected(false);
-        lblAutoBidStatus.setText("Auto-bid disabled");
-        lblAutoBidStatus.setStyle("-fx-text-fill: #fbbf24; -fx-font-size: 11px;");
+        
+        // Reset form and button to initial state
+        lblAutoBidStatus.setText("");
+        btnEnableAutoBid.setText("⚡ Enable Auto-Bid");
+        btnEnableAutoBid.setStyle(
+                "-fx-background-color: #1e3a5f; -fx-text-fill: #60a5fa;"
+                        + "-fx-font-size: 12px; -fx-font-weight: bold;"
+                        + "-fx-background-radius: 6; -fx-cursor: hand;"
+        );
+        autoBidForm.setVisible(false);
+        autoBidForm.setManaged(false);
+        lblAutoBidHint.setVisible(true);
+        lblAutoBidHint.setManaged(true);
     }
     private void refreshBidHistory() {
-        // Use in-memory auction bids first for real-time updates
-        List<BidTransaction> txList = auction.getBids();
-        
-        // If in-memory bids are empty, try fetching from database
-        if (txList.isEmpty()) {
-            try {
-                txList = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
-            } catch (Exception e) {
-                System.err.println("Failed to fetch bids from server: " + e.getMessage());
-            }
-        }
-        
         bidHistoryContainer.getChildren().clear();
 
-        if (txList.isEmpty()) {
+        if (localBids.isEmpty()) {
             Label empty = new Label("No bids yet. Be the first!");
             empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 12px;");
             empty.setPadding(new Insets(8, 0, 0, 0));
@@ -435,11 +499,11 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        for (int i = 0; i < txList.size(); i++) {
-            bidHistoryContainer.getChildren().add(buildBidRow(txList.get(i), i == 0));
+        for (int i = 0; i < localBids.size(); i++) {
+            bidHistoryContainer.getChildren().add(buildBidRow(localBids.get(i), i == 0));
         }
 
-        lblBidCount.setText(txList.size() + " bids");
+        lblBidCount.setText(localBids.size() + " bids");
     }
 
     private HBox buildBidRow(BidTransaction tx, boolean isTop){
@@ -451,8 +515,8 @@ public class BiddingController implements Initializable, Observer {
                         + "-fx-border-width: 0 0 1 0;");
 
         String nameText = isTop
-                ? "👑 " + tx.getBidder().getFullName()
-                : tx.getBidder().getFullName();
+                ? "👑 " + tx.getBidder().getName()
+                : tx.getBidder().getName();
 
         Label lblName = new Label(nameText);
         lblName.setFont(Font.font("System", FontWeight.BOLD, 11));
@@ -533,7 +597,15 @@ public class BiddingController implements Initializable, Observer {
     @FXML
     private void onBack(ActionEvent event) {
         stopScheduler();
-        sceneManager.switchScene(event, comingFromFile, comingFromTitle);
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        if (comingFromFile.equals("bidder_dashboard.fxml")) {
+            BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(stage, comingFromFile, comingFromTitle);
+            if (ctrl != null) {
+                ctrl.setCurrent(bidder);
+            }
+        } else {
+            sceneManager.switchScene(stage, comingFromFile, comingFromTitle);
+        }
     }
 
     @FXML
