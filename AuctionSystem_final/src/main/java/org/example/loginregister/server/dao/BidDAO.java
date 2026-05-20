@@ -19,9 +19,11 @@ public class BidDAO {
             ps.setInt(1, auctionDbId);
             ps.setInt(2, bidderId);
             ps.setDouble(3, amount);
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            System.out.println("[BidDAO] insertBid: auctionDbId=" + auctionDbId + ", bidderId=" + bidderId + ", amount=" + amount + ", rowsAffected=" + rowsAffected);
         } catch (SQLException e) {
-            System.err.println("[BidDAO] insertBid: " + e.getMessage());
+            System.err.println("[BidDAO] insertBid ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

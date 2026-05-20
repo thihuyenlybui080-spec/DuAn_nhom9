@@ -3,6 +3,8 @@ package org.example.loginregister.server;
 import org.example.loginregister.server.common.exception.AuctionClosedException;
 import org.example.loginregister.server.common.exception.InvalidBidException;
 import org.example.loginregister.server.common.network.NotificationMessage;
+import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.AutoBidDAO;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.BidTransaction;
@@ -118,6 +120,7 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_GET_BIDS_BY_AUCTION, this :: handleGetBidsByAuction);
         handlers.put(Request.ACTION_DISABLE_AUTO_BID, this :: handleDisableAutoBid);
         handlers.put(Request.ACTION_ENABLE_AUTO_BID, this :: handleEnableAutoBid);
+        handlers.put(Request.ACTION_CHECK_AUTO_BID, this :: handleCheckAutoBid);
     }
 
     /**
@@ -453,23 +456,32 @@ public class ClientHandler implements Runnable{
             double maxBid = ((Number) data.get("maxBid")).doubleValue();
             double increment = ((Number) data.get("increment")).doubleValue();
 
+            logger.info("handleEnableAutoBid: auctionId={}, bidderId={}, maxBid={}, increment={}", auctionId, bidderId, maxBid, increment);
+
             Auction auction = AuctionService.getInstance().getAuction(auctionId);
             if (auction == null){
+                logger.warn("Auction not found: {}", auctionId);
                 return Response.error("Auction not found");
             }
 
             loggedInUser = UserService.getInstance().getUserById(bidderId);
             if(loggedInUser == null){
+                logger.warn("Bidder not found: {}", bidderId);
                 return Response.error("Bidder not found");
             }
             if(!(loggedInUser instanceof Bidder)){
+                logger.warn("User is not a bidder: {}", loggedInUser.getClass().getSimpleName());
                 return Response.error("Only Bidders can use auto_bid");
             }
 
+            logger.info("Calling enableAutoBid for bidder: {}, user object: {}", loggedInUser.getName(), loggedInUser.getClass().getName());
+            logger.info("User object hash: {}", System.identityHashCode(loggedInUser));
             ((Bidder) loggedInUser).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
+            logger.info("enableAutoBid call completed");
             return Response.ok("Auto-bid enabled", null);
         } catch (Exception e){
-            logger.warn("EnableAutoBid error: {}", e.getMessage());
+            logger.error("EnableAutoBid error", e);
+            e.printStackTrace();
             return Response.error("Failed to enable auto bid: " + e.getMessage());
         }
     }
@@ -494,6 +506,37 @@ public class ClientHandler implements Runnable{
         } catch (Exception e){
             logger.warn("DisableAutoBid error: {}", e.getMessage());
             return Response.error("Failed to disable auto-bid: " + e.getMessage());
+        }
+    }
+
+    private Response handleCheckAutoBid(Request request){
+        try{
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) request.getData();
+            String auctionId = (String) data.get("auctionId");
+            String bidderId = (String) data.get("bidderId");
+
+            int auctionDbId = AuctionDAO.parseDbId(auctionId);
+            int bidderDbId = AuctionDAO.parseDbId(bidderId);
+
+            if (auctionDbId <= 0 || bidderDbId <= 0) {
+                return Response.error("Invalid IDs");
+            }
+
+            AutoBidConfig config = AutoBidDAO.getAutoBidConfig(auctionDbId, bidderDbId);
+            boolean isActive = config != null;
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("active", isActive);
+            if (isActive) {
+                result.put("maxBid", config.getMaxBid());
+                result.put("increment", config.getIncrement());
+            }
+
+            return Response.ok("Auto-bid status checked", result);
+        } catch (Exception e){
+            logger.error("CheckAutoBid error", e);
+            return Response.error("Failed to check auto-bid: " + e.getMessage());
         }
     }
 

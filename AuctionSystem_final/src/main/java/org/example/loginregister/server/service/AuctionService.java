@@ -1,12 +1,15 @@
 package org.example.loginregister.server.service;
 
 import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.AutoBidDAO;
 import org.example.loginregister.server.dao.ItemDAO;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
+import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.item.Item;
+import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.util.AuctionHistoryManager;
@@ -204,10 +207,35 @@ public class AuctionService {
         auction.setTimer(timer);
     }
 
-    /** Lấy danh sách auction đang chạy từ DB. */
+    /** Lấy danh sách auction đang chạy từ DB và đăng ký vào AuctionManager. */
     public List<Auction> getActiveAuctions() {
         List<User> allUsers = UserDAO.getAllUsers();
-        return AuctionDAO.getActiveAuctions(allUsers);
+        List<Auction> auctions = AuctionDAO.getActiveAuctions(allUsers);
+        // Register auctions in AuctionManager for in-memory access
+        for (Auction auction : auctions) {
+            auctionManager.putActive(auction);
+            // Restore auto-bid configurations from database
+            int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+            if (auctionDbId > 0) {
+                allUsers.stream()
+                        .filter(u -> u instanceof Bidder)
+                        .map(u -> (Bidder) u)
+                        .forEach(bidder -> {
+                            int bidderDbId = AuctionDAO.parseDbId(bidder.getId());
+                            if (bidderDbId > 0) {
+                                AutoBidConfig config =
+                                AutoBidDAO.getAutoBidConfig(auctionDbId, bidderDbId);
+                                if (config != null) {
+                                    bidder.enableAutoBid(auction, config);
+                                    logger.debug("Restored auto-bid for bidder {} on auction {} (maxBid={}, increment={})",
+                                            bidder.getName(), auction.getId(), config.getMaxBid(), config.getIncrement());
+                                }
+                            }
+                        });
+            }
+        }
+        logger.info("Loaded and registered {} active auctions from database", auctions.size());
+        return auctions;
     }
 
     /**
