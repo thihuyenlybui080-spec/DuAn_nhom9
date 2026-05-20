@@ -10,6 +10,7 @@ public class Response implements Serializable {
     private boolean success;
     private String message;
     private Object data;
+    private String requestId;
 
     private Response(boolean success, String message, Object data){
         this.success = success;
@@ -55,6 +56,12 @@ public class Response implements Serializable {
 
     public Object getData() {
         return data;
+    }
+    public void setRequestId(String requestId){
+        this.requestId = requestId;
+    }
+    public String getRequestId(){
+        return requestId;
     }
 
     @Override
