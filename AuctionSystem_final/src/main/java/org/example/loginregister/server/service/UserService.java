@@ -1,5 +1,7 @@
 package org.example.loginregister.server.service;
 
+import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.AutoBidDAO;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -91,8 +93,18 @@ public class UserService {
      }
 
     private void handleBidderRestricted(Bidder bidder, UserStatus status) {
-        auctionService.getActiveAuctions().forEach(auction -> auction.cancelBidsFrom(bidder));
-        logger.info("Bidder {} set to {}: all active bids canceled", bidder.getName(), status);
+        auctionService.getActiveAuctions().forEach(auction -> {
+            auction.cancelBidsFrom(bidder);
+            // Disable auto-bid for this bidder on all auctions
+            bidder.disableAutoBid(auction.getId());
+            // Remove from database
+            int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+            int bidderDbId = AuctionDAO.parseDbId(bidder.getId());
+            if(auctionDbId > 0 && bidderDbId > 0) {
+                AutoBidDAO.deleteAutoBid(auctionDbId, bidderDbId);
+            }
+        });
+        logger.info("Bidder {} set to {}: all active bids canceled and auto-bids disabled", bidder.getName(), status);
     }
 
     public User getUserById(String userId){

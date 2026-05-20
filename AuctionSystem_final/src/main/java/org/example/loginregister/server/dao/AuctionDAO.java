@@ -38,7 +38,7 @@ public class AuctionDAO {
     /** Lấy tất cả auction đang OPEN hoặc RUNNING. */
     public static List<Auction> getActiveAuctions(List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') ORDER BY a.end_time ASC";
+        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') AND i.start_time <= NOW() ORDER BY a.end_time ASC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -195,7 +195,7 @@ public class AuctionDAO {
         if (dbId < 0) {
             return null;
         }
-        
+
         String sql = AUCTION_SELECT + "WHERE a.id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -209,5 +209,24 @@ public class AuctionDAO {
             System.err.println("[AuctionDAO] getAuctionById: " + e.getMessage());
         }
         return null;
+    }
+
+    /** Lấy các auction đã thắng bởi bidder (status = FINISHED hoặc PAID). */
+    public static List<Auction> getWonAuctionsByBidder(int bidderId, List<User> allUsers) {
+        List<Auction> list = new ArrayList<>();
+        String sql = AUCTION_SELECT + "WHERE a.highest_bidder_id = ? AND a.status IN ('FINISHED', 'PAID') ORDER BY a.id DESC";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bidderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Auction a = mapAuction(rs, allUsers);
+                    if (a != null) list.add(a);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[AuctionDAO] getWonAuctionsByBidder: " + e.getMessage());
+        }
+        return list;
     }
 }

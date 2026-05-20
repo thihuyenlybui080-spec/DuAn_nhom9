@@ -174,6 +174,10 @@ public class AuctionDetailController implements Initializable {
             Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Bidding");
+            if (stage.getWidth() < 800) {
+                stage.setWidth(1280);
+                stage.setHeight(720);
+            }
             stage.show();
 
         } catch (IOException e) {

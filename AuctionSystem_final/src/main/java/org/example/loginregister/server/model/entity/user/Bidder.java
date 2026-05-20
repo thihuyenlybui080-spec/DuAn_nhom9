@@ -50,15 +50,21 @@ public class Bidder extends User  {
         System.out.println(this.getName() + " placed a bid of " + amount + " for item " + item.getItemName());
     }
 
-    // Cập nhật danh sách auction đã thắng từ AuctionHistoryManager
+    // Cập nhật danh sách auction đã thắng từ database
     public void refreshWonAuctions() {
         wonAuctions.clear();
-        List<AuctionResult> allResults = AuctionHistoryManager.getInstance().getAllResults();
+        int bidderDbId = AuctionDAO.parseDbId(this.getId());
+        if (bidderDbId < 0) {
+            return;
+        }
 
-        for (AuctionResult result : allResults) {
-            if (result.getWinner() != null && result.getWinner().equals(this)) {
-                wonAuctions.put(result.getAuctionId(), result);
-            }
+        // Load all users to map auction data
+        List<org.example.loginregister.server.model.entity.user.User> allUsers = org.example.loginregister.server.dao.UserDAO.getAllUsers();
+        List<Auction> wonAuctionsList = AuctionDAO.getWonAuctionsByBidder(bidderDbId, allUsers);
+
+        for (Auction auction : wonAuctionsList) {
+            AuctionResult result = new AuctionResult(auction);
+            wonAuctions.put(result.getAuctionId(), result);
         }
     }
 
@@ -74,6 +80,9 @@ public class Bidder extends User  {
 
     //=====AUTO BIDDING====
     public void enableAutoBid(Auction auction, AutoBidConfig config) {
+        if (!isActive()) {
+            throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot enable auto-bid");
+        }
         System.out.println("[Bidder] enableAutoBid called for " + getName());
         AutoBidAgent existing = agents.get(auction.getId());
         if (existing != null) {

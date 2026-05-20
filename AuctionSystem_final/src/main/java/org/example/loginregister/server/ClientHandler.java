@@ -269,12 +269,35 @@ public class ClientHandler implements Runnable{
                 return Response.error("only bidders can place bids. Current user type: " + loggedInUser.getClass().getSimpleName());
             }
 
+            if(!isUserActive(loggedInUser)){
+                return Response.error("Your account has been locked. Please contact admin.");
+            }
+
             logger.info("PlaceBid attempt - Bidder: {}, Bidder class: {}",
                     loggedInUser.getName(),
                     loggedInUser.getClass().getSimpleName());
 
             LocalDateTime endTimeBefore = auction.getItem().getEndTime();
             BidService.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
+
+            // Small delay to allow auto-bid processing and database persist
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            // Reload auction from database to get the latest state including auto-bid responses
+            auction = AuctionService.getInstance().getAuction(auctionId);
+
+            // Ensure currentPrice is set to the highest bid amount from bids list
+            if (auction.getBids() != null && !auction.getBids().isEmpty()) {
+                double highestBidAmount = auction.getBids().stream()
+                        .mapToDouble(BidTransaction::getAmount)
+                        .max()
+                        .orElse(auction.getCurrentPrice());
+                auction.setCurrentPrice(highestBidAmount);
+            }
 
             ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
                     NotificationMessage.TYPE_BID_UPDATED,
@@ -309,6 +332,17 @@ public class ClientHandler implements Runnable{
     private Response handleCreateAuctionAndItem(Request request){
         try{
             Item item= (Item) request.getData();
+            String sellerId = item.getSellerId();
+            User seller = UserDAO.getUserById(Integer.parseInt(sellerId.split("-")[1]));
+            
+            if(seller == null){
+                return Response.error("Seller not found");
+            }
+            
+            if(!isUserActive(seller)){
+                return Response.error("Your account has been locked. Please contact admin.");
+            }
+            
             Auction auction = AuctionService.getInstance().startAuction(item);
             return Response.ok(auction);
         }catch (Exception e){
@@ -409,7 +443,7 @@ public class ClientHandler implements Runnable{
             if(auctionId == null){
                 return Response.error("AuctionID not found");
             }
-            Auction auction = AuctionService.getInstance().endAuction(auctionId);
+            Auction auction = AuctionService.getInstance().endAuction(auctionId, true);
             return Response.ok(auction);
         }catch (Exception e){
             logger.warn("ForceEndAuction error", e);
@@ -480,6 +514,10 @@ public class ClientHandler implements Runnable{
             if(loggedInUser == null){
                 logger.warn("Bidder not found: {}", bidderId);
                 return Response.error("Bidder not found");
+            }
+            
+            if(!isUserActive(loggedInUser)){
+                return Response.error("Your account has been locked. Please contact admin.");
             }
             if(!(loggedInUser instanceof Bidder)){
                 logger.warn("User is not a bidder: {}", loggedInUser.getClass().getSimpleName());
@@ -594,6 +632,17 @@ public class ClientHandler implements Runnable{
         } catch (IOException e) {
             logger.warn("Cleanup error: " + e.getMessage());
         }
+    }
+
+    /**
+     * Check if user is active (not locked/banned)
+     */
+    private boolean isUserActive(User user){
+        if(user == null){
+            return false;
+        }
+        User freshUser = UserDAO.getUserById(Integer.parseInt(user.getId().split("-")[1]));
+        return freshUser != null && freshUser.isActive();
     }
 
 }

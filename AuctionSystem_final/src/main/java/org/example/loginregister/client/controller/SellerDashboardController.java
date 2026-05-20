@@ -517,6 +517,12 @@ public class SellerDashboardController implements Initializable {
     private void onCreateAuction() {
         hideFormError();
 
+        // Check if seller is banned/locked
+        if (!seller.isActive()) {
+            showFormError("Your account has been locked and cannot create auctions. Please contact the administrator.");
+            return;
+        }
+
         // 1. Validate
         String itemName = txtItemName.getText().trim();
         String category = cmbCategory.getValue();
@@ -578,12 +584,11 @@ public class SellerDashboardController implements Initializable {
         onClearForm();
         loadMyAuctions();
         loadMyItems();
-        onNavMyAuctions();
         lblStatusBar.setText("✅ Auction created: " + itemName);
 
-        new Alert(Alert.AlertType.INFORMATION,
-                "Auction created successfully for " + itemName)
-                .showAndWait();
+        // Show success message in form error label
+        showFormError("✅ Auction created successfully for " + itemName);
+        lblFormError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px;");
 
     }
 

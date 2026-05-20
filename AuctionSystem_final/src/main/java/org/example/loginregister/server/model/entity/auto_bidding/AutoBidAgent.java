@@ -5,10 +5,17 @@ import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.service.BidService;
 import org.example.loginregister.server.util.AuctionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AutoBidAgent implements Observer, Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(AutoBidAgent.class);
+    private static final ExecutorService autoBidExecutor = Executors.newCachedThreadPool();
 
     private static final long serialVersionUID = 1L;
     private final Bidder  bidder;
@@ -35,11 +42,28 @@ public class AutoBidAgent implements Observer, Serializable {
             stop();
             return;
         }
-        // Get current auction from AuctionManager to ensure we have the latest object
-        Auction currentAuction = AuctionManager.getInstance().getActive(this.auctionId);
-        if (currentAuction != null) {
-            BidService.getInstance().processAutoBid(bidder, currentAuction, nextBid);
-        }
+        // Execute auto-bid asynchronously to avoid blocking the main bid response
+        autoBidExecutor.submit(() -> {
+            try {
+                Auction currentAuction = AuctionManager.getInstance().getActive(this.auctionId);
+                if (currentAuction != null) {
+                    // Re-check conditions in case state changed
+                    if (active && !bidder.getName().equals(currentAuction.getHighestBidder() != null ? currentAuction.getHighestBidder().getName() : "")) {
+                        double currentPriceNow = currentAuction.getCurrentPrice();
+                        double nextBidNow = currentPriceNow + config.getIncrement();
+                        if (nextBidNow <= config.getMaxBid()) {
+                            BidService.getInstance().processAutoBid(bidder, currentAuction, nextBidNow);
+                            logger.info("Auto-bid placed: {} bid {} on auction {}", bidder.getName(), nextBidNow, auctionId);
+                        } else {
+                            logger.info("Auto-bid stopped for {} on auction {}: max bid reached", bidder.getName(), auctionId);
+                            stop();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Auto-bid failed for {} on auction {}: {}", bidder.getName(), auctionId, e.getMessage());
+            }
+        });
     }
 
     public void stop() {

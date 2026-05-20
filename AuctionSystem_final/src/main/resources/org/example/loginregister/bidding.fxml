@@ -216,12 +216,12 @@
                                     <Font size="10.0" />
                                  </font>
                               </Label>
-                              <Label fx:id="lblBidError" alignment="CENTER" prefHeight="3.0" prefWidth="149.0" text="Error label" textFill="#c13147" visible="false" wrapText="true">
+                              <Label fx:id="lblBidError" alignment="CENTER" prefHeight="40.0" prefWidth="250.0" text="Error label" textFill="#c13147" visible="false" wrapText="false">
                                  <font>
                                     <Font size="10.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="btnPlaceBid" alignment="CENTER" mnemonicParsing="false" onAction="#onPlaceBid" prefHeight="26.0" prefWidth="180.0" style="-fx-background-color: #c0c43f; -fx-background-radius: 8; -fx-cursor: hand;" text="🔨 PLACE BID" textFill="#722f37" VBox.vgrow="ALWAYS">
+                              <Button fx:id="btnPlaceBid" alignment="CENTER" mnemonicParsing="false" onAction="#onPlaceBid" prefHeight="26.0" prefWidth="250.0" style="-fx-background-color: #c0c43f; -fx-background-radius: 8; -fx-cursor: hand;" text="🔨 PLACE BID" textFill="#722f37" VBox.vgrow="ALWAYS">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>

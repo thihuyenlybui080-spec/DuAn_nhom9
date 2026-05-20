@@ -151,17 +151,23 @@ public class BiddingController implements Initializable, Observer {
                         if (updated.getItem() != null && updated.getItem().getEndTime() != null) {
                             this.auction.getItem().setEndTime(updated.getItem().getEndTime());
                         }
-                        // Add new bid from updated auction to localBids
+                        // Always sync bids from server when notification is received
+                        // This ensures auto-bids and other users' bids are shown immediately
                         if (updated.getBids() != null && !updated.getBids().isEmpty()) {
-                            for (BidTransaction newBid : updated.getBids()) {
-                                boolean exists = localBids.stream()
-                                        .anyMatch(b -> b.getBidder().getId().equals(newBid.getBidder().getId())
-                                                && b.getAmount() == newBid.getAmount()
-                                                && b.getTimestamp() != null && newBid.getTimestamp() != null
-                                                && b.getTimestamp().equals(newBid.getTimestamp()));
-                                if (!exists) {
-                                    localBids.add(0, newBid);
-                                }
+                            localBids.clear();
+                            localBids.addAll(updated.getBids());
+                            // Sort bids by timestamp descending (newest first)
+                            localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                        } else {
+                            // If server doesn't send bids, reload them explicitly
+                            try {
+                                List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
+                                localBids.clear();
+                                localBids.addAll(bids);
+                                // Sort bids by timestamp descending (newest first)
+                                localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                            } catch (Exception e) {
+                                System.err.println("Failed to reload bids: " + e.getMessage());
                             }
                         }
                         updatePriceArea();
@@ -210,11 +216,20 @@ public class BiddingController implements Initializable, Observer {
                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
                 System.out.println("[DEBUG] populateView - Loaded " + bids.size() + " bids from database");
                 localBids.addAll(bids);
-                System.out.println("[DEBUG] populateView - After loading, localBids count: " + localBids.size());
+                // Sort bids by timestamp descending (newest first)
+                localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                System.out.println("[DEBUG] populateView - After loading and sorting, localBids count: " + localBids.size());
                 if (!bids.isEmpty()) {
                     for (BidTransaction bid : bids) {
                         System.out.println("[DEBUG] Bid - Amount: " + bid.getAmount() + ", Bidder: " + (bid.getBidder() != null ? bid.getBidder().getName() : "null"));
                     }
+                }
+                // Update auction's currentPrice and highestBidder based on highest bid in localBids
+                if (!localBids.isEmpty()) {
+                    BidTransaction highestBid = localBids.get(0); // Sorted descending, so first is highest
+                    this.auction.setCurrentPrice(highestBid.getAmount());
+                    this.auction.setHighestBidder(highestBid.getBidder());
+                    this.auction.setHighestBidderName(highestBid.getBidder().getName());
                 }
             } catch (Exception e) {
                 System.err.println("Failed to load bids: " + e.getMessage());
@@ -334,10 +349,28 @@ public class BiddingController implements Initializable, Observer {
         }
 
         try{
-            AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
+            Auction updatedAuction = AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
             txtBidAmount.clear();
+            // Use the returned auction object which has the updated state
+            if (updatedAuction != null) {
+                this.auction.setCurrentPrice(updatedAuction.getCurrentPrice());
+                if (updatedAuction.getHighestBidder() != null) {
+                    this.auction.setHighestBidder(updatedAuction.getHighestBidder());
+                    this.auction.setHighestBidderName(updatedAuction.getHighestBidder().getName());
+                }
+                // Update bids from the returned auction
+                if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
+                    localBids.clear();
+                    localBids.addAll(updatedAuction.getBids());
+                    // Sort bids by timestamp descending (newest first)
+                    localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                }
+            }
             updatePriceArea();
             refreshBidHistory();
+            // Show success message
+            showBidError("✅ Bid placed successfully: " + formatPrice(amount) + " ₫");
+            lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
         } catch (RuntimeException e) {
             showBidError(e.getMessage());
         }
@@ -366,6 +399,13 @@ public class BiddingController implements Initializable, Observer {
 
     @FXML
     private void onEnableAutoBid(){
+        // Check if bidder is locked/banned
+        if (!bidder.isActive()) {
+            lblAutoBidStatus.setText("Your account is locked and cannot enable auto-bid.");
+            lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+            return;
+        }
+
         String maxBidStr = txtMaxBid.getText().trim().replaceAll("[^0-9]", "");
         String incrStr    = txtIncrement.getText().trim().replaceAll("[^0-9]", "");
         if(maxBidStr.isEmpty() || incrStr.isEmpty()){
