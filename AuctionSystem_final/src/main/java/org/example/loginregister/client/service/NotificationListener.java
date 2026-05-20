@@ -32,16 +32,29 @@ public class NotificationListener {
     }
     private final Map<String, Consumer<NotificationMessage>> handlers = new ConcurrentHashMap<>();
 
+    /**
+     * khi client vào một auction thì sẽ đăng kí, gọi handler tương ứng
+     * @param auctionId id của phiên đấu giá
+     * @param handler handler
+     */
     public void register(String auctionId, Consumer<NotificationMessage> handler){
         handlers.put(auctionId, handler);
         logger.info("Handler registered for auction: {}", auctionId);
     }
 
+    /**
+     * Khi client thoát phiên thì hủy đăng kí
+     * @param auctionId id của phiên đấu giá
+     */
     public void unregister(String auctionId){
         handlers.remove(auctionId);
         logger.info("Handler unregistered for auction: {}", auctionId);
     }
 
+    /**
+     * Chuyển hướng nhận notification và tìm handler tương ứng
+     * @param notification thông báo từ NotificationMessage
+     */
     public void dispatch(NotificationMessage notification){
         Consumer<NotificationMessage> handler = handlers.get(notification.getAuctionId());
         if(handler != null){

@@ -213,7 +213,6 @@ public class Auction implements Subject, Serializable {
         try {
             bids.removeIf(b -> b.getBidder().equals(bidder));
             if (highestBidder != null && highestBidder.equals(bidder)) {
-                // Tìm bid cao nhất còn lại
                 bids.stream().max(Comparator.comparingDouble(BidTransaction::getAmount))
                         .ifPresentOrElse(
                                 top -> { highestBidder = top.getBidder(); currentPrice = top.getAmount(); },

@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
  */
 public class AutoBidConfig {
 
-    private final double maxBid;          // Giá tối đa sẵn sàng trả
-    private final double increment;       // Bước giá mỗi lần tự động đặt
-    private final LocalDateTime registeredAt; // Thời điểm đăng ký (dùng để ưu tiên khi tie)
+    private final double maxBid;
+    private final double increment;
+    private final LocalDateTime registeredAt;
 
     public AutoBidConfig(double maxBid, double increment) {
         if (maxBid <= 0)      throw new IllegalArgumentException("maxBid must be > 0");

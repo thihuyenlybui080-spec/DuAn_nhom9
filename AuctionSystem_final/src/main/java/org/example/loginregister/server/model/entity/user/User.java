@@ -44,7 +44,6 @@ public abstract class User extends Entity {
 
 
 
-    //Geter-Setter
     public UserStatusRecord getStatusRecord() {return statusRecord;}
     public UserStatus getStatus() {return statusRecord.getStatus();}
     public boolean isActive() {return statusRecord.getStatus().isActive();}
@@ -58,7 +57,7 @@ public abstract class User extends Entity {
     public String getPassword(){
         return password;
     }
-    public String getFullname(){
+    public String getFullName(){
         return fullName;
     }
     public void setName(String name){
@@ -70,7 +69,7 @@ public abstract class User extends Entity {
     public void setPassword(String password){
         this.password = password;
     }
-    public void setFullname(String fullName){
+    public void setFullName(String fullName){
         this.fullName = fullName;
     }
     public abstract String getRole();

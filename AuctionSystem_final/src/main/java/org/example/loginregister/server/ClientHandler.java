@@ -441,7 +441,7 @@ public class ClientHandler implements Runnable{
                 return Response.error("Only Bidders can use auto_bid ");
             }
             ((Bidder) loggedInUser).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
-            logger.info("AutoBid enabled: user={} auction={}", loggedInUser.getFullname(), auctionId);
+            logger.info("AutoBid enabled: user={} auction={}", loggedInUser.getFullName(), auctionId);
             return Response.ok("Auto-bid enabled", null);
         } catch (Exception e){
             logger.warn("EnableAutoBid error: {}", e.getMessage());
@@ -456,7 +456,7 @@ public class ClientHandler implements Runnable{
                 return Response.error("Only bidders can use auto bid");
             }
             ((Bidder) loggedInUser).disableAutoBid(auctionId);
-            logger.info("AutoBid disabled: user={} auction={}", loggedInUser.getFullname(), auctionId);
+            logger.info("AutoBid disabled: user={} auction={}", loggedInUser.getFullName(), auctionId);
             return Response.ok("Auto bid disabled", null);
         } catch (Exception e){
             logger.warn("DisableAutoBid error: {}", e.getMessage());

@@ -50,6 +50,10 @@ public class MessageRouter implements Runnable{
         }
     }
 
+    /**
+     * Luồng hoạt động chính
+     * - đọc stream rồi phân loại
+     */
     @Override
     public void run(){
         ObjectInputStream inputStream = ConnectionManager.getInstance().getInputStream();
@@ -65,8 +69,6 @@ public class MessageRouter implements Runnable{
                 }
             } catch (IOException e){
                 logger.warn("Connection lost in MessageRouter", e);
-                //running = false;
-                //break;
             } catch (ClassNotFoundException | InterruptedException e) {
                 logger.warn("Error in MessageRouter: {}", e.getMessage());
             }

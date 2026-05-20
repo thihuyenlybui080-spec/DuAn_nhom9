@@ -18,11 +18,13 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
+import org.example.loginregister.server.common.network.Response;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.model.entity.user.UserStatus;
+import org.example.loginregister.server.model.entity.user.UserStatusRecord;
 import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.util.AuctionManager;
 
@@ -141,7 +143,7 @@ public class AdminDashboardController implements Initializable {
     private void loadUsers(){
         List<User> list = AuctionClientService.getInstance().getAllUsers();
         System.out.println("DEBUG loadUsers: " + list.size() + " users");
-        list.forEach(u -> System.out.println("  - " + u.getFullname() + " | " + u.getRole()));
+        list.forEach(u -> System.out.println("  - " + u.getFullName() + " | " + u.getRole()));
         allUsers = FXCollections.observableArrayList(list);
         applyUserFilter();
     }
@@ -174,7 +176,7 @@ public class AdminDashboardController implements Initializable {
                     }
                 })
                 .filter(u -> keyword.isEmpty()
-                || u.getFullname().toLowerCase().contains(keyword)
+                || u.getFullName().toLowerCase().contains(keyword)
                 || u.getEmail().toLowerCase().contains(keyword))
                 .collect(Collectors.toList());
 
@@ -203,7 +205,7 @@ public class AdminDashboardController implements Initializable {
                 + "-fx-border-radius: 8;"
                 + "-fx-background-radius: 8;");
 
-        Label avatar = new Label(String.valueOf(user.getFullname().charAt(0)).toUpperCase());
+        Label avatar = new Label(String.valueOf(user.getFullName().charAt(0)).toUpperCase());
         avatar.setPrefSize(42, 42);
         avatar.setAlignment(Pos.CENTER);
         avatar.setStyle("-fx-background-color: " + getRoleColor(user.getRole()) + ";"
@@ -214,7 +216,7 @@ public class AdminDashboardController implements Initializable {
         HBox.setHgrow(info, Priority.ALWAYS);
         HBox row1 = new HBox(8);
         row1.setAlignment(Pos.CENTER_LEFT);
-        Label nameLabel = new Label(user.getFullname());
+        Label nameLabel = new Label(user.getFullName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
         Label roleBadge = buildRoleBadge(user.getRole());
         Label statusLabel = buildUserStatusBadge(user.isActive());
@@ -257,32 +259,34 @@ public class AdminDashboardController implements Initializable {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("confirm");
         confirm.setHeaderText(null);
-        confirm.setContentText("Are you sure you want to " + action + " user \"" + user.getFullname() + "\"?");
+        confirm.setContentText("Are you sure you want to " + action + " user \"" + user.getFullName() + "\"?");
 
         confirm.showAndWait().ifPresent(respone -> {
             if(respone != ButtonType.OK) {
                 return;
             }
-            if(user.getStatus() == UserStatus.BANNED){
+            try {
                 AuctionClientService.getInstance().toggleUserLock(user);
-                btn.setText("🔒 Lock");
-                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
-                        + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
-                        + "-fx-font-size: 11px; -fx-cursor: hand;");
-                lblStatusBar.setText("Unlocked: " + user.getFullname());
-            } else if (user.getStatus() == UserStatus.ACTIVE){
-                admin.manageUser(user, UserStatus.BANNED);
-                user.onStatusChanged(UserStatus.BANNED);
-                btn.setText("🔓 Unlock");
-                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
-                        + "-fx-border-color: #fff; -fx-border-radius: 4;"
-                        + "-fx-font-size: 11px; -fx-cursor: hand;");
-                lblStatusBar.setText("Locked: " + user.getFullname());
+                if (user.getStatus() == UserStatus.BANNED) {
+                    user.updateStatus(UserStatusRecord.defaultActive());
+                    btn.setText("🔒 Lock");
+                    btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
+                            + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
+                            + "-fx-font-size: 11px; -fx-cursor: hand;");
+                    lblStatusBar.setText("Unlocked: " + user.getFullName());
+                } else if (user.getStatus() == UserStatus.ACTIVE) {
+                    user.updateStatus(new UserStatusRecord(UserStatus.BANNED, admin));
+                    btn.setText("🔓 Unlock");
+                    btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
+                            + "-fx-border-color: #fff; -fx-border-radius: 4;"
+                            + "-fx-font-size: 11px; -fx-cursor: hand;");
+                    lblStatusBar.setText("Locked: " + user.getFullName());
+                }
+                applyUserFilter();
+            }catch (RuntimeException e) {
+                new Alert(Alert.AlertType.ERROR, "Action failed: " + e.getMessage())
+                        .showAndWait();
             }
-            else {
-                new Alert(Alert.AlertType.ERROR, "Action failed. Please try again.").showAndWait();
-            }
-
         });
     }
 
@@ -325,7 +329,7 @@ public class AdminDashboardController implements Initializable {
                 })
                 .filter(a -> keyword.isEmpty()
                 || a.getItem().getItemName().toLowerCase().contains(keyword)
-                || a.getSeller().getFullname().toLowerCase().contains(keyword))
+                || a.getSeller().getFullName().toLowerCase().contains(keyword))
                 .collect(Collectors.toList());
         renderAuctions(result);
     }

@@ -167,10 +167,10 @@ public class BiddingController implements Initializable, Observer {
         startAutoRefresh();
     }
     private void populateView() {
-        lblUsername.setText(bidder.getFullname());
+        lblUsername.setText(bidder.getFullName());
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
-        lblSeller.setText(auction.getSeller().getFullname());
+        lblSeller.setText(auction.getSeller().getFullName());
         lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
         lblStartTime.setText(auction.getItem().getStartTime() != null
                 ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");
@@ -380,8 +380,8 @@ public class BiddingController implements Initializable, Observer {
                         + "-fx-border-width: 0 0 1 0;");
 
         String nameText = isTop
-                ? "👑 " + tx.getBidder().getFullname()
-                : tx.getBidder().getFullname();
+                ? "👑 " + tx.getBidder().getFullName()
+                : tx.getBidder().getFullName();
 
         Label lblName = new Label(nameText);
         lblName.setFont(Font.font("System", FontWeight.BOLD, 11));

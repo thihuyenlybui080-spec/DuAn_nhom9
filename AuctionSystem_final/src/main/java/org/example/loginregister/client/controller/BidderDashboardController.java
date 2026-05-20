@@ -103,7 +103,7 @@ public class BidderDashboardController implements Initializable {
 
     public void setCurrent(Bidder bidder){
         this.bidder = bidder;
-        lblUserName.setText(bidder.getFullname());
+        lblUserName.setText(bidder.getFullName());
     }
 
     @FXML
