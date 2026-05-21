@@ -13,8 +13,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
-import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
@@ -216,18 +216,19 @@ public class RegisterController implements Initializable {
         String role     = roleComboBox.getValue().toUpperCase();
         String email    = emailTF.getText().trim();
 
-        if (UserDAO.isUsernameTaken(username)) {
-            registrationMessageLabel.setText("Username already exists, please choose another!");
+        try {
+            AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
+            registrationMessageLabel.setText("Registration successful!");
+            return true;
+        } catch (RuntimeException e) {
+            String message = e.getMessage() != null ? e.getMessage() : "Registration failed";
+            if (message.toLowerCase().contains("duplicate") || message.toLowerCase().contains("already exists")) {
+                registrationMessageLabel.setText("Username already exists, please choose another!");
+            } else {
+                registrationMessageLabel.setText(message);
+            }
             return false;
         }
-
-        boolean success = UserDAO.registerUser(username, password, fullName, email, selectedGender, phone, role);
-        if (success) {
-            registrationMessageLabel.setText("Registration successful!");
-        } else {
-            registrationMessageLabel.setText("Unable to connect to server, please try again!");
-        }
-        return success;
     }
 }
 
