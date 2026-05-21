@@ -262,7 +262,7 @@ public class BidderDashboardController implements Initializable {
                     updateSubtitle();
                     lblUpdate.setText("Updated " + LocalDateTime.now().format(TIME_FORMAT));
                 }),
-                5, 5, TimeUnit.SECONDS
+                30, 30, TimeUnit.SECONDS
         );
     }
 

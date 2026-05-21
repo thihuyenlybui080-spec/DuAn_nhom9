@@ -579,7 +579,7 @@ public class SellerDashboardController implements Initializable {
                 throw new IllegalArgumentException("Unsupported category: " + category);
         }
 
-        Item item = factory.createItem(itemName, seller, description, startingPrice, startTime, endTime);
+        Item item = factory.createItem(itemName, seller.getId(), description, startingPrice, startTime, endTime);
         AuctionClientService.getInstance().createItemAndAuction(item);
         onClearForm();
         loadMyAuctions();

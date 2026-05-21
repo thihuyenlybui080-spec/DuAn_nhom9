@@ -51,7 +51,7 @@ public class AuctionClientService {
         if (response.isSuccess()) {
             return (User) response.getData();
         }
-        throw new RuntimeException(response.getMessage());
+        return null;
     }
 
     /**
@@ -315,7 +315,7 @@ public class AuctionClientService {
                 throw new RuntimeException("Cannot connect to server. Please try again");
             }
         }
-        logger.info("Sending request [{}]: action={}", request.getRequestId(), request.getAction());
+        logger.info("Sending request [{}]: action={}, data={}", request.getRequestId(), request.getAction(), request.getData());
         LinkedBlockingQueue<Response> queue = MessageRouter.getInstance().registerRequest(request.getRequestId());
         try{
             connectionManager.getOutputStream().writeObject(request);

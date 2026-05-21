@@ -12,16 +12,10 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.loginregister.client.service.SceneManager;
-import org.example.loginregister.server.dao.UserDAO;
-import org.example.loginregister.server.database.DatabaseConfig;
-import org.example.loginregister.server.dao.LoginHistoryDAO;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.server.model.entity.user.User;
 
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ResourceBundle;
 
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
@@ -86,14 +80,13 @@ public class LoginController implements Initializable {
         String password = passwordTF.getText();
 
         try {
-            User user = UserDAO.getUserByCredentials(username, password);
+            User user = AuctionClientService.getInstance().login(username, password);
 
             if (user != null) {
                 String rawId = user.getId();
                 int userId = Integer.parseInt(rawId.contains("-") ? rawId.substring(rawId.lastIndexOf("-") + 1) : rawId);
-                String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";  
+                String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";
 
-                LoginHistoryDAO.saveLoginHistory(userId, username, "SUCCESS");
                 messageLabel.setText("Login successful! Welcome, " + user.getName());
 
                 PauseTransition pause = new PauseTransition(Duration.seconds(1));
@@ -120,13 +113,12 @@ public class LoginController implements Initializable {
                 pause.play();
 
             } else {
-                LoginHistoryDAO.saveLoginHistory(-1, username, "FAILED");
                 messageLabel.setText("Incorrect username or password!");
             }
 
         } catch (Exception e) {
-            LoginHistoryDAO.saveLoginHistory(-1, username, "FAILED");
             messageLabel.setText("Unable to connect to server, please try again!");
+            e.printStackTrace();
         }
     }
 

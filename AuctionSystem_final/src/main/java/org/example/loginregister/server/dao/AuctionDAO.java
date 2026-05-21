@@ -26,6 +26,7 @@ public class AuctionDAO {
             + "       i.starting_price, "
             + "       i.start_time, "
             + "       i.end_time, "
+            + "       i.created_by, "
             + "       i.created_by       AS seller_id, "
             + "       u.username         AS seller_name, "
             + "       u.password         AS seller_pass, "
@@ -157,7 +158,7 @@ public class AuctionDAO {
         );
         seller.setId(String.valueOf(rs.getInt("seller_id")));
 
-        Item item = ItemDAO.mapItem(rs, seller);
+        Item item = ItemDAO.mapItem(rs);
 
         Auction auction = new Auction(item);
         auction.setId("auction-" + rs.getInt("auction_id"));

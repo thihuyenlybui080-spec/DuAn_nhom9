@@ -54,9 +54,9 @@ public class ItemService {
                 return Collections.emptyList();
             }
         }
-        Seller dummy = new Seller("", "", "", "");
-        dummy.setId(sellerId);
-        List<Item> items = ItemDAO.getItemsBySeller(dbId, dummy);
+//        Seller dummy = new Seller("", "", "", "");
+//        dummy.setId(sellerId);
+        List<Item> items = ItemDAO.getItemsBySeller(dbId);
         logger.debug("Found {} items for seller {}", items.size(), sellerId);
         return items;
     }

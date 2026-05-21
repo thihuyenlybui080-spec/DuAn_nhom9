@@ -6,6 +6,9 @@ public class Admin extends User {
         super( userName, password, email, fullName);
     }
 
+    public Admin(String id, String userName, String password, String email, String fullName) {
+        super(id, userName, password, email, fullName);
+    }
 
     public void monitorAuction(AuctionManager auctionManager) {
         System.out.println("Admin " + getName() + " is monitoring the list of auction sessions");

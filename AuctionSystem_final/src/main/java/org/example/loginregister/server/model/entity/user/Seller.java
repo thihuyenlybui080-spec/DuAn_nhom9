@@ -15,11 +15,17 @@ public class Seller extends User {
 
     public Seller( String name, String password, String email, String fullName){
         super( name, password, email, fullName);
-        this.ownedItems = ItemService.getInstance().getItemsBySeller(this.getIdPrefix());
+        //this.ownedItems = ItemService.getInstance().getItemsBySeller(this.getIdPrefix());
+    }
+
+    public Seller(String id, String name, String password, String email, String fullName){
+        super(id, name, password, email, fullName);
+        //this.ownedItems = ItemService.getInstance().getItemsBySeller(this.getId());
     }
 
     public void addItem(Item item){
         if (!isActive()) throw new IllegalStateException("Account is locked and cannot list items");
+        if (ownedItems == null) ownedItems = new ArrayList<>();
         ownedItems.add(item);
         System.out.println("Added " + item.getItemName() + " to the auction list");
     }
@@ -39,6 +45,14 @@ public class Seller extends User {
         else {
             throw new IllegalStateException("Cannot delete item: auction has already started");
         }
+    }
+
+    public void setOwnedItems(List<Item> items) {
+        this.ownedItems = items;
+    }
+
+    public List<Item> getOwnedItems() {
+        return ownedItems;
     }
 
     @Override

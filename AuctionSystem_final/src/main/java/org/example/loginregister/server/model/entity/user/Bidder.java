@@ -30,6 +30,10 @@ public class Bidder extends User  {
         super( name, password, email, fullName);
     }
 
+    public Bidder(String id, String name, String password, String email, String fullName) {
+        super(id, name, password, email, fullName);
+    }
+
     /**
      * Bidder chủ động đặt giá vào một phiên đấu giá.
      */

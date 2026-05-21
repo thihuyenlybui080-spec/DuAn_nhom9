@@ -6,14 +6,14 @@ import org.example.loginregister.server.model.entity.user.Seller;
 import java.time.LocalDateTime;
 public abstract class Item extends Entity {
     private String itemName;
-    private Seller seller;
+    private String createdBy;
     private String description;
     private double startingPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    public Item(String itemName,Seller seller, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+    public Item(String itemName, String createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
         super();
-        this.seller = seller;
+        this.createdBy = createdBy;
         this.itemName = itemName;
         this.description = description;
         this.startingPrice = startingPrice;
@@ -60,15 +60,7 @@ public abstract class Item extends Entity {
         System.out.println(itemName + ": " + description + " - StartingPrice: " + startingPrice);
     }
 
-    public Seller getSeller() {
-        return seller;
-    }
-
-    public void setSeller(Seller seller) {
-        this.seller = seller;
-    }
-
     public String getSellerId() {
-        return this.seller.getId();
+        return this.createdBy;
     }
 }

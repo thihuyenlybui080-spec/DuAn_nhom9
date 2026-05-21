@@ -28,14 +28,18 @@ import java.util.Properties;
  */
 public class DatabaseConfig {
 
-    private static final String DB_HOST;
-    private static final String DB_PORT;
-    private static final String DB_NAME;
-    private static final String DB_USER;
-    private static final String DB_PASS;
-    private static final String DB_URL;
+    private static DatabaseConfig instance;
+    private static final Object lock = new Object();
 
-    static {
+    private final String DB_HOST;
+    private final String DB_PORT;
+    private final String DB_NAME;
+    private final String DB_USER;
+    private final String DB_PASS;
+    private final String DB_URL;
+    private DataSource jdbcDataSource;
+
+    private DatabaseConfig() {
         Properties props = new Properties();
 
         // Ưu tiên 1: đọc config.properties bên NGOÀI jar (cùng thư mục với .jar)
@@ -92,13 +96,22 @@ public class DatabaseConfig {
         System.out.println("DatabaseConfig: HikariCP connection pool initialized");
     }
 
-    public static DataSource jdbcDataSource;
+    public static DatabaseConfig getInstance() {
+        if (instance == null) {
+            synchronized (lock) {
+                if (instance == null) {
+                    instance = new DatabaseConfig();
+                }
+            }
+        }
+        return instance;
+    }
 
     public static Connection getConnection() throws SQLException {
-        return jdbcDataSource.getConnection();
+        return getInstance().jdbcDataSource.getConnection();
     }
 
     public static String getServerInfo() {
-        return DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
+        return getInstance().DB_HOST + ":" + getInstance().DB_PORT + "/" + getInstance().DB_NAME;
     }
 }

@@ -8,6 +8,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemDAO {
 
@@ -18,7 +19,7 @@ public class ItemDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, itemId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapItemSingle(rs, seller);
+                if (rs.next()) return mapItemSingle(rs);
             }
         } catch (SQLException e) {
             System.err.println("[ItemDAO] getItemById: " + e.getMessage());
@@ -27,19 +28,36 @@ public class ItemDAO {
     }
 
     /** Lấy tất cả item của một seller. */
-    public static List<Item> getItemsBySeller(int sellerId, Seller seller) {
+    public static List<Item> getItemsBySeller(int sellerId) {
         List<Item> list = new ArrayList<>();
         String sql = "SELECT * FROM items WHERE created_by = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, sellerId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapItemSingle(rs, seller));
+                while (rs.next()) list.add(mapItemSingle(rs));
             }
         } catch (SQLException e) {
             System.err.println("[ItemDAO] getItemsBySeller: " + e.getMessage());
         }
         return list;
+    }
+
+    /** Lấy tất cả items, group by created_by trả về ConcurrentHashMap với key là id (created_by) */
+    public static ConcurrentHashMap<String, List<Item>> getAllItemsGroupedByCreatedBy() {
+        ConcurrentHashMap<String, List<Item>> resultMap = new ConcurrentHashMap<>();
+        String sql = "SELECT * FROM items ORDER BY created_by";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Item item = mapItemSingle(rs);
+                resultMap.computeIfAbsent(item.getSellerId(), k -> new ArrayList<>()).add(item);
+            }
+        } catch (SQLException e) {
+            System.err.println("[ItemDAO] getAllItemsGroupedByCreatedBy: " + e.getMessage());
+        }
+        return resultMap;
     }
 
     /** Lưu item mới vào DB, trả về id được sinh ra. */
@@ -89,7 +107,7 @@ public class ItemDAO {
     }
 
     /** Map từ JOIN query (dùng alias item_id). */
-    public static Item mapItem(ResultSet rs, Seller seller) throws SQLException {
+    public static Item mapItem(ResultSet rs) throws SQLException {
         int    id         = rs.getInt("item_id");
         String itemName   = rs.getString("item_name");
         String desc       = rs.getString("description");
@@ -97,11 +115,12 @@ public class ItemDAO {
         double startPrice = rs.getDouble("starting_price");
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
-        return buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, seller);
+        String createdBy = rs.getString("created_by");
+        return buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
     }
 
     /** Map từ query đơn bảng items (cột id tên là "id"). */
-    public static Item mapItemSingle(ResultSet rs, Seller seller) throws SQLException {
+    public static Item mapItemSingle(ResultSet rs) throws SQLException {
         int    id         = rs.getInt("id");
         String itemName   = rs.getString("item_name");
         String desc       = rs.getString("description");
@@ -109,17 +128,18 @@ public class ItemDAO {
         double startPrice = rs.getDouble("starting_price");
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
-        return buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, seller);
+        String createdBy = rs.getString("created_by");
+        return buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
     }
 
     private static Item buildItem(int id, String itemName, String desc, String itemType,
                                   double startPrice, LocalDateTime startTime, LocalDateTime endTime,
-                                  Seller seller) {
+                                  String createdBy) {
         Item item;
         switch (itemType) {
-            case "ELECTRONICS": item = new Electronics(itemName, seller, desc, startPrice, startTime, endTime); break;
-            case "VEHICLE":     item = new Vehicle(itemName, seller, desc, startPrice, startTime, endTime);     break;
-            default:            item = new Art(itemName, seller, desc, startPrice, startTime, endTime);
+            case "ELECTRONICS": item = new Electronics(itemName, createdBy, desc, startPrice, startTime, endTime); break;
+            case "VEHICLE":     item = new Vehicle(itemName, createdBy, desc, startPrice, startTime, endTime);     break;
+            default:            item = new Art(itemName, createdBy, desc, startPrice, startTime, endTime);
         }
         item.setId("item-" + id);
         return item;

@@ -27,8 +27,9 @@ class AuctionTest {
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
 
-        item = new Electronics("Laptop Dell", seller1, item.getDescription(), 1000, start, end);
         seller1 = new Seller("Seller1", "987654321","sell@gmail.com","Nguye Van Sell");
+        item = new Electronics("Laptop Dell", seller1.getId(), item.getDescription(), 1000, start, end);
+        seller1.addItem(item);
         // Khởi tạo phiên đấu giá kéo dài 3600 giây (1 giờ)
         auction = new Auction(item);
 

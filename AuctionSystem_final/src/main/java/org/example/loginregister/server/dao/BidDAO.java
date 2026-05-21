@@ -32,7 +32,7 @@ public class BidDAO {
         List<BidTransaction> list = new ArrayList<>();
         String sql = "SELECT b.amount AS bid_amount, b.bid_time, "
                 + "i.id AS item_id, i.item_name, i.item_type, i.description, "
-                + "i.starting_price, i.start_time, i.end_time "
+                + "i.starting_price, i.start_time, i.end_time, i.created_by"
                 + "FROM bids b "
                 + "JOIN auctions a ON b.auction_id = a.id "
                 + "JOIN items i ON a.item_id = i.id "
@@ -42,7 +42,7 @@ public class BidDAO {
             ps.setInt(1, bidderId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Item item = ItemDAO.mapItem(rs, null);
+                    Item item = ItemDAO.mapItem(rs);
                     BidTransaction tx = new BidTransaction(bidder, item, rs.getDouble("bid_amount"));
                     tx.setTimestamp(rs.getTimestamp("bid_time").toLocalDateTime());
                     list.add(tx);
