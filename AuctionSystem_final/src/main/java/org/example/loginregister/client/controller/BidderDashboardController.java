@@ -9,8 +9,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -20,14 +18,9 @@ import javafx.stage.Stage;
 import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
-import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Bidder;
-import org.example.loginregister.server.model.entity.user.Seller;
-import org.example.loginregister.server.model.entity.user.User;
-import org.example.loginregister.server.service.AuctionService;
-import org.example.loginregister.server.util.AuctionManager;
-
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -47,6 +40,7 @@ public class BidderDashboardController implements Initializable {
     @FXML private Button btnNavAuctions;
     @FXML private Button btnNavHistory;
     @FXML private Button btnNavWon;
+    @FXML private Button btnNavPayment;
     @FXML private Label lblUserName;
 
     @FXML private Label lblPageTitle;
@@ -66,6 +60,7 @@ public class BidderDashboardController implements Initializable {
     @FXML private VBox auctionContainer;
     @FXML private VBox paneHistory;
     @FXML private VBox paneWon;
+    @FXML private VBox panePayment;
 
     @FXML private Label lblCount;
     @FXML private Label lblUpdate;
@@ -147,6 +142,19 @@ public class BidderDashboardController implements Initializable {
         lblSubtitle.setText("Auctions you won");
         lblCount.setText("");
         loadWonItems();
+    }
+    @FXML
+    private void onNavPayment(){
+        setActiveNav(btnNavWon);
+        showPane(paneWon);
+        filterbar.setVisible(false);
+        filterbar.setManaged(false);
+        searchBox.setVisible(false);
+        searchBox.setManaged(false);
+        lblPageTitle.setText("Complete Payment");
+        lblSubtitle.setText("Pay within 24h to complete your order");
+        lblCount.setText("");
+        loadPaymentPane();
     }
     @FXML
     private void onSignOut(ActionEvent event){
@@ -585,10 +593,91 @@ public class BidderDashboardController implements Initializable {
         }
     }
 
+    private  void loadPaymentPane(){
+        panePayment.getChildren().clear();
+        if(bidder == null) return;
+        try{
+            List<AuctionResult> wonList = AuctionClientService.getInstance().getWonAuctions(bidder.getId());
+
+            List<AuctionResult> unpaid = wonList.stream()
+                    .filter(result -> result.getStatus() == FINISHED)
+                    .collect(Collectors.toList());
+            if(unpaid.isEmpty()){
+                Label empty = new Label("No pending payments");
+                empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
+                panePayment.getChildren().add(empty);
+                return;
+            }
+            for (AuctionResult result : unpaid){
+                panePayment.getChildren().add(buildPaymentCard(result));
+            }
+        } catch (Exception e) {
+            Label error = new Label("Failed to load payment items: " + e.getMessage());
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            panePayment.getChildren().add(error);
+            e.printStackTrace();
+        }
+    }
+
+    private VBox buildPaymentCard(AuctionResult result){
+        VBox card = new VBox(8);
+        card.setPadding(new Insets(12));
+        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21);"
+                + "-fx-background-radius: 8; -fx-border-color: #c0c43f;"
+                + "-fx-border-radius: 8; -fx-border-width: 1;");
+
+        Label lblItem = new Label(result.getItem() != null
+                        ? result.getItem().getItemName() : "Unknow Item");
+        lblItem.setFont(Font.font("System", FontWeight.BOLD, 14));
+        lblItem.setStyle("-fx-text-fill: #c0c43f;");
+
+        Label lblPrice = new Label("Final price: "
+                        + formatPrice(result.getFinalPrice()) + " ₫");
+        lblPrice.setStyle("-fx-text-fill: #fff; -fx-font-size: 13px;");
+
+        Label lblDeadline = new Label("⚠ Pay within 24 hours or order will be cancelled");
+        lblDeadline.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 11px;");
+
+        Button btnPay = new Button("💳 Pay Now");
+        btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
+                + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                + "-fx-cursor: hand; -fx-font-size: 13px;");
+        btnPay.setOnAction(event -> onPayClicked(result, card, btnPay));
+        card.getChildren().addAll(lblItem,lblPrice, lblDeadline, btnPay);
+        return  card;
+    }
+
+    private void onPayClicked(AuctionResult result, VBox card, Button btn){
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Payment");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Pay " + formatPrice(result.getFinalPrice())
+                + " ₫ for \"" + result.getItem().getItemName() + "\"?");
+        confirm.showAndWait().ifPresent(reponse -> {
+                    try {
+                        AuctionClientService.getInstance().payAuction(result.getAuctionId());
+
+                        btn.setText("✅ Paid");
+                        btn.setDisable(true);
+                        btn.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
+                                + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                                + "-fx-font-size: 13px;");
+                        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
+                                + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
+                                + "-fx-border-radius: 8; -fx-border-width: 1;");
+                    } catch (RuntimeException e){
+                        new Alert(Alert.AlertType.ERROR,
+                                "Payment failed: " + e.getMessage()).showAndWait();
+                    }
+                }
+        );
+    }
+
     private void setActiveNav(Button active){
         btnNavWon.setStyle(STYLE_NAV_NORMAL);
         btnNavAuctions.setStyle(STYLE_NAV_NORMAL);
         btnNavHistory.setStyle(STYLE_NAV_NORMAL);
+        btnNavPayment.setStyle(STYLE_NAV_NORMAL);
 
         active.setStyle(STYLE_NAV_ACTIVE);
 

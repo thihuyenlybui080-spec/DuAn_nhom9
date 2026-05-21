@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS items (
     start_time      DATETIME     NOT NULL,
     end_time        DATETIME     NOT NULL,
     created_by      INT          NOT NULL,
+    image_path      VARCHAR(500) NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_item_admin FOREIGN KEY (created_by)
     REFERENCES users(id) ON DELETE RESTRICT

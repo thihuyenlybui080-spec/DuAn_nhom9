@@ -16,10 +16,7 @@ import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.model.entity.user.UserStatus;
 import org.example.loginregister.server.common.network.Request;
 import org.example.loginregister.server.common.network.Response;
-import org.example.loginregister.server.service.AuctionService;
-import org.example.loginregister.server.service.BidService;
-import org.example.loginregister.server.service.ItemService;
-import org.example.loginregister.server.service.UserService;
+import org.example.loginregister.server.service.*;
 import org.example.loginregister.server.util.AuctionHistoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,6 +120,8 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_CHECK_AUTO_BID, this :: handleCheckAutoBid);
         handlers.put(Request.ACTION_GET_BIDDER_HISTORY, this :: handleGetBidderHistory);
         handlers.put(Request.ACTION_DELETE_ITEM, this :: handleDeleteItem);
+        handlers.put(Request.ACTION_GET_WON_AUCTIONS, this :: handelGetWonAuctions);
+        handlers.put(Request.ACTION_PAY_AUCTION, this :: handlePayAuction);
     }
 
     /**
@@ -280,17 +279,12 @@ public class ClientHandler implements Runnable{
             LocalDateTime endTimeBefore = auction.getItem().getEndTime();
             BidService.getInstance().placeBid(auctionId, (Bidder) loggedInUser, amount);
 
-            // Small delay to allow auto-bid processing and database persist
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-
-            // Reload auction from database to get the latest state including auto-bid responses
             auction = AuctionService.getInstance().getAuction(auctionId);
-
-            // Ensure currentPrice is set to the highest bid amount from bids list
             if (auction.getBids() != null && !auction.getBids().isEmpty()) {
                 double highestBidAmount = auction.getBids().stream()
                         .mapToDouble(BidTransaction::getAmount)
@@ -373,6 +367,51 @@ public class ClientHandler implements Runnable{
             return Response.ok(AuctionHistoryManager.getInstance().getResult(auctionId));
         } catch (Exception e){
             return Response.error("Failed to get bid history");
+        }
+    }
+
+    /**
+     * Lấy các auctions đã thắng
+     * @param request yêu cầu từ client
+     * @return phản hồi từ server
+     */
+    private Response handelGetWonAuctions(Request request){
+        try{
+            String bidderId = (String) request.getData();
+            if(bidderId == null){
+                return Response.error("BidderId not found");
+            }
+            if(!(loggedInUser instanceof Bidder)){
+                return Response.error("Only Bidder can get won auctions");
+            }
+            Bidder bidder = (Bidder) loggedInUser;
+            bidder.refreshWonAuctions();
+            return Response.ok(bidder.getWonAuctions());
+        } catch (Exception e){
+            logger.warn("GetWonAuctions error", e);
+            return Response.error("Failed to get won auctions");
+        }
+    }
+
+    /**
+     * Xử lý thanh toán cho auction
+     * @param request yêu cầu thanh toán
+     * @return phản hồi từ server
+     */
+    private Response handlePayAuction(Request request) {
+        try {
+            String auctionId = (String) request.getData();
+            if (auctionId == null) {
+                return Response.error("AuctionId not found");}
+            if (!(loggedInUser instanceof Bidder)) {
+                return Response.error("Only Bidder can pay auction");}
+            boolean success = PaymentService.getInstance().processPayment((Bidder) loggedInUser, auctionId);
+            if (!success) {
+                return Response.error("Payment failed");}
+            return Response.ok("Payment successful", auctionId);
+        } catch (Exception e) {
+            logger.warn("PayAuction error", e);
+            return Response.error("Failed to process payment");
         }
     }
 

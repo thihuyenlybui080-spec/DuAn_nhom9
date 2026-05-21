@@ -12,9 +12,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
@@ -32,6 +35,7 @@ import org.example.loginregister.server.service.ItemService;
 import org.example.loginregister.server.util.AuctionManager;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -127,14 +131,19 @@ public class SellerDashboardController implements Initializable {
     private Label lblFormError;
     @FXML
     private BorderPane rootBorderPane;
+    @FXML
+    private  Button btnProductImage;
 
     @FXML
     private Label lblStatusBar;
+    @FXML
+    private ImageView imvProduct;
 
     private Seller seller;
     private ObservableList<Auction> myAuctions;
     private ObservableList<Item> myItems;
     private ScheduledExecutorService scheduler;
+    private String selectedImagePath;
 
     private final SceneManager sceneManager = new SceneManager(getClass());
 
@@ -411,8 +420,6 @@ public class SellerDashboardController implements Initializable {
                 "-fx-background-color: transparent; -fx-border-color: #fff;"
                         + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
         btnDelete.setOnAction(e -> onDeleteItem(item));
-        boolean hasAuction = myAuctions.stream().anyMatch(a -> a.getItem().getId().equals(item.getId()));
-        btnDelete.setDisable(hasAuction);
         actions.getChildren().addAll(btnEdit, btnDelete);
 
         card.getChildren().addAll(thumb, info, actions);
@@ -437,17 +444,44 @@ public class SellerDashboardController implements Initializable {
     }
 
     private void onDeleteItem(Item item) {
+        // Check if item has an auction
+        Auction relatedAuction = myAuctions.stream()
+                .filter(a -> a.getItem().getId().equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+
+        // Check if auction has bids
+        if (relatedAuction != null && !relatedAuction.getBids().isEmpty()) {
+            showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the related auction has bids placed on it.");
+            return;
+        }
+
+        String message = "Delete \"" + item.getItemName() + "\"? This cannot be undone.";
+        if (relatedAuction != null) {
+            message += " This will also cancel the related auction.";
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Item");
         confirm.setHeaderText(null);
-        confirm.setContentText("Delete \"" + item.getItemName() + "\"? This cannot be undone.");
+        confirm.setContentText(message);
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
+                    if (relatedAuction != null) {
+                        AuctionClientService.getInstance().cancelAuction(relatedAuction.getId());
+                        myAuctions.removeIf(a -> a.getId().equals(relatedAuction.getId()));
+                    }
                     AuctionClientService.getInstance().deleteItem(item.getId());
                     myItems.remove(item);
                     loadMyItems();
-                    lblStatusBar.setText("Item deleted: " + item.getItemName());
+                    loadMyAuctions();
+
+                    if (relatedAuction != null) {
+                        lblStatusBar.setText("Item deleted and auction cancelled: " + item.getItemName());
+                    } else {
+                        lblStatusBar.setText("Item deleted: " + item.getItemName());
+                    }
 
                 } catch (IllegalArgumentException e) {
                     showErrorAlert("Secure error", e.getMessage());
@@ -501,12 +535,22 @@ public class SellerDashboardController implements Initializable {
         confirm.setTitle("Cancel Auction");
         confirm.setHeaderText(null);
         confirm.setContentText(
-                "Cancel auction for \"" + auction.getItem().getItemName() + "\"?");
+                "Cancel auction for \"" + auction.getItem().getItemName() + "\"? This will also delete the related item.");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 AuctionClientService.getInstance().cancelAuction(auction.getId());
+                Item relatedItem = auction.getItem();
+                if (relatedItem != null) {
+                    try {
+                        AuctionClientService.getInstance().deleteItem(relatedItem.getId());
+                        myItems.removeIf(item -> item.getId().equals(relatedItem.getId()));
+                    } catch (Exception e) {
+                        System.err.println("Failed to delete related item: " + e.getMessage());
+                    }
+                }
                 loadMyAuctions();
-                lblStatusBar.setText("Auction cancelled.");
+                loadMyItems();
+                lblStatusBar.setText("Auction cancelled and item deleted.");
             }
         });
     }
@@ -580,13 +624,12 @@ public class SellerDashboardController implements Initializable {
         }
 
         Item item = factory.createItem(itemName, seller.getId(), description, startingPrice, startTime, endTime);
+        item.setImagePath(selectedImagePath);
         AuctionClientService.getInstance().createItemAndAuction(item);
         onClearForm();
         loadMyAuctions();
         loadMyItems();
         lblStatusBar.setText("✅ Auction created: " + itemName);
-
-        // Show success message in form error label
         showFormError("✅ Auction created successfully for " + itemName);
         lblFormError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px;");
 
@@ -602,7 +645,33 @@ public class SellerDashboardController implements Initializable {
         txtStartTime.clear();
         dpEndDate.setValue(null);
         txtEndTime.clear();
+        selectedImagePath = null;
+        imvProduct.setImage(null);
         hideFormError();
+    }
+
+    @FXML
+    private void onChooseProductImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Product Image");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp")
+        );
+
+        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+
+        if (selectedFile != null) {
+            selectedImagePath = selectedFile.getAbsolutePath();
+            try {
+                Image image = new Image(selectedFile.toURI().toString());
+                imvProduct.setImage(image);
+                imvProduct.setPreserveRatio(true);
+                imvProduct.setFitHeight(150);
+            } catch (Exception e) {
+                System.err.println("Error loading image: " + e.getMessage());
+            }
+        }
     }
 
     private void startAutoRefresh(){

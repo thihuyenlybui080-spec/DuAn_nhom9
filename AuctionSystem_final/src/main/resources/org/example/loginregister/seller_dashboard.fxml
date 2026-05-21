@@ -11,6 +11,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -193,24 +194,37 @@
                                                 <ColumnConstraints percentWidth="50.0" />
                                              </columnConstraints>
                                              <children>
-                                                <VBox spacing="5.0">
+                                                <VBox alignment="CENTER" spacing="5.0">
                                                    <children>
-                                                      <Label text="Item Name *" textFill="WHITE" />
+                                                      <Label prefHeight="18.0" prefWidth="343.0" text="Item Name *" textFill="WHITE">
+                                                         <padding>
+                                                            <Insets left="3.0" />
+                                                         </padding></Label>
                                                       <TextField fx:id="txtItemName" promptText="Enter product name" style="-fx-background-color: #0d0607; -fx-text-fill: white; -fx-border-color: #3d1c21; -fx-border-radius: 5; -fx-padding: 10;" />
+                                                      <VBox prefHeight="66.0" prefWidth="356.0" spacing="5.0">
+                                                         <children>
+                                                            <Label prefHeight="18.0" prefWidth="370.0" text=" Category *" textFill="WHITE" />
+                                                            <ComboBox fx:id="cmbCategory" maxWidth="Infinity" prefHeight="42.0" style="-fx-background-color: #0d0607; -fx-border-color: #3d1c21; -fx-border-radius: 5;">
+                                                            <items>
+                                                               <javafx.collections.FXCollections fx:factory="observableArrayList">
+                                                                  <String fx:value="Electronics" />
+                                                                  <String fx:value="Art" />
+                                                                  <String fx:value="Vehicle" />
+                                                               </javafx.collections.FXCollections>
+                                                            </items>
+                                                            </ComboBox>
+                                                         </children>
+                                                      </VBox>
                                                    </children>
                                                 </VBox>
-                                                <VBox spacing="5.0" GridPane.columnIndex="1">
+                                                <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" GridPane.columnIndex="1">
                                                    <children>
-                                                      <Label text="Category *" textFill="WHITE" />
-                                                      <ComboBox fx:id="cmbCategory" maxWidth="Infinity" prefHeight="42.0" style="-fx-background-color: #0d0607; -fx-border-color: #3d1c21; -fx-border-radius: 5;">
-                                                      <items>
-                                                         <javafx.collections.FXCollections fx:factory="observableArrayList">
-                                                            <String fx:value="Electronics" />
-                                                            <String fx:value="Art" />
-                                                            <String fx:value="Vehicle" />
-                                                         </javafx.collections.FXCollections>
-                                                      </items>
-                                                      </ComboBox>
+                                                      <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-border-color: #3d1c21; -fx-border-radius: 8;">
+                                                         <children>
+                                                            <ImageView fx:id="imvProduct" fitHeight="177.0" fitWidth="305.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS" />
+                                                         </children>
+                                                      </VBox>
+                                                      <Button fx:id="btnProductImage" mnemonicParsing="false" onAction="#onChooseProductImage" style="-fx-background-color: transparent; -fx-border-color: #fff; -fx-border-radius: 8;" text="Choose file" textFill="WHITE" />
                                                    </children>
                                                 </VBox>
                                                 <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="1">

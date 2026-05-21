@@ -106,8 +106,6 @@ public class RegisterController implements Initializable {
         selectedGender = selected.getText();
     }
 
-
-    //kiểm tra điền đủ thông tin hay chưa
     public void onRegisterButtonClicked(ActionEvent event) {
         registrationMessageLabel.setText("");
         confirmPasswordLabel.setText("");

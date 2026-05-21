@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -67,11 +68,7 @@
                                  <children>
                                     <StackPane style="-fx-background-color: #0a0405; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
                                        <children>
-                                          <Label fx:id="lblThumbIcon" text="category" StackPane.alignment="CENTER">
-                                             <font>
-                                                <Font name="System Bold" size="30.0" />
-                                             </font>
-                                          </Label>
+                                          <ImageView fx:id="imvProductImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
                                        </children>
                                     </StackPane>
                                     <Label fx:id="lblItemName" text="Luxury Item Name" textFill="#c0c43f">

@@ -1,5 +1,6 @@
 package org.example.loginregister.server.common.network;
 
+import javax.swing.plaf.PanelUI;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -33,6 +34,8 @@ public class Request implements Serializable {
     public static final String ACTION_CHECK_AUTO_BID = "CHECK_AUTO_BID";
     public static final String ACTION_GET_BIDDER_HISTORY = "GET_BIDDER_HISTORY";
     public static final String ACTION_DELETE_ITEM = "DELETE_ITEM";
+    public static final String ACTION_GET_WON_AUCTIONS = "GET_WON_AUCTIONS";
+    public static final String ACTION_PAY_AUCTION = "PAY_AUCTION";
 
 
     /** tên hành động client muốn thực hiện */

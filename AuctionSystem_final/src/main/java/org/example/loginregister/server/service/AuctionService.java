@@ -104,7 +104,8 @@ public class AuctionService {
      */
     public void openAuction(Auction auction) {
         auctionManager.putActive(auction);
-        logger.info("Auction {} is now OPEN for bidding", auction.getId());
+        auction.setStatus(AuctionStatus.RUNNING);
+        logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
         auction.notifyObservers();
 
         long endDelay = ChronoUnit.SECONDS.between(LocalDateTime.now(), auction.getItem().getEndTime());
@@ -228,20 +229,28 @@ public class AuctionService {
             // Check if auction has already ended and reschedule or end it
             LocalDateTime now = LocalDateTime.now();
             long endDelay = ChronoUnit.SECONDS.between(now, auction.getItem().getEndTime());
+            long startDelay = ChronoUnit.SECONDS.between(now, auction.getItem().getStartTime());
 
             if (endDelay <= 0) {
                 // Auction has already ended, update status
                 logger.info("Auction {} has expired, ending it now", auction.getId());
                 endAuction(auction.getId(), false);
-            } else {
-                // Reschedule the end timer
+            } else if (startDelay <= 0) {
+                auction.setStatus(AuctionStatus.RUNNING);
+                logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
+                auction.notifyObservers();
                 scheduleEnd(auction, endDelay);
                 logger.info("Rescheduled end timer for auction {} in {}s", auction.getId(), endDelay);
+            } else {
+                auctionManager.getScheduler().schedule(
+                        () -> openAuction(auction), startDelay, TimeUnit.SECONDS);
+                logger.info("Auction {} scheduled to open in {}s", auction.getId(), startDelay);
             }
         }
 
         // Restore auto-bid configurations from database AFTER all auctions are registered
         // This ensures we get the auction instance from AuctionManager (in-memory)
+        if (auctions == null || auctions.size() == 0) return auctions;
         int auctionDbId = AuctionDAO.parseDbId(auctions.get(0).getId());
         if (auctionDbId > 0) {
             for (User user : allUsers) {

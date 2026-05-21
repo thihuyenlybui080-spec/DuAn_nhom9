@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -18,6 +19,7 @@ import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.util.AuctionManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -62,7 +64,7 @@ public class AuctionDetailController implements Initializable {
     @FXML private Label lblAuctionIdBar;
     @FXML private Label lblConnectionStatus;
     @FXML private BorderPane rootBorderPane;
-    @FXML Label lblThumbIcon;
+    @FXML private ImageView imvProductImage;
 
 
     static final String BIDDER_DASHBOARD_FXML = "bidder_dashboard.fxml";
@@ -104,8 +106,7 @@ public class AuctionDetailController implements Initializable {
         }
 
         updateStatusBadge();
-        lblThumbIcon.setText(getCategoryIcon(auction.getItem().getCategory()));
-        lblThumbIcon.setStyle("-fx-font-size: 30px;");
+
         lblCategory.setText(auction.getItem().getCategory());
 
         lblItemId.setText(auction.getItem().getId());
@@ -119,6 +120,22 @@ public class AuctionDetailController implements Initializable {
         lblEndTime.setText(auction.getItem().getEndTime() != null
                 ? auction.getItem().getEndTime().format(DT_FORMAT) : "—");
         lblAuctionIdBar.setText("Auction ID: #" + auction.getId());
+
+        // Display product image if available
+        String imagePath = auction.getItem().getImagePath();
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                File imageFile = new File(imagePath);
+                if (imageFile.exists()) {
+                    Image image = new Image(imageFile.toURI().toString());
+                    imvProductImage.setImage(image);
+                    imvProductImage.setPreserveRatio(true);
+                    imvProductImage.setFitHeight(200);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading product image: " + e.getMessage());
+            }
+        }
 
         updatePriceArea();
         updateBidButton();

@@ -11,6 +11,7 @@ public abstract class Item extends Entity {
     private double startingPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String imagePath;
     public Item(String itemName, String createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
         super();
         this.createdBy = createdBy;
@@ -62,5 +63,13 @@ public abstract class Item extends Entity {
 
     public String getSellerId() {
         return this.createdBy;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

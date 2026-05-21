@@ -203,7 +203,7 @@
                               <Label fx:id="lblLeader" prefHeight="18.0" prefWidth="190.0" text="Leader:" textFill="#ffffffa1" VBox.vgrow="ALWAYS" />
                            </children>
                         </VBox>
-                        <VBox alignment="CENTER" prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-background-radius: 15; -fx-padding: 20;" VBox.vgrow="ALWAYS">
+                        <VBox prefHeight="0.0" prefWidth="188.0" spacing="8.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-background-radius: 15; -fx-padding: 20;" VBox.vgrow="ALWAYS">
                            <children>
                               <Label prefHeight="16.0" prefWidth="302.0" text="PLACE YOUR BID" textFill="#c0c43f" VBox.vgrow="ALWAYS">
                                  <font>

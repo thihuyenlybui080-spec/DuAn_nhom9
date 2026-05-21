@@ -120,12 +120,9 @@ public class Auction implements Subject, Serializable {
             currentPrice  = bid.getAmount();
             highestBidder = bid.getBidder();
             bids.add(bid);
-            status = AuctionStatus.RUNNING;
         } finally {
             lock.unlock();
         }
-
-        // Notify ngoài lock để tránh deadlock nếu observer cũng cần acquire lock
         notifyObservers();
     }
 

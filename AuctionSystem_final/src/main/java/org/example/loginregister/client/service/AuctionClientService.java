@@ -1,6 +1,7 @@
 package org.example.loginregister.client.service;
 
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.User;
@@ -223,6 +224,12 @@ public class AuctionClientService {
         sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, data));
     }
 
+    /**
+     * kiểm tra auto bid của bidder có bật hay không
+     * @param auctionId id của auction
+     * @param bidderId id của bidder
+     * @return thông tin tự động đấu giá của bidder đó
+     */
     public Map<String, Object> checkAutoBid(String auctionId, String bidderId){
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
@@ -255,6 +262,11 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
+    /**
+     * Kết thúc phiên đấu giá sớm dựa vào id
+     * @param auctionId id của auction
+     * @return auction đã kết thúc
+     */
     public Auction forceEndAuction(String auctionId){
         Response response = sendRequest(new Request(Request.ACTION_FORCE_END_AUCTION, auctionId));
         if(response.isSuccess()){
@@ -277,6 +289,11 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
+    /**
+     * Lấy các bid của một auction qua ID
+     * @param auctionId id của auction đó
+     * @return danh sách giao dịch của auction đó
+     */
     public List<BidTransaction> getBidsByAuction(String auctionId){
         Response response = sendRequest(new Request(Request.ACTION_GET_BIDS_BY_AUCTION, auctionId));
         if(response.isSuccess()){
@@ -285,6 +302,11 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
+    /**
+     * Lấy lịch sử đặt giá bidder
+     * @param bidderId id của bidder
+     * @return danh sách giao dịch của bidder
+     */
     public List<BidTransaction> getBidderHistory(String bidderId){
         Response response = sendRequest(new Request(Request.ACTION_GET_BIDDER_HISTORY, bidderId));
         if(response.isSuccess()){
@@ -293,10 +315,37 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
+
+    /**
+     * xóa một item qua id
+     * @param itemId id của item đó
+     * @return item đã xóa
+     */
     public Item deleteItem(String itemId){
         Response response = sendRequest(new Request(Request.ACTION_DELETE_ITEM, itemId));
         if(response.isSuccess()){
             return (Item) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
+     * Lấy những phiên đã thắng
+     * @param bidderId id của Bidder
+     * @return phản hồi từ server
+     */
+    public List<AuctionResult> getWonAuctions(String bidderId){
+        Response response = sendRequest(new Request(Request.ACTION_GET_WON_AUCTIONS, bidderId));
+        if(response.isSuccess()){
+            return (List<AuctionResult>) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    public boolean payAuction(String auctionId){
+        Response response = sendRequest(new Request(Request.ACTION_PAY_AUCTION, auctionId));
+        if(response.isSuccess()){
+            return true;
         }
         throw new RuntimeException(response.getMessage());
     }
@@ -322,7 +371,7 @@ public class AuctionClientService {
             connectionManager.getOutputStream().flush();
             connectionManager.getOutputStream().reset();
 
-            Response response = queue.poll(10, TimeUnit.SECONDS);
+            Response response = queue.poll(30, TimeUnit.SECONDS);
             if(response == null){
                 throw new RuntimeException("Request timeout:" + request.getAction());
             }
