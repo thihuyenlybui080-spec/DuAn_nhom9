@@ -76,7 +76,7 @@ public class UserDAO {
                 if (rs.next()) {
                     User user = mapUser(rs);
                     if (user instanceof Seller) {
-                        ((Seller) user).setOwnedItems(ItemDAO.getItemsBySeller(Integer.valueOf(user.getId())));
+                        ((Seller) user).setOwnedItems(ItemDAO.getItemsBySeller(AuctionDAO.parseDbId(user.getId())));
                     }
                     return mapUser(rs);
                 }

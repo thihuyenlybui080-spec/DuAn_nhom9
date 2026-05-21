@@ -47,7 +47,7 @@ public class Auction implements Subject, Serializable {
     /** Bid list chỉ được ghi bên trong lock nên dùng ArrayList bình thường. */
     private final List<BidTransaction> bids = new ArrayList<>();
 
-    private volatile ScheduledFuture<?> currentTimer;
+    private transient volatile ScheduledFuture<?> currentTimer;
 
 
 
@@ -106,6 +106,15 @@ public class Auction implements Subject, Serializable {
      * Mọi thay đổi trạng thái auction đều nằm trong lock.
      */
     public void placeBid(BidTransaction bid) throws InvalidBidException, AuctionClosedException {
+        placeBid(bid, true);
+    }
+
+    /**
+     * Thread-safe với ReentrantLock.
+     * Mọi thay đổi trạng thái auction đều nằm trong lock.
+     * @param notify whether to notify observers after bid is placed
+     */
+    public void placeBid(BidTransaction bid, boolean notify) throws InvalidBidException, AuctionClosedException {
         if (bid == null) throw new IllegalArgumentException("Invalid bid!");
 
         lock.lock();
@@ -126,7 +135,9 @@ public class Auction implements Subject, Serializable {
         }
 
         // Notify ngoài lock để tránh deadlock nếu observer cũng cần acquire lock
-        notifyObservers();
+        if (notify) {
+            notifyObservers();
+        }
     }
 
 

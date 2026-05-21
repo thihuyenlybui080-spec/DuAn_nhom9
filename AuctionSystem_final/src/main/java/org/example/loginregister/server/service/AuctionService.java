@@ -76,13 +76,20 @@ public class AuctionService {
 
         int sellerId = AuctionDAO.parseDbId(item.getSellerId());
         int itemDbId = ItemDAO.insertItem(item, sellerId);
-        if (itemDbId > 0) {
-            item.setId("item-" + itemDbId);
+        if (itemDbId <= 0) {
+            logger.error("Failed to insert item {} into database for seller {}", item.getItemName(), sellerId);
+            throw new RuntimeException("Failed to create item in database");
         }
+        item.setId("item-" + itemDbId);
 
         long durationSeconds = ChronoUnit.SECONDS.between(item.getStartTime(), item.getEndTime());
         int auctionDbId = AuctionDAO.insertAuction(itemDbId, item.getStartingPrice(),
                 durationSeconds, item.getEndTime());
+
+        if (auctionDbId <= 0) {
+            logger.error("Failed to insert auction for item {} into database", item.getItemName());
+            throw new RuntimeException("Failed to create auction in database");
+        }
 
         Auction auction = new Auction(item);
         if (auctionDbId > 0) {

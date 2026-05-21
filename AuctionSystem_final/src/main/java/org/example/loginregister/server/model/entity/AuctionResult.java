@@ -26,7 +26,7 @@ public class AuctionResult implements Serializable {
         this.winner = auction.getHighestBidder();
         this.finalPrice = auction.getCurrentPrice();
         this.status=auction.getStatus();
-        this.endTime = LocalDateTime.now();
+        this.endTime = auction.getItem().getEndTime();
         this.bidHistory = new ArrayList<>(auction.getBids());
     }
 

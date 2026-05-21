@@ -11,6 +11,7 @@ public class BidTransaction implements Serializable {
     private Item item;
     private double amount;
     private LocalDateTime timestamp;
+    private String auctionId;
     public BidTransaction(Bidder bidder, Item item, double amount){
         this.bidder = bidder;
         this.item = item;
@@ -32,5 +33,13 @@ public class BidTransaction implements Serializable {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getAuctionId() {
+        return auctionId;
+    }
+
+    public void setAuctionId(String auctionId) {
+        this.auctionId = auctionId;
     }
 }

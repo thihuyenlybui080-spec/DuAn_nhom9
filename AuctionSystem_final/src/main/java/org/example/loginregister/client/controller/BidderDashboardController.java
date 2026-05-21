@@ -80,7 +80,7 @@ public class BidderDashboardController implements Initializable {
             "-fx-background-color: transparent; -fx-text-fill: #fff; -fx-background-radius: 15; -fx-font-weight: bold;";
     private static final String STYLE_NAV_NORMAL =
             "-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #fff; -fx-background-radius: 10;";
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     private Bidder bidder;
     private ObservableList<Auction> allAutions;
@@ -503,6 +503,11 @@ public class BidderDashboardController implements Initializable {
                 lblItem.setStyle("-fx-text-fill: #fff;");
                 lblItem.setPrefWidth(200);
 
+                // Auction ID
+                Label lblAuctionId = new Label(bid.getAuctionId() != null ? bid.getAuctionId() : "—");
+                lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
+                lblAuctionId.setPrefWidth(100);
+
                 // Amount
                 Label lblAmount = new Label(formatPrice(bid.getAmount()) + " ₫");
                 lblAmount.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
@@ -515,7 +520,7 @@ public class BidderDashboardController implements Initializable {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                row.getChildren().addAll(lblItem, spacer, lblAmount, lblTime);
+                row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblAmount, lblTime);
                 paneHistory.getChildren().add(row);
             }
 
@@ -560,6 +565,11 @@ public class BidderDashboardController implements Initializable {
                 lblItem.setStyle("-fx-text-fill: #fff;");
                 lblItem.setPrefWidth(200);
 
+                // Auction ID
+                Label lblAuctionId = new Label(result.getAuctionId() != null ? result.getAuctionId() : "—");
+                lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
+                lblAuctionId.setPrefWidth(100);
+
                 // Final price
                 Label lblPrice = new Label(formatPrice(result.getFinalPrice()) + " ₫");
                 lblPrice.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
@@ -569,10 +579,14 @@ public class BidderDashboardController implements Initializable {
                 Label lblStatus = new Label(result.getStatus() != null ? result.getStatus().toString() : "—");
                 lblStatus.setStyle("-fx-font-size: 11px; -fx-text-fill: #4ade80; -fx-font-weight: bold;");
 
+                // End time
+                Label lblTime = new Label(result.getEndTime() != null ? result.getEndTime().format(TIME_FORMAT) : "—");
+                lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                row.getChildren().addAll(lblItem, spacer, lblPrice, lblStatus);
+                row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblPrice, lblStatus, lblTime);
                 paneWon.getChildren().add(row);
             }
 
