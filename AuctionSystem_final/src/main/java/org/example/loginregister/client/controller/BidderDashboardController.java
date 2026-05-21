@@ -149,7 +149,7 @@ public class BidderDashboardController implements Initializable {
     @FXML
     private void onNavPayment(){
         setActiveNav(btnNavPayment);
-        showPane(paneWon);
+        showPane(panePayment);
         filterbar.setVisible(false);
         filterbar.setManaged(false);
         searchBox.setVisible(false);
@@ -476,10 +476,15 @@ public class BidderDashboardController implements Initializable {
     //Chỉ hiện pane được chọn, ẩn các pane còn lại
     private void showPane(javafx.scene.Node target){
         paneAuctions.setVisible(false);
+        paneAuctions.setManaged(false);
         historyContainer.setVisible(false);
+        historyContainer.setManaged(false);
         paneWon.setVisible(false);
+        paneWon.setManaged(false);
         panePayment.setVisible(false);
+        panePayment.setManaged(false);
         target.setVisible(true);
+        target.setManaged(true);
     }
 
     private void loadBiddingHistory() {
@@ -505,6 +510,7 @@ public class BidderDashboardController implements Initializable {
 
             for (org.example.loginregister.server.model.entity.BidTransaction bid : history) {
                 HBox row = new HBox(15);
+                HBox.setHgrow(paneHistory, Priority.ALWAYS);
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.setPadding(new Insets(10, 0, 10, 0));
                 row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");

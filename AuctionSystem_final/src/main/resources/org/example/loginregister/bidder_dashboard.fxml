@@ -153,7 +153,7 @@
                   <ScrollPane fx:id="historyContainer" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent; -fx-background: transparent; -fx-background-radius: 15;" visible="false">
                      <content>
       
-                              <VBox fx:id="paneHistory" alignment="CENTER" spacing="10.0">
+                              <VBox fx:id="paneHistory" alignment="CENTER" prefHeight="495.0" prefWidth="854.0" spacing="10.0">
                                   <children>
                                       <Label text="Bidding History" textFill="#c0c43f">
                                           <font>

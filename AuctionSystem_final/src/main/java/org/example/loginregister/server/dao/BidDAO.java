@@ -97,10 +97,12 @@ public class BidDAO {
         List<BidTransaction> list = new ArrayList<>();
         String sql = "SELECT b.amount AS bid_amount, b.bid_time, b.auction_id, "
                 + "i.id AS item_id, i.item_name, i.item_type, i.description, "
-                + "i.starting_price, i.start_time, i.end_time, i.created_by "
+                + "i.starting_price, i.start_time, i.end_time, i.created_by, i.image_path, "
+                + "u.username, u.full_name, u.email "
                 + "FROM bids b "
                 + "JOIN auctions a ON b.auction_id = a.id "
                 + "JOIN items i ON a.item_id = i.id "
+                + "JOIN users u ON b.bidder_id = u.id "
                 + "WHERE b.bidder_id = ? ORDER BY b.bid_time DESC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -108,14 +110,23 @@ public class BidDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Item item = ItemDAO.mapItem(rs);
-                    BidTransaction tx = new BidTransaction(bidder, item, rs.getDouble("bid_amount"));
+                    Bidder bid = new Bidder(
+                            rs.getString("username"),
+                            "",
+                            rs.getString("email"),
+                            rs.getString("full_name")
+                    );
+                    bid.setId(String.valueOf(bidderId));
+                    BidTransaction tx = new BidTransaction(bid, item, rs.getDouble("bid_amount"));
                     tx.setTimestamp(rs.getTimestamp("bid_time").toLocalDateTime());
                     tx.setAuctionId("auction-" + rs.getInt("auction_id"));
                     list.add(tx);
                 }
             }
+            System.out.println("[BidDAO] getBidHistory: Retrieved " + list.size() + " bids for bidderId=" + bidderId);
         } catch (SQLException e) {
             System.err.println("[BidDAO] getBidHistory: " + e.getMessage());
+            e.printStackTrace();
         }
         return list;
     }

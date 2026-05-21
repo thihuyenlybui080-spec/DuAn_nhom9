@@ -213,11 +213,13 @@ public class ClientHandler implements Runnable{
      */
     private Response handleGetAuctions(Request request){
         try{
+            logger.info("handleGetAuctions: Retrieving all auctions");
             List<Auction> auctions = AuctionService.getInstance().getAllAuctions();
+            logger.info("handleGetAuctions: Retrieved {} auctions", auctions != null ? auctions.size() : 0);
             return Response.ok(auctions);
         } catch (Exception e){
-            logger.warn("GetAuctions error: {}", e.getMessage());
-            return Response.error("Failed to get auctions");
+            logger.error("GetAuctions error: ", e);
+            return Response.error("Failed to get auctions: " + e.getMessage());
         }
     }
 

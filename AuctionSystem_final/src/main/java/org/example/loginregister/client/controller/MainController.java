@@ -47,7 +47,7 @@ public class MainController implements Initializable {
         Platform.runLater(() -> {
             if (welcomeImageView.getScene() != null && welcomeImageView.getScene().getWindow() != null) {
                 Stage stage = (Stage) welcomeImageView.getScene().getWindow();
-                stage.setMaximized(true);
+                stage.setFullScreen(true);
             }
         });
     }

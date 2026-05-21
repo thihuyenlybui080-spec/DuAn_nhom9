@@ -28,6 +28,7 @@ public class AuctionDAO {
             + "       i.end_time, "
             + "       i.created_by, "
             + "       i.created_by       AS seller_id, "
+            + "       i.image_path, "
             + "       u.username         AS seller_name, "
             + "       u.password         AS seller_pass, "
             + "       u.email            AS seller_email, "
@@ -62,11 +63,18 @@ public class AuctionDAO {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Auction a = mapAuction(rs, allUsers);
-                if (a != null) list.add(a);
+                try {
+                    Auction a = mapAuction(rs, allUsers);
+                    if (a != null) list.add(a);
+                } catch (Exception e) {
+                    System.err.println("[AuctionDAO] Error mapping auction at row: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
+            System.out.println("[AuctionDAO] getAllAuctions: Loaded " + list.size() + " auctions");
         } catch (SQLException e) {
-            System.err.println("[AuctionDAO] getAllAuctions: " + e.getMessage());
+            System.err.println("[AuctionDAO] getAllAuctions SQL error: " + e.getMessage());
+            e.printStackTrace();
         }
         return list;
     }

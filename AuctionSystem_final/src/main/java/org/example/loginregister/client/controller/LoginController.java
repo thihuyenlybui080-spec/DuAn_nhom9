@@ -17,12 +17,6 @@ import org.example.loginregister.server.model.entity.user.User;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-
-import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
-import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
-import org.example.loginregister.client.controller.SellerDashboardController;
-import org.example.loginregister.client.controller.AdminDashboardController;
-import org.example.loginregister.client.controller.BidderDashboardController;
 import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.Seller;
 import org.example.loginregister.server.model.entity.user.Bidder;
