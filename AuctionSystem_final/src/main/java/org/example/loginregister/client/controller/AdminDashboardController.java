@@ -27,6 +27,8 @@ import org.example.loginregister.server.model.entity.user.UserStatus;
 import org.example.loginregister.server.model.entity.user.UserStatusRecord;
 import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.util.AuctionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -44,6 +46,7 @@ import static org.example.loginregister.client.controller.MainController.LOGIN_F
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
 
 public class AdminDashboardController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(AdminDashboardController.class);
     private static final String STYLE_NAV_ACTIVE =
             "-fx-background-color: #722f37; -fx-font-weight: bold; -fx-text-fill: #c0c43f";
     private static final String STYLE_NAV_NORMAL =
@@ -142,8 +145,8 @@ public class AdminDashboardController implements Initializable {
 
     private void loadUsers(){
         List<User> list = AuctionClientService.getInstance().getAllUsers();
-        System.out.println("DEBUG loadUsers: " + list.size() + " users");
-        list.forEach(u -> System.out.println("  - " + u.getFullName() + " | " + u.getRole()));
+        logger.debug("DEBUG loadUsers: {} users", list.size());
+        list.forEach(u -> logger.debug("  - {} | {}", u.getFullName(), u.getRole()));
         allUsers = FXCollections.observableArrayList(list);
         applyUserFilter();
     }

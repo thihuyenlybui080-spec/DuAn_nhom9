@@ -7,12 +7,15 @@ import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 import org.example.loginregister.server.model.entity.user.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AuctionDAO {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionDAO.class);
 
     private static final String AUCTION_SELECT =
             "SELECT a.id               AS auction_id, "
@@ -67,13 +70,13 @@ public class AuctionDAO {
                     Auction a = mapAuction(rs, allUsers);
                     if (a != null) list.add(a);
                 } catch (Exception e) {
-                    System.err.println("[AuctionDAO] Error mapping auction at row: " + e.getMessage());
+                    logger.error("[AuctionDAO] Error mapping auction at row: {}", e.getMessage());
                     e.printStackTrace();
                 }
             }
-            System.out.println("[AuctionDAO] getAllAuctions: Loaded " + list.size() + " auctions");
+            logger.info("[AuctionDAO] getAllAuctions: Loaded {} auctions", list.size());
         } catch (SQLException e) {
-            System.err.println("[AuctionDAO] getAllAuctions SQL error: " + e.getMessage());
+            logger.error("[AuctionDAO] getAllAuctions SQL error: {}", e.getMessage());
             e.printStackTrace();
         }
         return list;

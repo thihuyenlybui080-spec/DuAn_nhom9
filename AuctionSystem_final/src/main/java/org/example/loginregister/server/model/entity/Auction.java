@@ -9,6 +9,8 @@ import org.example.loginregister.server.common.observer.Subject;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -23,6 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Auction implements Subject, Serializable {
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(Auction.class);
 
     // ===== FIELDS =====
     private String id;
@@ -89,14 +92,14 @@ public class Auction implements Subject, Serializable {
      */
     public boolean processBid(Bidder bidder, double amount) {
         if (bidder == null) {
-            System.err.println("Bidding error: Invalid user!");
+            logger.error("Bidding error: Invalid user!");
             return false;
         }
         try {
             placeBid(new BidTransaction(bidder,item, amount));
             return true;
         } catch (Exception e) {
-            System.err.println("Bidding error: " + e.getMessage());
+            logger.error("Bidding error: {}", e.getMessage());
             return false;
         }
     }
@@ -151,8 +154,8 @@ public class Auction implements Subject, Serializable {
         }
 
         notifyObservers();
-        System.out.println("=== AUCTION ENDED: " + finalStatus + " ===");
-        System.out.println("Winner: " + (highestBidder != null ? highestBidder.getName() : "None"));
+        logger.info("=== AUCTION ENDED: {} ===", finalStatus);
+        logger.info("Winner: {}", highestBidder != null ? highestBidder.getName() : "None");
     }
 
 
@@ -166,7 +169,7 @@ public class Auction implements Subject, Serializable {
         } finally {
             lock.unlock();
         }
-        System.out.println("Extended auction " + id + " by " + additionalSeconds + " seconds");
+        logger.info("Extended auction {} by {} seconds", id, additionalSeconds);
     }
 
     public void setTimer(ScheduledFuture<?> timer) {

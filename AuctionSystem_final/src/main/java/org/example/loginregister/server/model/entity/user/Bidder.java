@@ -51,7 +51,7 @@ public class Bidder extends User  {
     public void recordBid(Item item, double amount) {
         if (!isActive()) throw new IllegalStateException("Account is locked and cannot place bids");
         history.add(new BidTransaction(this, item, amount));
-        System.out.println(this.getName() + " placed a bid of " + amount + " for item " + item.getItemName());
+        logger.info("{} placed a bid of {} for item {}", getName(), amount, item.getItemName());
     }
 
     // Cập nhật danh sách auction đã thắng từ database
@@ -87,7 +87,7 @@ public class Bidder extends User  {
         if (!isActive()) {
             throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot enable auto-bid");
         }
-        System.out.println("[Bidder] enableAutoBid called for " + getName());
+        logger.debug("[Bidder] enableAutoBid called for {}", getName());
         AutoBidAgent existing = agents.get(auction.getId());
         if (existing != null) {
             existing.stop();
@@ -97,11 +97,11 @@ public class Bidder extends User  {
         // Save to database for persistence
         int auctionDbId = AuctionDAO.parseDbId(auction.getId());
         int bidderDbId = AuctionDAO.parseDbId(this.getId());
-        System.out.println("[Bidder] auctionId=" + auction.getId() + " -> auctionDbId=" + auctionDbId + ", bidderId=" + this.getId() + " -> bidderDbId=" + bidderDbId);
+        logger.debug("[Bidder] auctionId={} -> auctionDbId={}, bidderId={} -> bidderDbId={}", auction.getId(), auctionDbId, this.getId(), bidderDbId);
         if (auctionDbId > 0 && bidderDbId > 0) {
             AutoBidDAO.saveAutoBid(auctionDbId, bidderDbId, config.getMaxBid(), config.getIncrement());
         } else {
-            System.err.println("[Bidder] FAILED: Invalid IDs");
+            logger.error("[Bidder] FAILED: Invalid IDs");
         }
     }
 
@@ -114,7 +114,7 @@ public class Bidder extends User  {
         if (auctionDbId > 0 && bidderDbId > 0) {
             AutoBidDAO.deleteAutoBid(auctionDbId, bidderDbId);
         }
-        System.out.println("[AutoBid] " + getName() + " disabled auto-bid for auction " + auctionId);
+        logger.info("[AutoBid] {} disabled auto-bid for auction {}", getName(), auctionId);
     }
 
     /** Re-register auto-bid agent as observer when auction is reloaded from database. */

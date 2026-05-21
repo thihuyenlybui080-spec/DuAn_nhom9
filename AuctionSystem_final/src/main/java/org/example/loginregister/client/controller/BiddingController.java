@@ -25,6 +25,8 @@ import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.user.Bidder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -106,6 +108,7 @@ public class BiddingController implements Initializable, Observer {
     private List<BidTransaction> localBids = new ArrayList<>();
 
     private final SceneManager sceneManager = new SceneManager(getClass());
+    private final static Logger logger = LoggerFactory.getLogger(BiddingController.class);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
@@ -222,18 +225,18 @@ public class BiddingController implements Initializable, Observer {
         lblCategory.setText(auction.getItem().getCategory());
         updateStatusBadge();
         // Load bids from database if not already loaded
-        System.out.println("[DEBUG] populateView - Initial localBids count: " + localBids.size());
+        logger.debug("[DEBUG] populateView - Initial localBids count: {}", localBids.size());
         if (localBids.isEmpty()) {
             try {
                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
-                System.out.println("[DEBUG] populateView - Loaded " + bids.size() + " bids from database");
+                logger.debug("[DEBUG] populateView - Loaded {} bids from database", bids.size());
                 localBids.addAll(bids);
                 // Sort bids by amount descending (highest first)
                 localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
-                System.out.println("[DEBUG] populateView - After loading and sorting, localBids count: " + localBids.size());
+                logger.debug("[DEBUG] populateView - After loading and sorting, localBids count: {}", localBids.size());
                 if (!bids.isEmpty()) {
                     for (BidTransaction bid : bids) {
-                        System.out.println("[DEBUG] Bid - Amount: " + bid.getAmount() + ", Bidder: " + (bid.getBidder() != null ? bid.getBidder().getName() : "null"));
+                        logger.debug("[DEBUG] Bid - Amount: {}, Bidder: {}", bid.getAmount(), bid.getBidder() != null ? bid.getBidder().getName() : "null");
                     }
                 }
                 // Update auction's currentPrice and highestBidder based on highest bid in localBids
@@ -290,7 +293,7 @@ public class BiddingController implements Initializable, Observer {
         // 1. Try highestBidder object
         if (auction.getHighestBidder() != null) {
             leaderName = auction.getHighestBidder().getName();
-            System.out.println("[DEBUG] Leader from highestBidder: " + leaderName);
+            logger.debug("[DEBUG] Leader from highestBidder: {}", leaderName);
         }
 
         // 2. Try from localBids list
@@ -300,7 +303,7 @@ public class BiddingController implements Initializable, Observer {
                     .orElse(null);
             if (highestBid != null && highestBid.getBidder() != null) {
                 leaderName = highestBid.getBidder().getName();
-                System.out.println("[DEBUG] Leader from localBids: " + leaderName);
+                logger.debug("[DEBUG] Leader from localBids: {}", leaderName);
             }
         }
 
@@ -309,7 +312,7 @@ public class BiddingController implements Initializable, Observer {
             lblLeader.setText("Leader: 👑 " + leaderName);
         } else {
             lblLeader.setText("Leader: __");
-            System.out.println("[DEBUG] No leader found. localBids count: " + localBids.size());
+            logger.debug("[DEBUG] No leader found. localBids count: {}", localBids.size());
         }
 
         double minBid = auction.getCurrentPrice() + 1;
@@ -417,6 +420,18 @@ public class BiddingController implements Initializable, Observer {
 
     @FXML
     private void onEnableAutoBid(){
+        // Check if auction has expired
+        if (auction.getStatus() == AuctionStatus.FINISHED) {
+            lblAutoBidStatus.setText("This auction has ended and cannot enable auto-bid.");
+            lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+            return;
+        }
+        if (auction.getItem().getEndTime() != null && auction.getItem().getEndTime().isBefore(LocalDateTime.now())) {
+            lblAutoBidStatus.setText("This auction has expired and cannot enable auto-bid.");
+            lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+            return;
+        }
+
         // Check if bidder is locked/banned
         if (!bidder.isActive()) {
             lblAutoBidStatus.setText("Your account is locked and cannot enable auto-bid.");

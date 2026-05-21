@@ -1,6 +1,7 @@
 package org.example.loginregister.server.dao;
 
 import org.example.loginregister.client.service.AuctionClientService;
+import org.example.loginregister.server.common.exception.DuplicateUsernameException;
 import org.example.loginregister.server.database.DatabaseConfig;
 import org.example.loginregister.server.model.entity.user.*;
 import org.example.loginregister.server.model.entity.item.Item;
@@ -103,9 +104,12 @@ public class UserDAO {
         return false;
     }
 
-    /** Đăng ký user mới, trả về true nếu thành công. */
-    public static boolean registerUser(String username, String password, String fullName,
-                                       String email, String gender, String phone, String role) {
+    /** Đăng ký user mới, throw DuplicateUsernameException nếu username đã tồn tại. */
+    public static void registerUser(String username, String password, String fullName,
+                                     String email, String gender, String phone, String role) throws DuplicateUsernameException {
+        if (isUsernameTaken(username)) {
+            throw new DuplicateUsernameException("Username '" + username + "' already exists");
+        }
         String sql = "INSERT INTO users (username, password, email, full_name, gender, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -117,11 +121,10 @@ public class UserDAO {
             ps.setString(6, phone);
             ps.setString(7, role);
             ps.executeUpdate();
-            return true;
         } catch (SQLException e) {
             System.err.println("[UserDAO] registerUser: " + e.getMessage());
+            throw new DuplicateUsernameException("Failed to register user: " + e.getMessage());
         }
-        return false;
     }
 
 

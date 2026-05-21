@@ -18,6 +18,8 @@ import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.util.AuctionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +41,7 @@ import static org.example.loginregister.server.model.entity.Auction.*;
 import static org.example.loginregister.server.model.entity.AuctionStatus.*;
 
 public class AuctionDetailController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionDetailController.class);
 
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -89,7 +92,7 @@ public class AuctionDetailController implements Initializable {
     private String comingFromTitle;
     public void setData(Auction auction, User currentUser,
                         String comingFromFxml, String comingFromTitle){
-        System.out.println("received auction data: " + (auction != null ? auction.getId() : "NULL"));
+        logger.info("received auction data: {}", auction != null ? auction.getId() : "NULL");
         this.auction = auction;
         this.currentUser = currentUser;
         this.comingFromFxml = comingFromFxml;
@@ -102,7 +105,7 @@ public class AuctionDetailController implements Initializable {
             lblUsername.setText(currentUser.getName());
         } else {
             lblUsername.setText("Guest");
-            System.out.println("Warning: currentUser is null");
+            logger.warn("Warning: currentUser is null");
         }
 
         updateStatusBadge();
@@ -123,25 +126,25 @@ public class AuctionDetailController implements Initializable {
 
         // Display product image if available
         String imagePath = auction.getItem().getImagePath();
-        System.out.println("[AuctionDetail] Image path: " + imagePath);
+        logger.debug("[AuctionDetail] Image path: {}", imagePath);
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
                 File imageFile = new File(imagePath);
-                System.out.println("[AuctionDetail] File exists: " + imageFile.exists() + ", Absolute path: " + imageFile.getAbsolutePath());
+                logger.debug("[AuctionDetail] File exists: {}, Absolute path: {}", imageFile.exists(), imageFile.getAbsolutePath());
                 if (imageFile.exists()) {
                     Image image = new Image(imageFile.toURI().toString());
                     imvProductImage.setImage(image);
                     imvProductImage.setPreserveRatio(true);
                     imvProductImage.setFitHeight(200);
                 } else {
-                    System.err.println("[AuctionDetail] Image file not found: " + imagePath);
+                    logger.error("[AuctionDetail] Image file not found: {}", imagePath);
                 }
             } catch (Exception e) {
-                System.err.println("[AuctionDetail] Error loading product image: " + e.getMessage());
+                logger.error("[AuctionDetail] Error loading product image: {}", e.getMessage());
                 e.printStackTrace();
             }
         } else {
-            System.out.println("[AuctionDetail] Image path is null or empty");
+            logger.debug("[AuctionDetail] Image path is null or empty");
         }
 
         updatePriceArea();
@@ -288,7 +291,7 @@ public class AuctionDetailController implements Initializable {
     @FXML
     public void onBack(ActionEvent event){
         try {
-            System.out.println("onBack called, going to: " + comingFromFxml);
+            logger.debug("onBack called, going to: {}", comingFromFxml);
             stopAutoRefresh();
             javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
 
@@ -307,7 +310,7 @@ public class AuctionDetailController implements Initializable {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error in onBack: " + e.getMessage());
+            logger.error("Error in onBack: {}", e.getMessage());
         }
     }
 

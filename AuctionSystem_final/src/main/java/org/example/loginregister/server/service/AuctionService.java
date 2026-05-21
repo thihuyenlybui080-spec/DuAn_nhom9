@@ -112,6 +112,13 @@ public class AuctionService {
     public void openAuction(Auction auction) {
         auctionManager.putActive(auction);
         auction.setStatus(AuctionStatus.RUNNING);
+        
+        // Update database status when auction transitions to RUNNING
+        int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+        if (auctionDbId > 0) {
+            AuctionDAO.updateAuctionStatus(auctionDbId, AuctionStatus.RUNNING);
+        }
+        
         logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
         auction.notifyObservers();
 
@@ -244,6 +251,13 @@ public class AuctionService {
                 endAuction(auction.getId(), false);
             } else if (startDelay <= 0) {
                 auction.setStatus(AuctionStatus.RUNNING);
+                
+                // Update database status when auction transitions to RUNNING
+                int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+                if (auctionDbId > 0) {
+                    AuctionDAO.updateAuctionStatus(auctionDbId, AuctionStatus.RUNNING);
+                }
+                
                 logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
                 auction.notifyObservers();
                 scheduleEnd(auction, endDelay);

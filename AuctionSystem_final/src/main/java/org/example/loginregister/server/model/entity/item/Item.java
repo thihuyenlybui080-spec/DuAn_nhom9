@@ -2,9 +2,12 @@ package org.example.loginregister.server.model.entity.item;
 
 import org.example.loginregister.server.model.entity.Entity;
 import org.example.loginregister.server.model.entity.user.Seller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 public abstract class Item extends Entity {
+    private static final Logger logger = LoggerFactory.getLogger(Item.class);
     private String itemName;
     private String createdBy;
     private String description;
@@ -58,7 +61,7 @@ public abstract class Item extends Entity {
     }
     public abstract String getCategory();
     public void printInfo(){
-        System.out.println(itemName + ": " + description + " - StartingPrice: " + startingPrice);
+        logger.info("{}: {} - StartingPrice: {}", itemName, description, startingPrice);
     }
 
     public String getSellerId() {

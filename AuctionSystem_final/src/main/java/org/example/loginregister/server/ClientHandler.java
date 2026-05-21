@@ -1,12 +1,14 @@
 package org.example.loginregister.server;
 
 import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.DuplicateUsernameException;
 import org.example.loginregister.server.common.exception.InvalidBidException;
 import org.example.loginregister.server.common.network.NotificationMessage;
 import org.example.loginregister.server.dao.AuctionDAO;
 import org.example.loginregister.server.dao.AutoBidDAO;
 import org.example.loginregister.server.dao.UserDAO;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.item.Item;
@@ -193,13 +195,12 @@ public class ClientHandler implements Runnable{
                 return Response.error("Missing required fields");
             }
 
-            boolean success = UserDAO.registerUser(username, password, fullName, email, gender, phoneNumber, role );
-
-            if(!success){
-                return Response.error("User already exists");
-            }
+            UserDAO.registerUser(username, password, fullName, email, gender, phoneNumber, role);
 
             return Response.ok("Registration successful.", null);
+        } catch (DuplicateUsernameException e){
+            logger.warn("Register error: {}", e.getMessage());
+            return Response.error("Username already exists");
         } catch (Exception e){
             logger.warn("Register error: {}", e.getMessage());
             return Response.error("Registration failed: " + e.getMessage());
@@ -551,12 +552,22 @@ public class ClientHandler implements Runnable{
                 return Response.error("Auction not found");
             }
 
+            // Check if auction has expired
+            if (auction.getStatus() == AuctionStatus.FINISHED) {
+                logger.warn("Auction {} has finished, cannot enable auto-bid", auctionId);
+                return Response.error("This auction has ended and cannot enable auto-bid.");
+            }
+            if (auction.getItem().getEndTime() != null && auction.getItem().getEndTime().isBefore(java.time.LocalDateTime.now())) {
+                logger.warn("Auction {} has expired (endTime passed), cannot enable auto-bid", auctionId);
+                return Response.error("This auction has expired and cannot enable auto-bid.");
+            }
+
             loggedInUser = UserService.getInstance().getUserById(bidderId);
             if(loggedInUser == null){
                 logger.warn("Bidder not found: {}", bidderId);
                 return Response.error("Bidder not found");
             }
-            
+
             if(!isUserActive(loggedInUser)){
                 return Response.error("Your account has been locked. Please contact admin.");
             }

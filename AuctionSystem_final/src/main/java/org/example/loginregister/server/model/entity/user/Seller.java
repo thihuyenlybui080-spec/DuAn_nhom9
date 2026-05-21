@@ -3,6 +3,8 @@ package org.example.loginregister.server.model.entity.user;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.service.ItemService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 
 
 public class Seller extends User {
+    private static final Logger logger = LoggerFactory.getLogger(Seller.class);
     private List<Item> ownedItems;
 
     public Seller( String name, String password, String email, String fullName){
@@ -27,7 +30,7 @@ public class Seller extends User {
         if (!isActive()) throw new IllegalStateException("Account is locked and cannot list items");
         if (ownedItems == null) ownedItems = new ArrayList<>();
         ownedItems.add(item);
-        System.out.println("Added " + item.getItemName() + " to the auction list");
+        logger.info("Added {} to the auction list", item.getItemName());
     }
 
     public void deleteItem(Item item){
@@ -40,7 +43,7 @@ public class Seller extends User {
                     .forEach(a -> auctionService.removeAuction(a.getId()));
 
             ownedItems.remove(item);
-            System.out.println("Deleted product " + item.getItemName() + " from the auction list");
+            logger.info("Deleted product {} from the auction list", item.getItemName());
         }
         else {
             throw new IllegalStateException("Cannot delete item: auction has already started");

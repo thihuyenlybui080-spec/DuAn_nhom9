@@ -3,6 +3,8 @@ package org.example.loginregister.server.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -27,6 +29,7 @@ import java.util.Properties;
  * ================================================================
  */
 public class DatabaseConfig {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
 
     private static DatabaseConfig instance;
     private static final Object lock = new Object();
@@ -47,9 +50,9 @@ public class DatabaseConfig {
         if (externalConfig.exists()) {
             try (InputStream in = new FileInputStream(externalConfig)) {
                 props.load(in);
-                System.out.println("DatabaseConfig: read config from external file: " + externalConfig.getAbsolutePath());
+                logger.info("DatabaseConfig: read config from external file: {}", externalConfig.getAbsolutePath());
             } catch (Exception e) {
-                System.err.println("DatabaseConfig: read external config failed: " + e.getMessage());
+                logger.error("DatabaseConfig: read external config failed: {}", e.getMessage());
             }
         } else {
             // Ưu tiên 2: đọc config.properties bên TRONG jar
@@ -57,10 +60,10 @@ public class DatabaseConfig {
                     "/org/example/loginregister/config.properties")) {
                 if (in != null) {
                     props.load(in);
-                    System.out.println("DatabaseConfig: read config from internal file");
+                    logger.info("DatabaseConfig: read config from internal file");
                 }
             } catch (Exception e) {
-                System.err.println("DatabaseConfig: can not read internal config, use default config: local host");
+                logger.error("DatabaseConfig: can not read internal config, use default config: local host");
             }
         }
 
@@ -79,7 +82,7 @@ public class DatabaseConfig {
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh"
                 + "&useUnicode=true&characterEncoding=UTF-8";
 
-        System.out.println("DatabaseConfig -> " + DB_HOST + ":" + DB_PORT + "/" + DB_NAME);
+        logger.info("DatabaseConfig -> {}:{}:{}", DB_HOST, DB_PORT, DB_NAME);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DB_URL);
@@ -93,7 +96,7 @@ public class DatabaseConfig {
         config.setPoolName("AuctionSystemHikariPool");
 
         jdbcDataSource = new HikariDataSource(config);
-        System.out.println("DatabaseConfig: HikariCP connection pool initialized");
+        logger.info("DatabaseConfig: HikariCP connection pool initialized");
     }
 
     public static DatabaseConfig getInstance() {

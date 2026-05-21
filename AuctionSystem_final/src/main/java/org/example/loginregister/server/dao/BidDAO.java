@@ -4,12 +4,15 @@ import org.example.loginregister.server.database.DatabaseConfig;
 import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BidDAO {
+    private static final Logger logger = LoggerFactory.getLogger(BidDAO.class);
 
     /** Lưu một lần đặt giá vào bảng bids với transaction handling để tránh race condition. */
     public static boolean insertBid(int auctionDbId, int bidderId, double amount) {
@@ -47,7 +50,7 @@ public class BidDAO {
                 insertPs.setInt(2, bidderId);
                 insertPs.setDouble(3, amount);
                 insertRows = insertPs.executeUpdate();
-                System.out.println("[BidDAO] insertBid: INSERT rowsAffected=" + insertRows);
+                logger.info("[BidDAO] insertBid: INSERT rowsAffected={}", insertRows);
             }
 
             String updateSql = "UPDATE auctions SET current_price = ?, highest_bidder_id = ?, status = 'RUNNING' WHERE id = ?";
@@ -57,17 +60,17 @@ public class BidDAO {
                 updatePs.setInt(2, bidderId);
                 updatePs.setInt(3, auctionDbId);
                 updateRows = updatePs.executeUpdate();
-                System.out.println("[BidDAO] insertBid: UPDATE rowsAffected=" + updateRows);
+                logger.info("[BidDAO] insertBid: UPDATE rowsAffected={}", updateRows);
             }
 
             if (insertRows == 0 || updateRows == 0) {
                 conn.rollback();
-                System.err.println("[BidDAO] insertBid: No rows updated - insertRows=" + insertRows + ", updateRows=" + updateRows);
+                logger.error("[BidDAO] insertBid: No rows updated - insertRows={}, updateRows={}", insertRows, updateRows);
                 return false;
             }
 
             conn.commit();
-            System.out.println("[BidDAO] insertBid: SUCCESS - auctionDbId=" + auctionDbId + ", bidderId=" + bidderId + ", amount=" + amount);
+            logger.info("[BidDAO] insertBid: SUCCESS - auctionDbId={}, bidderId={}, amount={}", auctionDbId, bidderId, amount);
             return true;
         } catch (SQLException e) {
             System.err.println("[BidDAO] insertBid ERROR: " + e.getMessage());
@@ -123,9 +126,9 @@ public class BidDAO {
                     list.add(tx);
                 }
             }
-            System.out.println("[BidDAO] getBidHistory: Retrieved " + list.size() + " bids for bidderId=" + bidderId);
+            logger.info("[BidDAO] getBidHistory: Retrieved {} bids for bidderId={}", list.size(), bidderId);
         } catch (SQLException e) {
-            System.err.println("[BidDAO] getBidHistory: " + e.getMessage());
+            logger.error("[BidDAO] getBidHistory: {}", e.getMessage());
             e.printStackTrace();
         }
         return list;
@@ -170,7 +173,7 @@ public class BidDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("[BidDAO] getBidsByAuction: " + e.getMessage());
+            logger.error("[BidDAO] getBidsByAuction: {}", e.getMessage());
         }
         return list;
     }
