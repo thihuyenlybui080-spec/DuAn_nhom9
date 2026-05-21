@@ -376,7 +376,9 @@ public class AdminDashboardController implements Initializable {
         Label nameLabel = new Label(auction.getItem().getItemName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
         Label badge = buildAuctionStatusBadge(auction.getStatus());
-        row1.getChildren().addAll(nameLabel, badge);
+        Label idLabel = new Label("ID: " + auction.getId());
+        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
+        row1.getChildren().addAll(nameLabel, badge, idLabel);
 
         Label priceLabel = new Label(
                 "Current: " + formatPrice(auction.getCurrentPrice()) + " ₫"
