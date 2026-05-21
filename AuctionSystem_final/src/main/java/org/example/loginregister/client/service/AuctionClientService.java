@@ -52,7 +52,7 @@ public class AuctionClientService {
         if (response.isSuccess()) {
             return (User) response.getData();
         }
-        return null;
+        throw new RuntimeException(response.getMessage());
     }
 
     /**

@@ -117,7 +117,7 @@ public class LoginController implements Initializable {
             }
 
         } catch (Exception e) {
-            messageLabel.setText("Unable to connect to server, please try again!");
+            messageLabel.setText(e.getMessage());
             e.printStackTrace();
         }
     }

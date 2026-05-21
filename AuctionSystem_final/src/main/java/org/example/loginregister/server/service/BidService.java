@@ -47,7 +47,7 @@ public class BidService {
     }
 
     /**
-     * Đặt giá thủ công: xử lý in-memory và lưu DB.
+     * Đặt giá thủ công: xử lý in-memory và lưu DB với transaction.
      *
      * @return true nếu đặt giá thành công
      */
@@ -59,14 +59,35 @@ public class BidService {
             return false;
         }
 
-        boolean success = auction.processBid(bidder, amount);
-        if (success) {
-            bidder.recordBid(auction.getItem(), amount);
-            applyAntiSnipe(auction);
-            persistBid(auctionId, bidder, amount);
-            logger.info("Bid placed: auction={} bidder={} amount={}", auctionId, bidder.getName(), amount);
+        // Save previous state for rollback
+
+        double previousPrice = auction.getCurrentPrice();
+        var previousBidder = auction.getHighestBidder();
+        int previousBidCount = auction.getBids().size();
+
+        // Process bid without notifying observers yet
+        BidTransaction bidTx = new BidTransaction(bidder, auction.getItem(), amount);
+        auction.placeBid(bidTx, false);
+
+        bidder.recordBid(auction.getItem(), amount);
+        applyAntiSnipe(auction);
+        boolean dbSuccess = persistBid(auctionId, bidder, amount);
+        if (!dbSuccess) {
+            // Rollback in-memory state if database fail
+            logger.error("placeBid: Database persist failed for auctionId={}, bidder={}, amount={}", auctionId, bidder.getName(), amount);
+            auction.setCurrentPrice(previousPrice);
+            auction.setHighestBidder(previousBidder);
+            // Remove the last bid that was added
+            if (auction.getBids().size() > previousBidCount) {
+                auction.getBids().remove(auction.getBids().size() - 1);
+            }
+            throw new InvalidBidException("Failed to persist bid to database. Please try again.");
         }
-        return success;
+
+        // Only notify observers after successful database persist
+        auction.notifyObservers();
+        logger.info("Bid placed successfully: auction={} bidder={} amount={}", auctionId, bidder.getName(), amount);
+        return true;
     }
 
     /**
@@ -99,15 +120,18 @@ public class BidService {
         return  bidTransactionList;
 
     }
-    private void persistBid(String auctionId, Bidder bidder, double amount) {
+    private boolean persistBid(String auctionId, Bidder bidder, double amount) {
         int auctionDbId = AuctionDAO.parseDbId(auctionId);
         int bidderId = AuctionDAO.parseDbId(bidder.getId());
-        logger.info("[BidService] persistBid: auctionId= {} -> auctionDbId= {}, bidderId= {}  -> bidderDbId= {}", auctionId, auctionDbId, bidderId, bidderId);
+        logger.info("[BidService] persistBid START: auctionId={} -> auctionDbId={}, bidderId={} -> bidderDbId={}, amount={}",
+                auctionId, auctionDbId, bidder.getId(), bidderId, amount);
         if (auctionDbId > 0 && bidderId > 0) {
-            BidDAO.insertBid(auctionDbId, bidderId, amount);
-            AuctionDAO.updateAuctionBid(auctionDbId, amount, bidderId);
+            boolean result = BidDAO.insertBid(auctionDbId, bidderId, amount);
+            logger.info("[BidService] persistBid END: auctionDbId={}, result={}", auctionDbId, result);
+            return result;
         } else {
             logger.error("[BidService] persistBid FAILED: Invalid IDs - auctionDbId= {}, bidderDbId={}", auctionDbId, bidderId);
+            return false;
         }
     }
 

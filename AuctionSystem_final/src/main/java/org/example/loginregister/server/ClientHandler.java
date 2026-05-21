@@ -327,7 +327,7 @@ public class ClientHandler implements Runnable{
         try{
             Item item= (Item) request.getData();
             String sellerId = item.getSellerId();
-            User seller = UserDAO.getUserById(Integer.parseInt(sellerId.split("-")[1]));
+            User seller = UserDAO.getUserById(AuctionDAO.parseDbId(sellerId));
             
             if(seller == null){
                 return Response.error("Seller not found");
@@ -341,7 +341,7 @@ public class ClientHandler implements Runnable{
             return Response.ok(auction);
         }catch (Exception e){
             logger.warn("CreateAuctionAndItem error", e);
-            return Response.error("Failed to create auction and item");
+            return Response.error("Failed to create auction: " + e.getMessage());
         }
     }
 

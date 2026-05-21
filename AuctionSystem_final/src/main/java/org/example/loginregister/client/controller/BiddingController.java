@@ -156,8 +156,8 @@ public class BiddingController implements Initializable, Observer {
                         if (updated.getBids() != null && !updated.getBids().isEmpty()) {
                             localBids.clear();
                             localBids.addAll(updated.getBids());
-                            // Sort bids by timestamp descending (newest first)
-                            localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                            // Sort bids by amount descending (highest first)
+                            localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
                         } else {
                             // If server doesn't send bids, reload them explicitly
                             try {
@@ -216,8 +216,8 @@ public class BiddingController implements Initializable, Observer {
                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
                 System.out.println("[DEBUG] populateView - Loaded " + bids.size() + " bids from database");
                 localBids.addAll(bids);
-                // Sort bids by timestamp descending (newest first)
-                localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                // Sort bids by amount descending (highest first)
+                localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
                 System.out.println("[DEBUG] populateView - After loading and sorting, localBids count: " + localBids.size());
                 if (!bids.isEmpty()) {
                     for (BidTransaction bid : bids) {
@@ -348,6 +348,12 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
+        // Validate bid amount is greater than current price
+        if (amount <= auction.getCurrentPrice()) {
+            showBidError("Bid must be greater than current price (" + formatPrice(auction.getCurrentPrice()) + " ₫)");
+            return;
+        }
+
         try{
             Auction updatedAuction = AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
             txtBidAmount.clear();
@@ -362,8 +368,8 @@ public class BiddingController implements Initializable, Observer {
                 if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
                     localBids.clear();
                     localBids.addAll(updatedAuction.getBids());
-                    // Sort bids by timestamp descending (newest first)
-                    localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+                    // Sort bids by amount descending (highest first)
+                    localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
                 }
             }
             updatePriceArea();
