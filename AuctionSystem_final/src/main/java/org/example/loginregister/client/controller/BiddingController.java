@@ -11,6 +11,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -26,6 +28,7 @@ import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.user.Bidder;
 
+import java.io.File;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.Duration;
@@ -98,6 +101,7 @@ public class BiddingController implements Initializable, Observer {
     @FXML private Label lblConnectionStatus;
     @FXML private Label lblLastUpdate;
     @FXML private BorderPane rootBorderPane;
+    @FXML private ImageView imvProductImage;
 
     private Auction auction;
     private Bidder bidder;
@@ -221,6 +225,27 @@ public class BiddingController implements Initializable, Observer {
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
         updateStatusBadge();
+        String imagePath = auction.getItem().getImagePath();
+        System.out.println("[BiddingController] Image path: " + imagePath);
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                File imageFile = new File(imagePath);
+                System.out.println("[BiddingController] File exists: " + imageFile.exists() + ", Absolute path: " + imageFile.getAbsolutePath());
+                if (imageFile.exists()) {
+                    Image image = new Image(imageFile.toURI().toString());
+                    imvProductImage.setImage(image);
+                    imvProductImage.setPreserveRatio(true);
+                    imvProductImage.setFitHeight(200);
+                } else {
+                    System.err.println("[BiddingController] Image file not found: " + imagePath);
+                }
+            } catch (Exception e) {
+                System.err.println("[BiddingController] Error loading product image: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("[BiddingController] Image path is null or empty");
+        }
         // Load bids from database if not already loaded
         System.out.println("[DEBUG] populateView - Initial localBids count: " + localBids.size());
         if (localBids.isEmpty()) {
@@ -236,9 +261,8 @@ public class BiddingController implements Initializable, Observer {
                         System.out.println("[DEBUG] Bid - Amount: " + bid.getAmount() + ", Bidder: " + (bid.getBidder() != null ? bid.getBidder().getName() : "null"));
                     }
                 }
-                // Update auction's currentPrice and highestBidder based on highest bid in localBids
                 if (!localBids.isEmpty()) {
-                    BidTransaction highestBid = localBids.get(0); // Sorted descending, so first is highest
+                    BidTransaction highestBid = localBids.get(0);
                     this.auction.setCurrentPrice(highestBid.getAmount());
                     this.auction.setHighestBidder(highestBid.getBidder());
                     this.auction.setHighestBidderName(highestBid.getBidder().getName());
