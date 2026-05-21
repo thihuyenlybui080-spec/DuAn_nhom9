@@ -13,19 +13,13 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import org.example.loginregister.client.util.ImageLoader;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.dao.UserDAO;
-import org.example.loginregister.server.database.DatabaseConfig;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ResourceBundle;
 
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
