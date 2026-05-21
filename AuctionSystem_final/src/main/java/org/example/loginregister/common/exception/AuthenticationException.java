@@ -1,8 +1,0 @@
-package org.example.loginregister.common.exception;
-
-public class AuthenticationException extends Exception {
-    public AuthenticationException(String msg){
-        super(msg);
-    }
-}
-
