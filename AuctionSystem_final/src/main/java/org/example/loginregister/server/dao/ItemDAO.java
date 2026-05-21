@@ -62,8 +62,8 @@ public class ItemDAO {
 
     /** Lưu item mới vào DB, trả về id được sinh ra. */
     public static int insertItem(Item item, int sellerId) {
-        String sql = "INSERT INTO items (item_name, description, item_type, starting_price, current_price, start_time, end_time, created_by) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO items (item_name, description, item_type, starting_price, current_price, start_time, end_time, created_by, image_path) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, item.getItemName());
@@ -74,6 +74,7 @@ public class ItemDAO {
             ps.setTimestamp(6, Timestamp.valueOf(item.getStartTime()));
             ps.setTimestamp(7, Timestamp.valueOf(item.getEndTime()));
             ps.setInt(8, sellerId);
+            ps.setString(9, item.getImagePath());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -116,7 +117,10 @@ public class ItemDAO {
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
         String createdBy = rs.getString("created_by");
-        return buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
+        String imagePath = rs.getString("image_path");
+        Item item = buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
+        item.setImagePath(imagePath);
+        return item;
     }
 
     /** Map từ query đơn bảng items (cột id tên là "id"). */
@@ -129,7 +133,10 @@ public class ItemDAO {
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
         String createdBy = rs.getString("created_by");
-        return buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
+        String imagePath = rs.getString("image_path");
+        Item item = buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
+        item.setImagePath(imagePath);
+        return item;
     }
 
     private static Item buildItem(int id, String itemName, String desc, String itemType,

@@ -39,7 +39,7 @@ public class AuctionDAO {
     /** Lấy tất cả auction đang OPEN hoặc RUNNING. */
     public static List<Auction> getActiveAuctions(List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') AND i.start_time <= NOW() ORDER BY a.end_time ASC";
+        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') ORDER BY a.end_time ASC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {

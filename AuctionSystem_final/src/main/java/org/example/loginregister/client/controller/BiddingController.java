@@ -199,6 +199,18 @@ public class BiddingController implements Initializable, Observer {
                         lblBidError.setManaged(true);
                     });
                     break;
+                case NotificationMessage.TYPE_AUTO_BID_AUCTION_ENDED:
+                    Platform.runLater(() -> {
+                        String message = (String) notification.getData();
+                        lblBidError.setText("🤖 " + message);
+                        lblBidError.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-font-weight: bold;");
+                        lblBidError.setVisible(true);
+                        lblBidError.setManaged(true);
+                        updateBidButton();
+                        updateStatusBadge();
+                        lblCountdown.setText("ENDED");
+                    });
+                    break;
             }
             }
          );

@@ -65,6 +65,9 @@ public class BidderDashboardController implements Initializable {
     @FXML private Label lblCount;
     @FXML private Label lblUpdate;
 
+    @FXML
+    private ScrollPane historyContainer;
+
     @FXML private BorderPane rootBorderPane;
 
     private static final String STYLE_NAV_ACTIVE =
@@ -119,7 +122,7 @@ public class BidderDashboardController implements Initializable {
     @FXML
     private void onNavHistory(){
         setActiveNav(btnNavHistory);
-        showPane(paneHistory);
+        showPane(historyContainer);
         filterbar.setVisible(false);
         filterbar.setManaged(false);
         searchBox.setVisible(false);
@@ -145,7 +148,7 @@ public class BidderDashboardController implements Initializable {
     }
     @FXML
     private void onNavPayment(){
-        setActiveNav(btnNavWon);
+        setActiveNav(btnNavPayment);
         showPane(paneWon);
         filterbar.setVisible(false);
         filterbar.setManaged(false);
@@ -473,8 +476,9 @@ public class BidderDashboardController implements Initializable {
     //Chỉ hiện pane được chọn, ẩn các pane còn lại
     private void showPane(javafx.scene.Node target){
         paneAuctions.setVisible(false);
-        paneHistory.setVisible(false);
+        historyContainer.setVisible(false);
         paneWon.setVisible(false);
+        panePayment.setVisible(false);
         target.setVisible(true);
     }
 
@@ -505,13 +509,11 @@ public class BidderDashboardController implements Initializable {
                 row.setPadding(new Insets(10, 0, 10, 0));
                 row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
 
-                // Item name
                 Label lblItem = new Label(bid.getItem() != null ? bid.getItem().getItemName() : "Unknown Item");
                 lblItem.setFont(Font.font("System", FontWeight.BOLD, 13));
                 lblItem.setStyle("-fx-text-fill: #fff;");
                 lblItem.setPrefWidth(200);
 
-                // Auction ID
                 Label lblAuctionId = new Label(bid.getAuctionId() != null ? bid.getAuctionId() : "—");
                 lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
                 lblAuctionId.setPrefWidth(100);

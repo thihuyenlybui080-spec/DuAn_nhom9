@@ -16,7 +16,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootBorderPane" maxHeight="700.0" maxWidth="1150.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 30, 0, 0, 0);" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BidderDashboardController">
+<BorderPane fx:id="rootBorderPane" maxHeight="700.0" maxWidth="1150.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 30, 0, 0, 0);" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.BidderDashboardController">
 
     <left>
         <VBox alignment="TOP_CENTER" prefHeight="700.0" prefWidth="253.0" spacing="5.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;">
@@ -142,7 +142,7 @@
                 <StackPane prefHeight="525.0" prefWidth="379.0" VBox.vgrow="ALWAYS">
                     <padding><Insets bottom="20.0" left="20.0" right="20.0" top="10.0" /></padding>
                     <children>
-                  <VBox fx:id="panePayment" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" />
+                  <VBox fx:id="panePayment" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" visible="false" />
                         <ScrollPane fx:id="paneAuctions" fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: #000; -fx-background-radius: 15; -fx-border-radius: 15;">
                             <content>
                                 <VBox fx:id="auctionContainer" spacing="15.0">
@@ -150,15 +150,21 @@
                                 </VBox>
                             </content>
                         </ScrollPane>
-
-                        <VBox fx:id="paneHistory" alignment="CENTER" spacing="10.0" visible="false">
-                            <children>
-                                <Label text="Bidding History" textFill="#c0c43f">
-                                    <font><Font name="System Bold" size="20.0" /></font>
-                                </Label>
-                                <Label opacity="0.4" text="No records found yet." textFill="WHITE" />
-                            </children>
-                        </VBox>
+                  <ScrollPane fx:id="historyContainer" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: transparent; -fx-background: transparent; -fx-background-radius: 15;" visible="false">
+                     <content>
+      
+                              <VBox fx:id="paneHistory" alignment="CENTER" spacing="10.0">
+                                  <children>
+                                      <Label text="Bidding History" textFill="#c0c43f">
+                                          <font>
+                                    <Font name="System Bold" size="20.0" />
+                                 </font>
+                                      </Label>
+                                      <Label opacity="0.4" text="No records found yet." textFill="WHITE" />
+                                  </children>
+                              </VBox>
+                     </content>
+                  </ScrollPane>
 
                         <VBox fx:id="paneWon" alignment="CENTER" spacing="10.0" visible="false">
                             <children>

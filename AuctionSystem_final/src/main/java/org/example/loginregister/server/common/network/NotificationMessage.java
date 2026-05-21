@@ -9,6 +9,7 @@ public class NotificationMessage implements Serializable {
     public static final String TYPE_AUCTION_STARTED = "AUCTION_STARTED";
     public static final String TYPE_AUCTION_ENDED = "AUCTION_ENDED";
     public static final String TYPE_TIME_EXTENDED = "TIME_EXTENDED";
+    public static final String TYPE_AUTO_BID_AUCTION_ENDED = "AUTO_BID_AUCTION_ENDED";
 
     private final String type;
     private final String auctionId;

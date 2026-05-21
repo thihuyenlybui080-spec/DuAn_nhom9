@@ -109,8 +109,9 @@ public class BidService {
         boolean extended = auction.tryExtendForAntiSnipe(
                 ANTI_SNIPE_THRESHOLD_SECONDS, ANTI_SNIPE_EXTENSION_SECONDS);
         if (extended) {
-            auctionService.scheduleEnd(auction, ANTI_SNIPE_EXTENSION_SECONDS);
-            logger.info("Anti-snipe extended auction {} by {}s", auction.getId(), ANTI_SNIPE_EXTENSION_SECONDS);
+            long newEndDelay = auction.getSecondsRemaining();
+            auctionService.scheduleEnd(auction, newEndDelay);
+            logger.info("Anti-snipe extended auction {} by {}s, rescheduled end in {}s", auction.getId(), ANTI_SNIPE_EXTENSION_SECONDS, newEndDelay);
         }
     }
 

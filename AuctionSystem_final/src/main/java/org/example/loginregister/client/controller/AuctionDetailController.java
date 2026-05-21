@@ -123,18 +123,25 @@ public class AuctionDetailController implements Initializable {
 
         // Display product image if available
         String imagePath = auction.getItem().getImagePath();
+        System.out.println("[AuctionDetail] Image path: " + imagePath);
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
                 File imageFile = new File(imagePath);
+                System.out.println("[AuctionDetail] File exists: " + imageFile.exists() + ", Absolute path: " + imageFile.getAbsolutePath());
                 if (imageFile.exists()) {
                     Image image = new Image(imageFile.toURI().toString());
                     imvProductImage.setImage(image);
                     imvProductImage.setPreserveRatio(true);
                     imvProductImage.setFitHeight(200);
+                } else {
+                    System.err.println("[AuctionDetail] Image file not found: " + imagePath);
                 }
             } catch (Exception e) {
-                System.err.println("Error loading product image: " + e.getMessage());
+                System.err.println("[AuctionDetail] Error loading product image: " + e.getMessage());
+                e.printStackTrace();
             }
+        } else {
+            System.out.println("[AuctionDetail] Image path is null or empty");
         }
 
         updatePriceArea();
