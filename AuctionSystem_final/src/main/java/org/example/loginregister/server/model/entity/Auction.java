@@ -26,11 +26,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Auction implements Subject, Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(Auction.class);
+
+    // ===== FIELDS =====
     private String id;
     private Seller seller;
     private final Item item;
     private volatile double  currentPrice;
     private volatile Bidder  highestBidder;
+    //mặc định status khi mới khởi tạoo là OPEN
     private volatile AuctionStatus status = AuctionStatus.OPEN;
 
     /**
@@ -49,12 +52,18 @@ public class Auction implements Subject, Serializable {
 
     private transient volatile ScheduledFuture<?> currentTimer;
 
+
+
+    // ===== CONSTRUCTOR =====
     public Auction(Item item) {
         this.id = "auction-" + item.getId().substring(5);
         this.item= item;
         this.currentPrice = item.getStartingPrice();
     }
 
+
+
+    // ===== OBSERVER (thread-safe via CopyOnWriteArrayList) =====
     @Override
     public void addObserver(Observer observer) {
         if (observer != null) observers.add(observer);
@@ -73,6 +82,9 @@ public class Auction implements Subject, Serializable {
         }
     }
 
+
+
+    // ===== BIDDING =====
 
     /**
      * Public entry point: wraps placeBid trong try/catch.
@@ -129,6 +141,8 @@ public class Auction implements Subject, Serializable {
     }
 
 
+
+    // ===== FINISH =====
     public void finishAuction(AuctionStatus finalStatus) {
         lock.lock();
         try {
@@ -145,6 +159,8 @@ public class Auction implements Subject, Serializable {
 
 
 
+
+    // ===== TIMER / EXTENSION =====
     public void extendEndTime(long additionalSeconds) {
         lock.lock();
         try {
@@ -172,6 +188,8 @@ public class Auction implements Subject, Serializable {
     public boolean tryExtendForAntiSnipe(long thresholdSec, long extensionSec) {
         lock.lock();
         try {
+            // Anti-snipe kích hoạt cả khi phiên đang OPEN (chưa có bid) hoặc RUNNING phòng trường TH thời gian khi khởi tạo quá ngắn
+
             if (status != AuctionStatus.OPEN && status != AuctionStatus.RUNNING) return false;
             if (getSecondsRemaining() >= thresholdSec) return false;
 

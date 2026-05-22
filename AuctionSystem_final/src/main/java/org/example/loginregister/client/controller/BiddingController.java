@@ -165,6 +165,7 @@ public class BiddingController implements Initializable, Observer {
                                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
                                 localBids.clear();
                                 localBids.addAll(bids);
+                                // Sort bids by timestamp descending (newest first)
                                 localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
                             } catch (Exception e) {
                                 System.err.println("Failed to reload bids: " + e.getMessage());
@@ -242,14 +243,12 @@ public class BiddingController implements Initializable, Observer {
         } else {
             System.out.println("[BiddingController] Image path is null or empty");
         }
-        // Load bids from database if not already loaded
         logger.debug("[DEBUG] populateView - Initial localBids count: {}", localBids.size());
         if (localBids.isEmpty()) {
             try {
                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
                 logger.debug("[DEBUG] populateView - Loaded {} bids from database", bids.size());
                 localBids.addAll(bids);
-                // Sort bids by amount descending (highest first)
                 localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
                 logger.debug("[DEBUG] populateView - After loading and sorting, localBids count: {}", localBids.size());
                 if (!bids.isEmpty()) {
@@ -303,13 +302,15 @@ public class BiddingController implements Initializable, Observer {
 
     private void updatePriceArea(){
         lblCurrentPrice.setText(formatPrice(auction.getCurrentPrice()));
+
+        // Try to get leader name from various sources
         String leaderName = null;
 
+        // 1. Try highestBidder object
         if (auction.getHighestBidder() != null) {
             leaderName = auction.getHighestBidder().getName();
             logger.debug("[DEBUG] Leader from highestBidder: {}", leaderName);
         }
-
         if (leaderName == null && !localBids.isEmpty()) {
             BidTransaction highestBid = localBids.stream()
                     .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
@@ -320,7 +321,6 @@ public class BiddingController implements Initializable, Observer {
             }
         }
 
-        // 3. Display result
         if (leaderName != null && !leaderName.isEmpty()) {
             lblLeader.setText("Leader: 👑 " + leaderName);
         } else {
@@ -384,14 +384,12 @@ public class BiddingController implements Initializable, Observer {
         try{
             Auction updatedAuction = AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
             txtBidAmount.clear();
-
             if (updatedAuction != null) {
                 this.auction.setCurrentPrice(updatedAuction.getCurrentPrice());
                 if (updatedAuction.getHighestBidder() != null) {
                     this.auction.setHighestBidder(updatedAuction.getHighestBidder());
                     this.auction.setHighestBidderName(updatedAuction.getHighestBidder().getName());
                 }
-
                 if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
                     localBids.clear();
                     localBids.addAll(updatedAuction.getBids());
@@ -430,7 +428,6 @@ public class BiddingController implements Initializable, Observer {
 
     @FXML
     private void onEnableAutoBid(){
-        // Check if auction has expired
         if (auction.getStatus() == AuctionStatus.FINISHED) {
             lblAutoBidStatus.setText("This auction has ended and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
@@ -484,13 +481,43 @@ public class BiddingController implements Initializable, Observer {
                 + "-fx-font-size: 12px; -fx-font-weight: bold;"
                 + "-fx-background-radius: 6;");
 
-
         txtMaxBid.clear();
         txtIncrement.clear();
 
         if (btnDisableAutoBid != null) {
             btnDisableAutoBid.setVisible(true);
             btnDisableAutoBid.setManaged(true);
+        }
+
+        boolean isCurrentUserLeading = auction.getHighestBidder() != null
+                && auction.getHighestBidder().getId().equals(bidder.getId());
+        
+        if (!isCurrentUserLeading) {
+            double nextBidAmount = auction.getCurrentPrice() + increment;
+            if (nextBidAmount <= maxBid) {
+                try {
+                    Auction updatedAuction = AuctionClientService.getInstance().placeBid(
+                            auction.getId(), bidder.getId(), nextBidAmount);
+                    if (updatedAuction != null) {
+                        this.auction.setCurrentPrice(updatedAuction.getCurrentPrice());
+                        if (updatedAuction.getHighestBidder() != null) {
+                            this.auction.setHighestBidder(updatedAuction.getHighestBidder());
+                            this.auction.setHighestBidderName(updatedAuction.getHighestBidder().getName());
+                        }
+                        if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
+                            localBids.clear();
+                            localBids.addAll(updatedAuction.getBids());
+                            localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
+                        }
+                        updatePriceArea();
+                        refreshBidHistory();
+                        showBidError("🤖 Auto-bid placed: " + formatPrice(nextBidAmount) + " ₫");
+                        lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
+                    }
+                } catch (RuntimeException e) {
+                    logger.error("Failed to place immediate auto-bid: {}", e.getMessage());
+                }
+            }
         }
 
     }
@@ -555,7 +582,8 @@ public class BiddingController implements Initializable, Observer {
         }
         autoBidEnable = false;
         chkAutoBid.setSelected(false);
-
+        
+        // Reset form and button to initial state
         lblAutoBidStatus.setText("");
         btnEnableAutoBid.setText("⚡ Enable Auto-Bid");
         btnEnableAutoBid.setStyle(
@@ -672,6 +700,7 @@ public class BiddingController implements Initializable, Observer {
         AuctionClientService.getInstance().leaveAuction(auction.getId());
     }
 
+    // ── Navigation ────────────────────────────────────────────────────────────
 
     @FXML
     private void onBack(ActionEvent event) {

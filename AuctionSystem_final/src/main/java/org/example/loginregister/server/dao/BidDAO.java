@@ -21,7 +21,6 @@ public class BidDAO {
             conn = DatabaseConfig.getConnection();
             conn.setAutoCommit(false);
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-
             String lockSql = "SELECT current_price FROM auctions WHERE id = ? FOR UPDATE";
             double currentPrice;
             try (PreparedStatement lockPs = conn.prepareStatement(lockSql)) {

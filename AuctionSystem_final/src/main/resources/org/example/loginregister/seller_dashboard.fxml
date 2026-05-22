@@ -23,7 +23,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootBorderPane" prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.SellerDashboardController">
+<BorderPane fx:id="rootBorderPane" prefHeight="720.0" prefWidth="1150.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.loginregister.client.controller.SellerDashboardController">
 
 
    <left>
@@ -176,7 +176,7 @@
                      </children>
                   </VBox>
 
-                  <ScrollPane fx:id="paneCreateAuction" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                  <ScrollPane fx:id="paneCreateAuction" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" visible="false">
                      <content>
                         <VBox alignment="TOP_CENTER" spacing="25.0">
                            <padding><Insets bottom="40.0" left="80.0" right="80.0" top="40.0" /></padding>

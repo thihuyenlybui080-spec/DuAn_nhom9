@@ -95,7 +95,9 @@ public class UserService {
     private void handleBidderRestricted(Bidder bidder, UserStatus status) {
         auctionService.getActiveAuctions().forEach(auction -> {
             auction.cancelBidsFrom(bidder);
+            // Disable auto-bid for this bidder on all auctions
             bidder.disableAutoBid(auction.getId());
+            // Remove from database
             int auctionDbId = AuctionDAO.parseDbId(auction.getId());
             int bidderDbId = AuctionDAO.parseDbId(bidder.getId());
             if(auctionDbId > 0 && bidderDbId > 0) {

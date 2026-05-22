@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 public class AuctionResult implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -38,7 +39,7 @@ public class AuctionResult implements Serializable {
     public User getWinner() { return winner; }
     public double getFinalPrice() { return finalPrice; }
     public LocalDateTime getEndTime() { return endTime; }
-    public List<BidTransaction> getBidHistory() { return bidHistory; }
+    public static List<BidTransaction> getBidHistory() { return bidHistory; }
     public AuctionStatus getStatus() {return status;}
 
     @Override

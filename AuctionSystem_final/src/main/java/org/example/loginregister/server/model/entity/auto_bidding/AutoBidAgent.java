@@ -50,7 +50,6 @@ public class AutoBidAgent implements Observer, Serializable {
                 Auction currentAuction = AuctionManager.getInstance().getActive(this.auctionId);
                 if (currentAuction == null || !active) return;
 
-                // Kiểm tra lại với data mới nhất từ auction
                 String currentLeader = currentAuction.getHighestBidder() != null
                         ? currentAuction.getHighestBidder().getName() : "";
                 if (bidder.getName().equals(currentLeader)) return; // mình đang lead → không bid
@@ -69,7 +68,7 @@ public class AutoBidAgent implements Observer, Serializable {
                 logger.error("Auto-bid failed for {} on auction {}: {}",
                         bidder.getName(), auctionId, e.getMessage());
             } finally {
-                processing.set(false); // unlock dù thành công hay lỗi
+                processing.set(false);
             }
         });
     }
