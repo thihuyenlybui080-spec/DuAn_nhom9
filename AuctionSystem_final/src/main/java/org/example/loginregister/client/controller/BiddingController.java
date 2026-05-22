@@ -509,6 +509,38 @@ public class BiddingController implements Initializable, Observer {
             btnDisableAutoBid.setManaged(true);
         }
 
+        // Immediately place a bid if someone else is leading
+        boolean isCurrentUserLeading = auction.getHighestBidder() != null 
+                && auction.getHighestBidder().getId().equals(bidder.getId());
+        
+        if (!isCurrentUserLeading) {
+            double nextBidAmount = auction.getCurrentPrice() + increment;
+            if (nextBidAmount <= maxBid) {
+                try {
+                    Auction updatedAuction = AuctionClientService.getInstance().placeBid(
+                            auction.getId(), bidder.getId(), nextBidAmount);
+                    if (updatedAuction != null) {
+                        this.auction.setCurrentPrice(updatedAuction.getCurrentPrice());
+                        if (updatedAuction.getHighestBidder() != null) {
+                            this.auction.setHighestBidder(updatedAuction.getHighestBidder());
+                            this.auction.setHighestBidderName(updatedAuction.getHighestBidder().getName());
+                        }
+                        if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
+                            localBids.clear();
+                            localBids.addAll(updatedAuction.getBids());
+                            localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
+                        }
+                        updatePriceArea();
+                        refreshBidHistory();
+                        showBidError("🤖 Auto-bid placed: " + formatPrice(nextBidAmount) + " ₫");
+                        lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
+                    }
+                } catch (RuntimeException e) {
+                    logger.error("Failed to place immediate auto-bid: {}", e.getMessage());
+                }
+            }
+        }
+
     }
     @Override
     public void update(String auctionId, double newPrice, String highestBidder){
