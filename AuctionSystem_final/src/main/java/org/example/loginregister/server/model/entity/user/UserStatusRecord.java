@@ -11,8 +11,6 @@ public class UserStatusRecord implements Serializable {
         this.status= status;
         this.changedBy = changedBy;
     }
-
-    //Record khởi tạo mặc định khi user mới đăng ký
     public static UserStatusRecord defaultActive() {
         return new UserStatusRecord(UserStatus.ACTIVE,null);
     }

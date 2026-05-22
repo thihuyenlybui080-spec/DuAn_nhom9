@@ -10,7 +10,6 @@ public abstract class User extends Entity {
     protected String password;
     private String fullName;
 
-    // Khởi tạo mặc định ACTIVE ngay từ đầu
     private UserStatusRecord statusRecord = UserStatusRecord.defaultActive();
 
     public User( String userName, String password, String email, String fullName){
@@ -34,8 +33,6 @@ public abstract class User extends Entity {
         onStatusChanged(newRecord.getStatus());
     }
 
-    //hành vi sau khi thay đổi status
-    //để abstract thì admin bắt buộc pk Override mà không có hành vi gì
     public void onStatusChanged(UserStatus newStatus){};
 
 

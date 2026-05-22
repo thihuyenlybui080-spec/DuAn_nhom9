@@ -67,15 +67,13 @@ public class ConnectionManager {
                 }
                 logger.info("Loading configuration from resources");
             }
-            
-            // Parse YAML file
+
             Map<String, Object> config = yaml.load(input);
             
             if (config != null && config.containsKey("server")) {
                 Map<String, Object> serverConfig = (Map<String, Object>) config.get("server");
                 
                 if (serverConfig != null) {
-                    // Extract server.ip
                     Object ipObj = serverConfig.get("ip");
                     if (ipObj != null) {
                         String ip = ipObj.toString().trim();
@@ -83,8 +81,7 @@ public class ConnectionManager {
                             this.serverHost = ip;
                         }
                     }
-                    
-                    // Extract server.port
+
                     Object portObj = serverConfig.get("port");
                     if (portObj != null) {
                         try {

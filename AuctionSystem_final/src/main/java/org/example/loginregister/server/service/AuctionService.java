@@ -113,7 +113,6 @@ public class AuctionService {
         auctionManager.putActive(auction);
         auction.setStatus(AuctionStatus.RUNNING);
         
-        // Update database status when auction transitions to RUNNING
         int auctionDbId = AuctionDAO.parseDbId(auction.getId());
         if (auctionDbId > 0) {
             AuctionDAO.updateAuctionStatus(auctionDbId, AuctionStatus.RUNNING);
@@ -138,7 +137,6 @@ public class AuctionService {
             logger.warn("endAuction: auction {} not found in memory", auctionId);
         }
 
-        // Luôn dùng FINISHED cho cả force end và kết thúc tự nhiên
         AuctionStatus finalStatus = AuctionStatus.FINISHED;
         if (forced) {
             logger.info("Force ending auction {}", auctionId);
@@ -236,17 +234,14 @@ public class AuctionService {
         List<Auction> auctions = AuctionDAO.getActiveAuctions(allUsers);
         Map<String, AutoBidConfig> autoBidConfigConcurrentHashMap = AutoBidDAO.getAllAutoBidConfig();
 
-        // Register auctions in AuctionManager for in-memory access
         for (Auction auction : auctions) {
             auctionManager.putActive(auction);
 
-            // Check if auction has already ended and reschedule or end it
             LocalDateTime now = LocalDateTime.now();
             long endDelay = ChronoUnit.SECONDS.between(now, auction.getItem().getEndTime());
             long startDelay = ChronoUnit.SECONDS.between(now, auction.getItem().getStartTime());
 
             if (endDelay <= 0) {
-                // Auction has already ended, update status
                 logger.info("Auction {} has expired, ending it now", auction.getId());
                 endAuction(auction.getId(), false);
             } else if (startDelay <= 0) {
@@ -269,9 +264,6 @@ public class AuctionService {
             }
         }
 
-        // Restore auto-bid configurations from database AFTER all auctions are registered
-        // This ensures we get the auction instance from AuctionManager (in-memory)
-        if (auctions == null || auctions.size() == 0) return auctions;
         int auctionDbId = AuctionDAO.parseDbId(auctions.get(0).getId());
         if (auctionDbId > 0) {
             for (User user : allUsers) {
@@ -283,7 +275,6 @@ public class AuctionService {
                             auctionDbId = AuctionDAO.parseDbId(auction.getId());
                             AutoBidConfig config = autoBidConfigConcurrentHashMap.get(auctionDbId + "-" + bidderDbId);
                             if (config != null) {
-                                // Get the auction from AuctionManager to ensure we use the in-memory instance
                                 Auction inMemoryAuction = auctionManager.getActive(auction.getId());
                                 if (inMemoryAuction != null) {
                                     bidder.enableAutoBid(inMemoryAuction, config);
@@ -306,15 +297,11 @@ public class AuctionService {
     public Auction getAuction(String auctionId) {
         Auction auction = AuctionDAO.getAuctionById(auctionId);
         if (auction != null) {
-            // Check if there's an in-memory instance in AuctionManager
             Auction inMemoryAuction = auctionManager.getActive(auctionId);
             if (inMemoryAuction != null) {
-                // Use the in-memory instance to preserve observer registrations
                 auction = inMemoryAuction;
             } else {
-                // If no in-memory instance, put this one in the manager
                 auctionManager.putActive(auction);
-                // Re-register auto-bid agents for this auction
                 List<User> allUsers = UserDAO.getAllUsers();
                 Map<String, AutoBidConfig> autoBidConfigConcurrentHashMap = AutoBidDAO.getAllAutoBidConfig();
                 int auctionDbId = AuctionDAO.parseDbId(auctionId);

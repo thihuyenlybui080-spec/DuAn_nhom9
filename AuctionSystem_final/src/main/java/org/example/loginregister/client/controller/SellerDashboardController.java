@@ -25,14 +25,10 @@ import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Seller;
-import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.model.factory.ArtFactory;
 import org.example.loginregister.server.model.factory.ElectronicsFactory;
 import org.example.loginregister.server.model.factory.ItemFactory;
 import org.example.loginregister.server.model.factory.VehicleFactory;
-import org.example.loginregister.server.service.AuctionService;
-import org.example.loginregister.server.service.ItemService;
-import org.example.loginregister.server.util.AuctionManager;
 
 
 import java.io.File;
@@ -281,7 +277,6 @@ public class SellerDashboardController implements Initializable {
                 + "-fx-border-radius: 8;"
                 + "-fx-background-radius: 8;");
 
-        // Thumb
         VBox thumb = new VBox(3);
         thumb.setAlignment(Pos.CENTER);
         thumb.setPrefSize(64, 64);
@@ -292,7 +287,6 @@ public class SellerDashboardController implements Initializable {
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
 
-        // Info
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -319,7 +313,6 @@ public class SellerDashboardController implements Initializable {
 
         info.getChildren().addAll(row1, priceLabel, timeLabel);
 
-        // Actions
         VBox actions = new VBox(6);
         actions.setAlignment(Pos.CENTER);
         actions.setPrefWidth(80);
@@ -375,7 +368,7 @@ public class SellerDashboardController implements Initializable {
                         + "-fx-border-radius: 8;"
                         + "-fx-background-radius: 8;");
 
-        // Thumb
+
         VBox thumb = new VBox(3);
         thumb.setAlignment(Pos.CENTER);
         thumb.setPrefSize(56, 56);
@@ -386,7 +379,6 @@ public class SellerDashboardController implements Initializable {
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
 
-        // Info
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -402,7 +394,6 @@ public class SellerDashboardController implements Initializable {
 
         info.getChildren().addAll(nameLabel, descLabel, priceLabel);
 
-        // Actions
         VBox actions = new VBox(6);
         actions.setAlignment(Pos.CENTER);
         actions.setPrefWidth(80);
@@ -426,7 +417,6 @@ public class SellerDashboardController implements Initializable {
         return card;
     }
 
-    // ── Add / Edit / Delete Item ──────────────────────────────────────────────
 
     @FXML
     private void onAddItem() {
@@ -444,13 +434,11 @@ public class SellerDashboardController implements Initializable {
     }
 
     private void onDeleteItem(Item item) {
-        // Check if item has an auction
         Auction relatedAuction = myAuctions.stream()
                 .filter(a -> a.getItem().getId().equals(item.getId()))
                 .findFirst()
                 .orElse(null);
 
-        // Check if auction has bids
         if (relatedAuction != null && !relatedAuction.getBids().isEmpty()) {
             showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the related auction has bids placed on it.");
             return;

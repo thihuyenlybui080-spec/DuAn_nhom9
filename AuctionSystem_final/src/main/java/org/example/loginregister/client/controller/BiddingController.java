@@ -139,13 +139,11 @@ public class BiddingController implements Initializable, Observer {
                 case NotificationMessage.TYPE_BID_UPDATED:
                     Auction updated = (Auction) notification.getData();
                     Platform.runLater(() -> {
-                        // Only update changed fields, don't replace entire object to preserve bids
                         this.auction.setCurrentPrice(updated.getCurrentPrice());
                         if (updated.getHighestBidder() != null) {
                             this.auction.setHighestBidder(updated.getHighestBidder());
                             this.auction.setHighestBidderName(updated.getHighestBidder().getName());
                         } else if (updated.getBids() != null && !updated.getBids().isEmpty()) {
-                            // If highestBidder is null, try to get it from bids list
                             BidTransaction highestBid = updated.getBids().stream()
                                     .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
                                     .orElse(null);
@@ -158,20 +156,15 @@ public class BiddingController implements Initializable, Observer {
                         if (updated.getItem() != null && updated.getItem().getEndTime() != null) {
                             this.auction.getItem().setEndTime(updated.getItem().getEndTime());
                         }
-                        // Always sync bids from server when notification is received
-                        // This ensures auto-bids and other users' bids are shown immediately
                         if (updated.getBids() != null && !updated.getBids().isEmpty()) {
                             localBids.clear();
                             localBids.addAll(updated.getBids());
-                            // Sort bids by amount descending (highest first)
                             localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
                         } else {
-                            // If server doesn't send bids, reload them explicitly
                             try {
                                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
                                 localBids.clear();
                                 localBids.addAll(bids);
-                                // Sort bids by timestamp descending (newest first)
                                 localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
                             } catch (Exception e) {
                                 System.err.println("Failed to reload bids: " + e.getMessage());
@@ -310,17 +303,13 @@ public class BiddingController implements Initializable, Observer {
 
     private void updatePriceArea(){
         lblCurrentPrice.setText(formatPrice(auction.getCurrentPrice()));
-
-        // Try to get leader name from various sources
         String leaderName = null;
 
-        // 1. Try highestBidder object
         if (auction.getHighestBidder() != null) {
             leaderName = auction.getHighestBidder().getName();
             logger.debug("[DEBUG] Leader from highestBidder: {}", leaderName);
         }
 
-        // 2. Try from localBids list
         if (leaderName == null && !localBids.isEmpty()) {
             BidTransaction highestBid = localBids.stream()
                     .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
@@ -387,7 +376,6 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        // Validate bid amount is greater than current price
         if (amount <= auction.getCurrentPrice()) {
             showBidError("Bid must be greater than current price (" + formatPrice(auction.getCurrentPrice()) + " ₫)");
             return;
@@ -396,24 +384,22 @@ public class BiddingController implements Initializable, Observer {
         try{
             Auction updatedAuction = AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
             txtBidAmount.clear();
-            // Use the returned auction object which has the updated state
+
             if (updatedAuction != null) {
                 this.auction.setCurrentPrice(updatedAuction.getCurrentPrice());
                 if (updatedAuction.getHighestBidder() != null) {
                     this.auction.setHighestBidder(updatedAuction.getHighestBidder());
                     this.auction.setHighestBidderName(updatedAuction.getHighestBidder().getName());
                 }
-                // Update bids from the returned auction
+
                 if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
                     localBids.clear();
                     localBids.addAll(updatedAuction.getBids());
-                    // Sort bids by amount descending (highest first)
                     localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
                 }
             }
             updatePriceArea();
             refreshBidHistory();
-            // Show success message
             showBidError("✅ Bid placed successfully: " + formatPrice(amount) + " ₫");
             lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
         } catch (RuntimeException e) {
@@ -456,7 +442,6 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        // Check if bidder is locked/banned
         if (!bidder.isActive()) {
             lblAutoBidStatus.setText("Your account is locked and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
@@ -499,11 +484,10 @@ public class BiddingController implements Initializable, Observer {
                 + "-fx-font-size: 12px; -fx-font-weight: bold;"
                 + "-fx-background-radius: 6;");
 
-        // Clear input fields after saving
+
         txtMaxBid.clear();
         txtIncrement.clear();
 
-        // Show disable button immediately when auto-bid is enabled
         if (btnDisableAutoBid != null) {
             btnDisableAutoBid.setVisible(true);
             btnDisableAutoBid.setManaged(true);
@@ -571,8 +555,7 @@ public class BiddingController implements Initializable, Observer {
         }
         autoBidEnable = false;
         chkAutoBid.setSelected(false);
-        
-        // Reset form and button to initial state
+
         lblAutoBidStatus.setText("");
         btnEnableAutoBid.setText("⚡ Enable Auto-Bid");
         btnEnableAutoBid.setStyle(
@@ -689,7 +672,6 @@ public class BiddingController implements Initializable, Observer {
         AuctionClientService.getInstance().leaveAuction(auction.getId());
     }
 
-    // ── Navigation ────────────────────────────────────────────────────────────
 
     @FXML
     private void onBack(ActionEvent event) {

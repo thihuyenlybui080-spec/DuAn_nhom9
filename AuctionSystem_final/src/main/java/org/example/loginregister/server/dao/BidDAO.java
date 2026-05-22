@@ -22,7 +22,6 @@ public class BidDAO {
             conn.setAutoCommit(false);
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
-            // Lock auction row để tránh race condition
             String lockSql = "SELECT current_price FROM auctions WHERE id = ? FOR UPDATE";
             double currentPrice;
             try (PreparedStatement lockPs = conn.prepareStatement(lockSql)) {

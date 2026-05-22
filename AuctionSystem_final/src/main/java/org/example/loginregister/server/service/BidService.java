@@ -59,13 +59,11 @@ public class BidService {
             return false;
         }
 
-        // Save previous state for rollback
 
         double previousPrice = auction.getCurrentPrice();
         var previousBidder = auction.getHighestBidder();
         int previousBidCount = auction.getBids().size();
 
-        // Process bid without notifying observers yet
         BidTransaction bidTx = new BidTransaction(bidder, auction.getItem(), amount);
         auction.placeBid(bidTx, false);
 
@@ -73,7 +71,6 @@ public class BidService {
         applyAntiSnipe(auction);
         boolean dbSuccess = persistBid(auctionId, bidder, amount);
         if (!dbSuccess) {
-            // Rollback in-memory state if database fail
             logger.error("placeBid: Database persist failed for auctionId={}, bidder={}, amount={}", auctionId, bidder.getName(), amount);
             auction.setCurrentPrice(previousPrice);
             auction.setHighestBidder(previousBidder);
@@ -84,7 +81,6 @@ public class BidService {
             throw new InvalidBidException("Failed to persist bid to database. Please try again.");
         }
 
-        // Only notify observers after successful database persist
         auction.notifyObservers();
         logger.info("Bid placed successfully: auction={} bidder={} amount={}", auctionId, bidder.getName(), amount);
         return true;

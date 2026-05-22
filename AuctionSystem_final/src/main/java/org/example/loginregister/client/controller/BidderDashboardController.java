@@ -237,7 +237,7 @@ public class BidderDashboardController implements Initializable {
 
     }
 
-    // hiển thị lên màn hình
+
     private void renderAuctions(List<Auction> list) {
         auctionContainer.getChildren().clear();
 
@@ -284,7 +284,7 @@ public class BidderDashboardController implements Initializable {
     }
 
     private HBox buildCard(Auction auction){
-        HBox card = new HBox(14); //spacing
+        HBox card = new HBox(14);
         card.setPadding(new Insets(12));
         card.setStyle("-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21); -fx-border-color: #3d1c21; -fx-border-radius: 8; -fx-background-radius: 8;");
 
@@ -332,7 +332,7 @@ public class BidderDashboardController implements Initializable {
     private VBox buildThumb(String category){
         VBox thumb = new VBox(3);
         thumb.setAlignment(Pos.CENTER);
-        thumb.setPrefSize(70, 70); // size lý tưởng, đề xuất
+        thumb.setPrefSize(70, 70);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
 
         Label icon = new Label(getCategoryIcon(category));
@@ -416,7 +416,7 @@ public class BidderDashboardController implements Initializable {
             ctrl.setData(
                     auction,
                     bidder,
-                    "bidder_dashboard.fxml",  // ← màn quay lại
+                    "bidder_dashboard.fxml",
                     "Bidder Dashboard"
             );
 
@@ -467,13 +467,6 @@ public class BidderDashboardController implements Initializable {
         }
     }
 
-    private void navigateTo(String fxmlFile, String title){
-        Stage stage = (Stage) auctionContainer.getScene().getWindow();
-        sceneManager.switchScene(stage, fxmlFile, title);
-        stopAutoRefresh();
-    }
-
-    //Chỉ hiện pane được chọn, ẩn các pane còn lại
     private void showPane(javafx.scene.Node target){
         paneAuctions.setVisible(false);
         paneAuctions.setManaged(false);

@@ -17,7 +17,6 @@ import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.User;
-import org.example.loginregister.server.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,6 @@ import java.text.NumberFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.IdentityHashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -37,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
-import static org.example.loginregister.server.model.entity.Auction.*;
 import static org.example.loginregister.server.model.entity.AuctionStatus.*;
 
 public class AuctionDetailController implements Initializable {

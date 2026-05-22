@@ -44,8 +44,6 @@ public class DatabaseConfig {
 
     private DatabaseConfig() {
         Properties props = new Properties();
-
-        // Ưu tiên 1: đọc config.properties bên NGOÀI jar (cùng thư mục với .jar)
         File externalConfig = new File("config.properties");
         if (externalConfig.exists()) {
             try (InputStream in = new FileInputStream(externalConfig)) {
@@ -55,7 +53,6 @@ public class DatabaseConfig {
                 logger.error("DatabaseConfig: read external config failed: {}", e.getMessage());
             }
         } else {
-            // Ưu tiên 2: đọc config.properties bên TRONG jar
             try (InputStream in = DatabaseConfig.class.getResourceAsStream(
                     "/org/example/loginregister/config.properties")) {
                 if (in != null) {
