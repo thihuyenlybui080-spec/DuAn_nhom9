@@ -319,7 +319,6 @@ public class SellerDashboardController implements Initializable {
 
         info.getChildren().addAll(row1, priceLabel, timeLabel);
 
-        // Actions
         VBox actions = new VBox(6);
         actions.setAlignment(Pos.CENTER);
         actions.setPrefWidth(80);
@@ -386,7 +385,6 @@ public class SellerDashboardController implements Initializable {
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
 
-        // Info
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -444,13 +442,11 @@ public class SellerDashboardController implements Initializable {
     }
 
     private void onDeleteItem(Item item) {
-        // Check if item has an auction
         Auction relatedAuction = myAuctions.stream()
                 .filter(a -> a.getItem().getId().equals(item.getId()))
                 .findFirst()
                 .orElse(null);
 
-        // Check if auction has bids
         if (relatedAuction != null && !relatedAuction.getBids().isEmpty()) {
             showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the related auction has bids placed on it.");
             return;
@@ -560,14 +556,11 @@ public class SellerDashboardController implements Initializable {
     @FXML
     private void onCreateAuction() {
         hideFormError();
-
-        // Check if seller is banned/locked
         if (!seller.isActive()) {
             showFormError("Your account has been locked and cannot create auctions. Please contact the administrator.");
             return;
         }
 
-        // 1. Validate
         String itemName = txtItemName.getText().trim();
         String category = cmbCategory.getValue();
         String description = txtDescription.getText().trim();

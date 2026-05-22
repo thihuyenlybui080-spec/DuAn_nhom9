@@ -18,12 +18,10 @@ public class Seller extends User {
 
     public Seller( String name, String password, String email, String fullName){
         super( name, password, email, fullName);
-        //this.ownedItems = ItemService.getInstance().getItemsBySeller(this.getIdPrefix());
     }
 
     public Seller(String id, String name, String password, String email, String fullName){
         super(id, name, password, email, fullName);
-        //this.ownedItems = ItemService.getInstance().getItemsBySeller(this.getId());
     }
 
     public void addItem(Item item){

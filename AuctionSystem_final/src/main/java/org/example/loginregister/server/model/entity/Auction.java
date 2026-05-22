@@ -135,7 +135,6 @@ public class Auction implements Subject, Serializable {
         } finally {
             lock.unlock();
         }
-        // Notify ngoài lock để tránh deadlock nếu observer cũng cần acquire lock
         if (notify) {
             notifyObservers();
         }

@@ -59,7 +59,6 @@ public class ConnectionManager {
                 isExternalFile = true;
                 logger.info("Loading configuration from external file: {}", externalFile.getAbsolutePath());
             } else {
-                // Fallback to resources
                 input = getClass().getClassLoader().getResourceAsStream("application.yaml");
                 if (input == null) {
                     logger.warn("application.yaml not found in external location or resources, using default values");
@@ -68,14 +67,12 @@ public class ConnectionManager {
                 logger.info("Loading configuration from resources");
             }
             
-            // Parse YAML file
             Map<String, Object> config = yaml.load(input);
             
             if (config != null && config.containsKey("server")) {
                 Map<String, Object> serverConfig = (Map<String, Object>) config.get("server");
                 
                 if (serverConfig != null) {
-                    // Extract server.ip
                     Object ipObj = serverConfig.get("ip");
                     if (ipObj != null) {
                         String ip = ipObj.toString().trim();

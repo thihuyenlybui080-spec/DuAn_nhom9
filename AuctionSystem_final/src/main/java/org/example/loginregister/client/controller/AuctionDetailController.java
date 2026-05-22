@@ -323,15 +323,4 @@ public class AuctionDetailController implements Initializable {
     private String formatPrice(double price){
         return VND_FORMAT.format((long) price);
     }
-    private String getCategoryIcon(String category) {
-        if (category == null) {
-            return "📦";
-        }
-        switch (category.toLowerCase()) {
-            case "electronics": return "💻";
-            case "art":         return "🎨";
-            case "vehicle":     return "🚗";
-            default:            return "📦";
-        }
-    }
 }
