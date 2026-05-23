@@ -1,270 +1,99 @@
 # DuAn_nhom9
-# AuctionSystem — Hệ thống Đấu giá Trực tuyến
+# Hệ Thống Quản Lý Đấu Giá Tự Động (Automated Auction Management System)
 
-Ứng dụng desktop đấu giá thời gian thực xây dựng bằng **JavaFX 21** và **MySQL**.
-Hỗ trợ ba vai trò người dùng (Admin, Seller, Bidder), đặt giá thủ công, tự động đặt giá (Auto-bid),
-chống snipe (anti-snipe extension), và quản lý toàn bộ vòng đời phiên đấu giá từ OPEN đến PAID.
+Hệ thống quản lý đấu giá tự động theo mô hình **Client - Server** thời gian thực, tích hợp giao diện đồ họa trực quan **JavaFX**, cơ chế kiểm soát đồng thời mạnh mẽ và logic chống bắn tỉa giá (Anti-sniping). Dự án được cấu trúc và quản lý bằng **Maven**, tuân thủ nghiêm ngặt các nguyên lý thiết kế phần mềm hướng đối tượng (OOP) và tiêu chuẩn mã nguồn Google Java Style.
 
 ---
 
-## Mô tả bài toán
+## 1. Mô tả bài toán và Phạm vi hệ thống
 
-Hệ thống mô phỏng một sàn đấu giá trực tuyến trong đó:
-
-- **Seller** đăng ký vật phẩm (Art, Electronics, Vehicle) và mở phiên đấu giá với giá khởi điểm và khoảng thời gian tự chọn.
-- **Bidder** xem các phiên đang mở, đặt giá thủ công hoặc bật chế độ tự động (Auto-bid với giá trần và bước tăng), và thanh toán sau khi thắng.
-- **Admin** giám sát toàn bộ phiên, quản lý trạng thái người dùng (Active / Banned / Deleted), và có quyền hủy phiên vi phạm.
-- Mọi hành động quan trọng (tạo phiên, đặt giá, kết thúc, thanh toán) đều được ghi nhận vào MySQL để đảm bảo tính bền vững.
+* **Bài toán đặt ra:** Trong các hệ thống đấu giá trực tuyến, việc xử lý hàng ngàn yêu cầu đặt giá (Bid) cùng một thời điểm thường dẫn đến các vấn đề nghiêm trọng về tranh chấp dữ liệu (Race Condition). Đặc biệt, hiện tượng "bắn tỉa giá" (Sniping) — người tham gia đợi đến giây cuối cùng để đặt giá khiến người khác không kịp phản hồi — làm giảm tính minh bạch của phiên đấu giá.
+* **Phạm vi giải quyết:** Hệ thống được xây dựng để giải quyết trọn vẹn các thách thức trên thông qua kiến trúc phân tán phân lớp:
+    * **Phía Server (Backend):** Đóng vai trò là trung tâm điều phối, lắng nghe đa kết nối qua Socket. Server quản lý vòng đời phiên đấu giá, đồng bộ trạng thái, tự động kích hoạt bộ đếm ngược chống bắn tỉa, xử lý chức năng tự động đặt giá (Auto-bid), tích hợp thanh toán và lưu trữ dữ liệu.
+    * **Phía Client (Frontend):** Cung cấp giao diện người dùng GUI (JavaFX) chuyên nghiệp. Client tiếp nhận tương tác, gửi yêu cầu dưới dạng gói tin đối tượng và cập nhật tức thời các biến động giá theo thời gian thực (Real-time).
 
 ---
 
-## Công nghệ sử dụng
+## 2. Kiến trúc Công nghệ & Yêu cầu Môi trường
 
-| Thành phần | Công nghệ |
-|---|---|
-| Ngôn ngữ | Java 21 |
-| Giao diện | JavaFX 21 (FXML + CSS inline) |
-| Build tool | Maven 3.x (kèm Maven Wrapper `mvnw`) |
-| Database | MySQL 8.x |
-| JDBC Driver | MySQL Connector/J (khai báo trong `pom.xml`) |
-| UI extras | BootstrapFX (styling bổ sung) |
-| Concurrency | `ScheduledExecutorService`, `ReentrantLock`, `ConcurrentHashMap` |
-
----
-
-## Yêu cầu môi trường
-
-- **JDK 21** trở lên (khuyến nghị Eclipse Temurin hoặc Oracle JDK 21)
-- **MySQL 8.x** đang chạy ở localhost (hoặc máy chủ riêng)
-- Maven không bắt buộc phải cài riêng vì project đã đi kèm `mvnw` / `mvnw.cmd`
+* **Ngôn ngữ lập trình:** Java (Java SE 8+ / Khuyến nghị JDK 13 - JDK 17).
+* **Giao diện người dùng (GUI):** JavaFX (Sử dụng kiến trúc MVC với các tệp `.fxml`).
+* **Quản lý dự án & Build:** Apache Maven.
+* **Cơ sở dữ liệu & Tối ưu hóa:** * **MySQL Server** (Tương tác qua JDBC Driver).
+    * **HikariCP:** Bộ quản lý bể chứa kết nối (Connection Pool) hiệu năng cao, duy trì `MaximumPoolSize = 20` giúp tối ưu hóa tài nguyên mạng.
+* **Logging:** SLF4J kết hợp Logback ghi vết hệ thống chuẩn công nghiệp.
+* **Kiểm thử tự động (Testing):** JUnit 5 và Mockito bao phủ các luồng nghiệp vụ.
+* **Yêu cầu cài đặt:** Máy tính đã cấu hình `JAVA_HOME` và MySQL Server đang hoạt động.
 
 ---
 
-## Cài đặt database
+## 3. Cấu trúc Thư mục và Các Module chính
 
-1. Mở MySQL client (Workbench, DBeaver, hoặc CLI).
-2. Chạy toàn bộ script khởi tạo:
+Dự án được tổ chức theo chuẩn Maven:
 
-```sql
-SOURCE path/to/loginregister.sql;
-```
-
-Script tạo database `loginregister` và 5 bảng: `users`, `items`, `auctions`, `bids`, `bid_transactions`.
-
-3. *(Tùy chọn)* Chỉnh sửa thông tin kết nối trong `config.properties` trước khi build:
-
-```properties
-db.host=localhost
-db.port=3306
-db.name=loginregister
-db.user=root
-db.pass=root
-```
+* `src/main/java/org/example/loginregister/client/`: Tầng điều khiển giao diện & mạng phía Client (Gồm `controller`, `service`, `util`).
+* `src/main/java/org/example/loginregister/server/`: Tầng xử lý logic nghiệp vụ và lưu trữ phía Server.
+    * `common/`: Các Exception tùy chỉnh và lớp cấu trúc mạng dùng chung.
+    * `dao/` & `database/`: Data Access Object và cấu hình HikariCP (`DatabaseConfig`).
+    * `model/`: Các thực thể Entity (`Auction`, `Item`, `BidTransaction`, `User`...).
+    * `service/`: Logic lõi (`AuctionService`, `BidService`, `PaymentService`...).
+    * Lớp mạng lõi: `AuctionServer` (Lắng nghe Socket), `ClientHandler` (Xử lý Request), `ClientRegistry` (Broadcast thông báo).
+* `src/main/resources/`: Lưu trữ file giao diện `.fxml`, hình ảnh và cấu hình log.
+* `src/test/`: Mã nguồn Unit Test và Mock testing.
+* `auction_system.sql`: Kịch bản khởi tạo cấu trúc CSDL.
 
 ---
 
-## Cấu trúc thư mục
+## 4. Thiết kế Giao thức Tầng Ứng dụng (Application Layer Protocol)
 
-```
-AuctionSystem_final/
-├── src/main/java/org/example/loginregister/
-│   ├── Launcher.java                   ← Điểm khởi động
-│   ├── HelloApplication.java           ← JavaFX Application
-│   ├── module-info.java
-│   │
-│   ├── client/
-│   │   ├── controller/
-│   │   │   ├── MainController.java          ← Màn hình chào
-│   │   │   ├── LoginController.java         ← Đăng nhập
-│   │   │   ├── RegisterController.java      ← Đăng ký
-│   │   │   ├── AdminDashboardController.java
-│   │   │   ├── SellerDashboardController.java
-│   │   │   ├── BidderDashboardController.java
-│   │   │   ├── BiddingController.java       ← Phòng đấu giá real-time
-│   │   │   └── AuctionDetailController.java
-│   │   ├── service/
-│   │   │   └── SceneManager.java            ← Chuyển màn hình
-│   │   └── util/
-│   │       └── ImageLoader.java
-│   │
-│   ├── server/
-│   │   ├── database/
-│   │   │   ├── DatabaseConfig.java          ← Kết nối MySQL
-│   │   │   └── AuctionDAO.java              ← Toàn bộ SQL queries
-│   │   ├── model/entity/
-│   │   │   ├── Entity.java                  ← Base class (ID tự sinh)
-│   │   │   ├── Auction.java                 ← Logic đấu giá (thread-safe)
-│   │   │   ├── AuctionStatus.java           ← Enum: OPEN→RUNNING→FINISHED→PAID
-│   │   │   ├── AuctionResult.java
-│   │   │   ├── BidTransaction.java
-│   │   │   ├── user/
-│   │   │   │   ├── User.java  ·  Admin.java  ·  Seller.java  ·  Bidder.java
-│   │   │   │   ├── UserStatus.java           ← ACTIVE / BANNED / DELETED
-│   │   │   │   └── UserStatusRecord.java
-│   │   │   ├── item/
-│   │   │   │   ├── Item.java  ·  Art.java  ·  Electronics.java  ·  Vehicle.java
-│   │   │   └── auto_bidding/
-│   │   │       ├── AutoBidConfig.java        ← Giá trần + bước tăng
-│   │   │       └── AutoBidAgent.java         ← Observer tự động đặt giá
-│   │   ├── model/factory/
-│   │   │   ├── ItemFactory.java  ·  ArtFactory.java
-│   │   │   ├── ElectronicsFactory.java  ·  VehicleFactory.java
-│   │   └── util/
-│   │       ├── AuctionManager.java           ← Singleton, điều phối phiên
-│   │       └── AuctionHistoryManager.java    ← Lưu lịch sử kết thúc
-│   │
-│   └── common/
-│       ├── observer/
-│       │   ├── Observer.java  ·  Subject.java
-│       └── exception/
-│           ├── AuctionClosedException.java
-│           ├── AuthenticationException.java
-│           └── InvalidBidException.java
-│
-├── src/main/resources/org/example/loginregister/
-│   ├── *.fxml                          ← Layout giao diện
-│   ├── config.properties               ← Cấu hình database
-│   └── *.png / *.jpg                   ← Tài nguyên hình ảnh
-│
-├── loginregister.sql                   ← Script tạo database
-├── loginregister_sqlserver.sql         ← Phiên bản SQL Server (tham khảo)
-├── pom.xml
-└── mvnw / mvnw.cmd
-```
+Hệ thống thiết kế một giao thức truyền tải hướng kết nối hoạt động trên nền tảng **TCP**, đóng gói dữ liệu qua cơ chế **Java Object Serialization** (`ObjectInputStream`/`ObjectOutputStream`). Điều này đảm bảo tính toàn vẹn tuyệt đối và thứ tự truyền nhận của gói tin.
+
+Giao thức quy định 3 loại cấu trúc đối tượng trao đổi qua mạng:
+1. **`Request` (Client ──> Server):** Gói tin yêu cầu mang `requestId` duy nhất, mã lệnh `action` (VD: `ACTION_PLACE_BID`, `ACTION_WATCH_AUCTION`) và phần thân `data`.
+2. **`Response` (Server ──> Client):** Gói tin phản hồi mang trạng thái (`OK`/`ERROR`), thông báo chi tiết và đối tượng kết quả trả về.
+3. **`NotificationMessage` (Server ──» Tất cả Client):** Gói tin phát sóng (Broadcast) gửi từ `ClientRegistry` để báo động khẩn (VD: `TYPE_BID_UPDATED`, `TYPE_TIME_EXTENDED`) giúp Client đồng bộ giao diện tức thì.
 
 ---
 
-## Vị trí file JAR
+## 5. Vị trí các tệp thực thi (.jar)
 
-Sau khi build (`mvn package`), file JAR xuất hiện tại:
-
-```
-AuctionSystem_final/target/AuctionSystem_final-1.0-SNAPSHOT.jar
-```
-
-Đặt file `config.properties` **cùng thư mục** với JAR để ghi đè cấu hình database mà không cần build lại:
-
-```
-thư_mục_chạy/
-├── AuctionSystem_final-1.0-SNAPSHOT.jar
-└── config.properties          ← chỉnh db.host, db.user, db.pass tại đây
-```
+Nhóm sử dụng `maven-shade-plugin` để đóng gói toàn bộ thư viện (bao gồm JavaFX và JDBC driver) vào thành file executable fat JAR.
+* **File chạy Server:** `target/server-fat.jar`
+* **File chạy Client:** `target/client-fat.jar`
 
 ---
 
-## Hướng dẫn chạy
+## 6. Hướng dẫn chạy Server/Client theo thứ tự cụ thể
 
-### Bước 1 — Khởi động MySQL
-
-Đảm bảo MySQL Server đang chạy và đã import `loginregister.sql`.
-
-### Bước 2 — Build project
-
+**Bước 1: Khởi tạo Cơ sở dữ liệu**
+1. Import file `auction_system.sql` vào MySQL Server.
+2. Tạo tệp `config.properties` đặt **cùng cấp thư mục** với tệp `.jar` (nếu chạy jar) hoặc thiết lập trong IDE, với nội dung:
+   ```properties
+   db.host=localhost
+   db.port=3306
+   db.name=loginregister
+   db.user=root
+   db.pass=Mat_khau_cua_ban
+**Bước 2: Khởi động Server**
+Mở Terminal tại thư mục chứa file jar của Server, chạy lệnh kèm tham số là số `PORT` muốn sử dụng (Server sử dụng *Virtual Threads* để xử lý đa luồng):
 ```bash
-# Linux / macOS
-./mvnw clean package -DskipTests
-
-# Windows
-mvnw.cmd clean package -DskipTests
-```
-
-Hoặc mở bằng **IntelliJ IDEA** → Import Maven project → Run `Launcher`.
-
-### Bước 3 — Chạy ứng dụng
-
-**Cách A — Qua IDE (khuyến nghị khi phát triển):**
-
-Mở IntelliJ IDEA, đặt `Launcher` làm main class, nhấn Run.
-
-**Cách B — Qua JAR (sau khi build):**
-
+java -jar target/server-fat.jar 8080
+**Bước 3: Khởi động Client**
+Mở một Terminal/Command Prompt khác tại thư mục chứa file jar của Client và chạy lệnh kèm 2 tham số là `Server IP` và `PORT` (phải khớp với Server):
 ```bash
-java --module-path <đường_dẫn_javafx_sdk>/lib \
-     --add-modules javafx.controls,javafx.fxml \
-     -jar target/AuctionSystem_final-1.0-SNAPSHOT.jar
+java -jar target/client-fat.jar 127.0.0.1 8080
 ```
+## 7. Danh sách chức năng đã hoàn thành
+[x] Kiến trúc Mạng: Phân tán Client-Server qua TCP Socket. Giao tiếp an toàn bằng Object Serialization. Broadcast đồng bộ trạng thái mượt mà bằng ClientRegistry.
 
-> **Lưu ý:** Project đóng gói dưới dạng ứng dụng đơn, không tách Server/Client riêng.
-> Toàn bộ logic (UI + business logic + DB) chạy trong cùng một JVM.
-> Nhiều người dùng có thể chạy nhiều instance, tất cả kết nối chung một MySQL.
+[x] Xử lý Đồng thời (Concurrency): Sử dụng khóa ReentrantLock độc lập cho từng phiên đấu giá, triệt tiêu lỗi Race Condition khi nhiều Bidder trả giá tại cùng một mili-giây.
 
-### Thứ tự sử dụng gợi ý
+[x] Logic Đấu giá: Khởi tạo, tham gia, và rời phiên đấu giá.
 
-1. Chạy ứng dụng → màn hình chào xuất hiện.
-2. Nhấn **Register** → tạo tài khoản Seller hoặc Bidder.
-3. Seller đăng nhập → tạo Item → mở phiên đấu giá.
-4. Bidder đăng nhập → vào phòng đấu giá → đặt giá / bật Auto-bid.
-5. Sau khi phiên kết thúc → Bidder thắng vào tab "Đã thắng" → Thanh toán.
-6. Admin (vào qua nút Admin trên màn hình chào) → quản lý user và phiên.
+[x] Anti-sniping (Chống bắn tỉa): Hệ thống tự động tính toán, đếm ngược và phát thông báo "Going once", "Going twice", "Sold", hoặc tự động gia hạn thời gian nếu có lượt đặt giá mới ở phút chót.
 
----
+[x] Auto-bidding (Đặt giá tự động): Người mua thiết lập giá trần và bước nhảy, hệ thống (AutoBidDAO) tự động thay mặt người mua nâng giá khi có đối thủ.
 
-## Danh sách chức năng đã hoàn thành
+[x] Dịch vụ tích hợp: Lưu vết lịch sử đấu giá (AuctionHistoryManager) và quyết toán thanh toán phiên (PaymentService).
 
-### Xác thực & Người dùng
-- [x] Đăng ký tài khoản với vai trò Bidder hoặc Seller
-- [x] Đăng nhập kiểm tra với database
-- [x] Validate form: độ dài mật khẩu, số điện thoại, xác nhận mật khẩu
-- [x] Admin quản lý trạng thái user (Active / Banned / Deleted)
-- [x] Khi ban Seller: tự động hủy tất cả phiên đang chạy của họ
-- [x] Khi ban Bidder: tự động hủy tất cả bid của họ và cập nhật lại người dẫn đầu
-
-### Vật phẩm & Phiên đấu giá
-- [x] Seller thêm item theo 3 loại: Art, Electronics, Vehicle (Factory Method Pattern)
-- [x] Seller xóa item khi phiên chưa bắt đầu
-- [x] Mở phiên đấu giá với giá khởi điểm, thời gian bắt đầu và kết thúc tùy chọn
-- [x] Lên lịch mở phiên tự động (`ScheduledExecutorService`)
-- [x] Phiên tự động kết thúc đúng giờ
-- [x] Anti-snipe: gia hạn thêm 60 giây nếu có bid trong 30 giây cuối
-- [x] Admin hủy phiên vi phạm
-
-### Đặt giá
-- [x] Đặt giá thủ công (kiểm tra phải cao hơn giá hiện tại)
-- [x] Auto-bid: tự động tăng giá theo bước khi bị vượt, dừng khi đạt giá trần
-- [x] Thread-safe với `ReentrantLock(fair)` — tránh race condition khi nhiều bid đồng thời
-- [x] Observer Pattern: UI và AutoBidAgent nhận thông báo real-time khi có bid mới
-- [x] Hiển thị đếm ngược, danh sách lịch sử bid, người dẫn đầu hiện tại
-
-### Kết quả & Thanh toán
-- [x] Lưu `AuctionResult` sau mỗi phiên kết thúc
-- [x] Bidder xem danh sách phiên đã thắng
-- [x] Giả lập thanh toán: cập nhật trạng thái FINISHED → PAID
-- [x] Deadline thanh toán 24 giờ: quá hạn tự động chuyển sang CANCELED
-
-### Đồng bộ Database
-- [x] Toàn bộ hành động (tạo item, tạo phiên, đặt giá, kết thúc, thanh toán) ghi vào MySQL
-- [x] Đọc dữ liệu từ DB khi khởi động lại (không mất dữ liệu)
-- [x] Cấu hình kết nối linh hoạt qua `config.properties`
-
----
-
-## Báo cáo & Demo
-
-| Tài nguyên | Đường dẫn |
-|---|---|
-| 📄 Báo cáo PDF | *(đặt link tại đây)* |
-| 🎥 Video demo | *(đặt link tại đây)* |
-
----
-
-## Design Patterns sử dụng
-
-| Pattern | Vị trí áp dụng |
-|---|---|
-| Singleton | `AuctionManager`, `AuctionHistoryManager` |
-| Observer | `Auction` (Subject) ↔ `AutoBidAgent`, `BiddingController` (Observer) |
-| Factory Method | `ItemFactory` → `ArtFactory`, `ElectronicsFactory`, `VehicleFactory` |
-| Template Method | `User.onStatusChanged()` — hook cho Seller và Bidder override |
-
----
-
-## Tác giả
-
-| Họ tên | MSSV |
-|---|---|
-| Bùi Thị Huyền Ly | 25021861 |
-| Trần Thị Thu Thủy | 25022024 |
-| Trần Lâm Dương | 25021702 |
-| Bùi Đồng Nhất | 25021922 |
-
-
+[x] Giao diện & Phân quyền: Phân quyền rõ ràng Admin, Seller, Bidder qua UI JavaFX thân thiện.
