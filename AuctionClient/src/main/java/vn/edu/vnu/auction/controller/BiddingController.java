@@ -302,10 +302,7 @@ public class BiddingController implements Initializable, Observer {
     private void updatePriceArea(){
         lblCurrentPrice.setText(formatPrice(auction.getCurrentPrice()));
 
-        // Try to get leader name from various sources
         String leaderName = null;
-
-        // 1. Try highestBidder object
         if (auction.getHighestBidder() != null) {
             leaderName = auction.getHighestBidder().getName();
             logger.debug("[DEBUG] Leader from highestBidder: {}", leaderName);
