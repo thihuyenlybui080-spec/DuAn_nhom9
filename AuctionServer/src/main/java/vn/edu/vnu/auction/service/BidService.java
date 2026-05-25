@@ -60,6 +60,11 @@ public class BidService {
             return false;
         }
 
+        if (auction.getStatus() != vn.edu.vnu.auction.model.entity.AuctionStatus.RUNNING) {
+            logger.warn("placeBid: auction {} not started yet (status={})", auctionId, auction.getStatus());
+            throw new InvalidBidException("Auction has not started yet. Please wait for the auction to begin.");
+        }
+
         // Save previous state for rollback
 
         double previousPrice = auction.getCurrentPrice();

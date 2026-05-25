@@ -8,8 +8,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -85,7 +87,75 @@ public class DatabaseConfig {
 
         jdbcDataSource = new HikariDataSource(config);
         logger.info("DatabaseConfig: HikariCP connection pool initialized");
+        // Tự động khởi tạo database nếu file .db chưa tồn tại
+        initializeDatabase();
     }
+
+    /**
+     * ================================================================
+     *  KHỞI TẠO DATABASE TỰ ĐỘNG
+     * ================================================================
+     *  - Nếu file .db chưa tồn tại → chạy auction_system.sql để tạo bảng + data
+     *  - Ưu tiên 1: đọc auction_system.sql bên NGOÀI jar (cùng thư mục với .jar)
+     *  - Ưu tiên 2: đọc auction_system.sql bên TRONG jar (trong resources)
+     *  - Nếu file .db đã tồn tại → bỏ qua, giữ nguyên dữ liệu cũ
+     * ================================================================
+     */
+    private void initializeDatabase() {
+        File dbFile = new File(DB_NAME);
+        if (dbFile.exists()) {
+            logger.info("DatabaseConfig: database file already exists, skipping initialization");
+            return;
+        }
+
+        logger.info("DatabaseConfig: database file not found, initializing from auction_system.sql...");
+
+        String sql = null;
+
+        // Ưu tiên 1: đọc auction_system.sql bên ngoài jar
+        File externalSql = new File("auction_system.sql");
+        if (externalSql.exists()) {
+            try (InputStream in = new FileInputStream(externalSql)) {
+                sql = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                logger.info("DatabaseConfig: read SQL from external file: {}", externalSql.getAbsolutePath());
+            } catch (Exception e) {
+                logger.error("DatabaseConfig: failed to read external SQL file: {}", e.getMessage());
+            }
+        }
+
+        // Ưu tiên 2: đọc auction_system.sql bên trong jar (resources)
+        if (sql == null) {
+            try (InputStream in = DatabaseConfig.class.getResourceAsStream("/auction_system.sql")) {
+                if (in != null) {
+                    sql = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                    logger.info("DatabaseConfig: read SQL from internal resources");
+                }
+            } catch (Exception e) {
+                logger.error("DatabaseConfig: failed to read internal SQL file: {}", e.getMessage());
+            }
+        }
+
+        if (sql == null) {
+            logger.warn("DatabaseConfig: auction_system.sql not found, database will be empty");
+            return;
+        }
+
+        // Chạy từng câu SQL (tách theo dấu ";")
+        try (Connection conn = jdbcDataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            String[] statements = sql.split(";");
+            for (String s : statements) {
+                String trimmed = s.trim();
+                if (!trimmed.isEmpty() && !trimmed.startsWith("--")) {
+                    stmt.execute(trimmed);
+                }
+            }
+            logger.info("DatabaseConfig: database initialized successfully from auction_system.sql");
+        } catch (SQLException e) {
+            logger.error("DatabaseConfig: failed to initialize database: {}", e.getMessage());
+        }
+    }
+
 
     public static DatabaseConfig getInstance() {
         if (instance == null) {
