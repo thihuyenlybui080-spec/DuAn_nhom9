@@ -1,5 +1,5 @@
 package org.example.loginregister.server.model.entity.user;
-import org.example.loginregister.common.exception.AuthenticationException;
+import org.example.loginregister.server.common.exception.AuthenticationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

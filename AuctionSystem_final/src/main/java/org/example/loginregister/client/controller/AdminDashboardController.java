@@ -16,13 +16,19 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
+import org.example.loginregister.server.common.network.Response;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.Admin;
 import org.example.loginregister.server.model.entity.user.User;
 import org.example.loginregister.server.model.entity.user.UserStatus;
+import org.example.loginregister.server.model.entity.user.UserStatusRecord;
+import org.example.loginregister.server.service.AuctionService;
 import org.example.loginregister.server.util.AuctionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -40,6 +46,7 @@ import static org.example.loginregister.client.controller.MainController.LOGIN_F
 import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
 
 public class AdminDashboardController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(AdminDashboardController.class);
     private static final String STYLE_NAV_ACTIVE =
             "-fx-background-color: #722f37; -fx-font-weight: bold; -fx-text-fill: #c0c43f";
     private static final String STYLE_NAV_NORMAL =
@@ -49,7 +56,7 @@ public class AdminDashboardController implements Initializable {
     private static final NumberFormat VND_FORMAT =
             NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    @FXML private Label lblUserName;
+    @FXML private Label lblUsername;
     @FXML private Button btnNavUsers;
     @FXML private Button btnNavAuctions;
 
@@ -96,7 +103,7 @@ public class AdminDashboardController implements Initializable {
      */
     public void setCurrentAdmin(Admin admin){
         this.admin = admin;
-        lblUserName.setText(admin.getName());
+        lblUsername.setText(admin.getName());
         loadUsers();
         loadAuctions();
         startAutoRefresh();
@@ -127,7 +134,7 @@ public class AdminDashboardController implements Initializable {
         lblPageTitle.setText("Manage Auctions");
         lblSubtitle.setText("View and manage all auction sessions");
         txtSearch.clear();
-        applyUserFilter();
+        applyAuctionFilter();
     }
 
     @FXML
@@ -137,7 +144,9 @@ public class AdminDashboardController implements Initializable {
     }
 
     private void loadUsers(){
-        List<User> list = AuctionManager.getInstance().getAllUsers();
+        List<User> list = AuctionClientService.getInstance().getAllUsers();
+        logger.debug("DEBUG loadUsers: {} users", list.size());
+        list.forEach(u -> logger.debug("  - {} | {}", u.getFullName(), u.getRole()));
         allUsers = FXCollections.observableArrayList(list);
         applyUserFilter();
     }
@@ -170,7 +179,7 @@ public class AdminDashboardController implements Initializable {
                     }
                 })
                 .filter(u -> keyword.isEmpty()
-                || u.getFullname().toLowerCase().contains(keyword)
+                || u.getFullName().toLowerCase().contains(keyword)
                 || u.getEmail().toLowerCase().contains(keyword))
                 .collect(Collectors.toList());
 
@@ -178,6 +187,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private void renderUsers(List<User> list){
+        userListContainer.getChildren().clear();
         if(list.isEmpty()){
             userListContainer.getChildren().add(
                     buildEmptyState("👤", "No users found", "Try changing the filter."));
@@ -198,7 +208,7 @@ public class AdminDashboardController implements Initializable {
                 + "-fx-border-radius: 8;"
                 + "-fx-background-radius: 8;");
 
-        Label avatar = new Label(String.valueOf(user.getFullname().charAt(0)).toUpperCase());
+        Label avatar = new Label(String.valueOf(user.getFullName().charAt(0)).toUpperCase());
         avatar.setPrefSize(42, 42);
         avatar.setAlignment(Pos.CENTER);
         avatar.setStyle("-fx-background-color: " + getRoleColor(user.getRole()) + ";"
@@ -209,7 +219,7 @@ public class AdminDashboardController implements Initializable {
         HBox.setHgrow(info, Priority.ALWAYS);
         HBox row1 = new HBox(8);
         row1.setAlignment(Pos.CENTER_LEFT);
-        Label nameLabel = new Label(user.getFullname());
+        Label nameLabel = new Label(user.getFullName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
         Label roleBadge = buildRoleBadge(user.getRole());
         Label statusLabel = buildUserStatusBadge(user.isActive());
@@ -223,15 +233,8 @@ public class AdminDashboardController implements Initializable {
 
         info.getChildren().addAll(row1, emailLabel, idLabel);
 
-        VBox action = new VBox(5);
-        action.setAlignment(Pos.CENTER);
-
-        Button btnDelete = buildDeleteButton(user);
         Button btnToggle = buildLockButton(user);
-
-        action.getChildren().addAll(btnToggle, btnDelete);
-
-        card.getChildren().addAll(avatar, info, action);
+        card.getChildren().addAll(avatar, info, btnToggle);
         return card;
 
     }
@@ -242,10 +245,10 @@ public class AdminDashboardController implements Initializable {
         btnLockOrUnlock.setDisable(isSelf);
 
         btnLockOrUnlock.setStyle(user.isActive()
-                ? "-fx-background-color: #transparent; -fx-text-fill: #c0c43f;"
+                ? "-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
                 + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
                 + "-fx-font-size: 11px; -fx-cursor: hand;"
-                : "-fx-background-color: #transparent; -fx-text-fill: #fff;"
+                : "-fx-background-color: transparent; -fx-text-fill: #fff;"
                 + "-fx-border-color: #fff; -fx-border-radius: 4;"
                 + "-fx-font-size: 11px; -fx-cursor: hand;");
 
@@ -254,59 +257,43 @@ public class AdminDashboardController implements Initializable {
         return btnLockOrUnlock;
     }
 
-    private Button buildDeleteButton(User user){
-        boolean isSelf = user.getId().equals(admin.getId());
-        Button btnDelete = new Button("Delete");
-        btnDelete.setDisable(isSelf);
-        btnDelete.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
-                + "-fx-backgound-radius: 4;");
-        btnDelete.setOnAction(e -> onDeleteUser(user, btnDelete));
-        return btnDelete;
-    }
-
-    private void onDeleteUser(User user, Button btnDelete) {
-        admin.manageUser(user, UserStatus.DELETED);
-        user.onStatusChanged(UserStatus.DELETED);
-        btnDelete.setText("deleted");
-    }
-
     private void onToggleLock(User user, Button btn){
         String action = user.isActive() ? "lock" : "unlock";
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("confirm");
         confirm.setHeaderText(null);
-        confirm.setContentText("Are you sure you want to " + action + " user \"" + user.getFullname() + "\"?");
+        confirm.setContentText("Are you sure you want to " + action + " user \"" + user.getFullName() + "\"?");
 
         confirm.showAndWait().ifPresent(respone -> {
             if(respone != ButtonType.OK) {
                 return;
             }
-            if(user.getStatus() == UserStatus.BANNED){
-                admin.manageUser(user, UserStatus.ACTIVE);
-                btn.setText("🔒 Lock");
-                btn.setStyle("-fx-background-color: #transparent; -fx-text-fill: #c0c43f;"
-                        + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
-                        + "-fx-font-size: 11px; -fx-cursor: hand;");
-                lblStatusBar.setText("Unlocked: " + user.getFullname());
+            boolean wasActive = user.isActive();
+            try {
+                AuctionClientService.getInstance().toggleUserLock(user);
+                if (!wasActive) {
+                    btn.setText("🔒 Lock");
+                    btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
+                            + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
+                            + "-fx-font-size: 11px; -fx-cursor: hand;");
+                    lblStatusBar.setText("Unlocked: " + user.getFullName());
+                } else {
+                    btn.setText("🔓 Unlock");
+                    btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
+                            + "-fx-border-color: #fff; -fx-border-radius: 4;"
+                            + "-fx-font-size: 11px; -fx-cursor: hand;");
+                    lblStatusBar.setText("Locked: " + user.getFullName());
+                }
+                applyUserFilter();
+            }catch (RuntimeException e) {
+                new Alert(Alert.AlertType.ERROR, "Action failed: " + e.getMessage())
+                        .showAndWait();
             }
-            if(user.getStatus() == UserStatus.ACTIVE){
-                admin.manageUser(user, UserStatus.BANNED);
-                user.onStatusChanged(UserStatus.BANNED);
-                btn.setText("🔓 Unlock");
-                btn.setStyle("-fx-background-color: #transparent; -fx-text-fill: #fff;"
-                        + "-fx-border-color: #fff; -fx-border-radius: 4;"
-                        + "-fx-font-size: 11px; -fx-cursor: hand;");
-                lblStatusBar.setText("Locked: " + user.getFullname());
-            }
-            else {
-                new Alert(Alert.AlertType.ERROR, "Action failed. Please try again.").showAndWait();
-            }
-
         });
     }
 
     private void loadAuctions(){
-        List<Auction> list = AuctionManager.getInstance().getAllAuctions();
+        List<Auction> list = AuctionClientService.getInstance().getAllAuctions();
         allAuctions = FXCollections.observableArrayList(list);
         applyAuctionFilter();
     }
@@ -344,7 +331,7 @@ public class AdminDashboardController implements Initializable {
                 })
                 .filter(a -> keyword.isEmpty()
                 || a.getItem().getItemName().toLowerCase().contains(keyword)
-                || a.getSeller().getFullname().toLowerCase().contains(keyword))
+                || a.getSeller().getFullName().toLowerCase().contains(keyword))
                 .collect(Collectors.toList());
         renderAuctions(result);
     }
@@ -378,7 +365,7 @@ public class AdminDashboardController implements Initializable {
         thumb.setPrefSize(64, 64);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
         Label icon = new Label(getCategoryIcon(auction.getItem().getCategory()));
-        icon.setStyle("-fx-font-size: 22px;");
+        icon.setStyle("-fx-font-size: 22px; -fx-background-color: #722f37");
         Label cat = new Label(auction.getItem().getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
@@ -392,7 +379,9 @@ public class AdminDashboardController implements Initializable {
         Label nameLabel = new Label(auction.getItem().getItemName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
         Label badge = buildAuctionStatusBadge(auction.getStatus());
-        row1.getChildren().addAll(nameLabel, badge);
+        Label idLabel = new Label("ID: " + auction.getId());
+        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
+        row1.getChildren().addAll(nameLabel, badge, idLabel);
 
         Label priceLabel = new Label(
                 "Current: " + formatPrice(auction.getCurrentPrice()) + " ₫"
@@ -400,7 +389,10 @@ public class AdminDashboardController implements Initializable {
         priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
 
         Label timeLabel = new Label(
-                "Ends: " + (auction.getItem().getEndTime() != null
+                "Starts: " + (auction.getItem().getStartTime() != null
+                        ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                        : "—")
+                + "  ·  Ends: " + (auction.getItem().getEndTime() != null
                         ? auction.getItem().getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                         : "—"));
         timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
@@ -429,9 +421,9 @@ public class AdminDashboardController implements Initializable {
 
     private void onForceAuction(Auction auction, Button button){
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle(button.getText() == "Force End" ? "Force End Auction" : "Cancel Auction");
+        confirm.setTitle(button.getText().equals("Force End") ? "Force End Auction" : "Cancel Auction");
         confirm.setHeaderText(null);
-        confirm.setContentText(button.getText() == "Force End" ?
+        confirm.setContentText(button.getText().equals("Force End") ?
                 "Force end auction \"" + auction.getItem().getItemName() + "\"?\n"
                         + "This will immediately close the session."
                 : "Are you sure you want to cancel auction ? This will be delete forever");
@@ -439,16 +431,17 @@ public class AdminDashboardController implements Initializable {
             if(respone != ButtonType.OK){
                 return;
             }
-            if(button.getText() == "Force End"){
-                AuctionManager.getInstance().endAuction(auction.getId());
+            if(button.getText().equals("Force End")){
+                AuctionClientService.getInstance().forceEndAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Force End: " + auction.getItem().getItemName());
             }
             else{
-                AuctionManager.getInstance().cancelAuction(auction.getId());
+                AuctionClientService.getInstance().cancelAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Cancel: " + auction.getItem().getItemName());
             }
+            loadAuctions();
         });
     }
 
@@ -508,12 +501,12 @@ public class AdminDashboardController implements Initializable {
         }
         return badge;
     }
-    private Label buildUserStatusBadge(boolean isLocked) {
-        Label badge = new Label(isLocked ? "🔒 Locked" : "✓ Active");
-        badge.setStyle(isLocked
-                ? "-fx-background-color: #c0c43f; -fx-text-fill: #e53935;"
-                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;"
-                : "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
+    private Label buildUserStatusBadge(boolean isActive) {
+        Label badge = new Label(isActive ? "✓ Active" : "🔒 Locked");
+        badge.setStyle(isActive
+                ? "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
+                        + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;"
+                : "-fx-background-color: #c0c43f; -fx-text-fill: #e53935;"
                 + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
         return badge;
     }

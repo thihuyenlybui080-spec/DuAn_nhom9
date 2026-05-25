@@ -7,19 +7,21 @@ import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
 import org.example.loginregister.server.model.entity.user.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AuctionDAO {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionDAO.class);
 
     private static final String AUCTION_SELECT =
             "SELECT a.id               AS auction_id, "
             + "       a.status           AS auction_status, "
             + "       a.current_price    AS auction_current_price, "
             + "       a.highest_bidder_id, "
-            + "       a.end_time_millis, "
             + "       i.id               AS item_id, "
             + "       i.item_name, "
             + "       i.description, "
@@ -27,7 +29,9 @@ public class AuctionDAO {
             + "       i.starting_price, "
             + "       i.start_time, "
             + "       i.end_time, "
+            + "       i.created_by, "
             + "       i.created_by       AS seller_id, "
+            + "       i.image_path, "
             + "       u.username         AS seller_name, "
             + "       u.password         AS seller_pass, "
             + "       u.email            AS seller_email, "
@@ -39,7 +43,7 @@ public class AuctionDAO {
     /** Lấy tất cả auction đang OPEN hoặc RUNNING. */
     public static List<Auction> getActiveAuctions(List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') ORDER BY a.end_time_millis ASC";
+        String sql = AUCTION_SELECT + "WHERE a.status IN ('OPEN','RUNNING') ORDER BY a.end_time ASC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -47,6 +51,7 @@ public class AuctionDAO {
                 Auction a = mapAuction(rs, allUsers);
                 if (a != null) list.add(a);
             }
+            ps.close();
         } catch (SQLException e) {
             System.err.println("[AuctionDAO] getActiveAuctions: " + e.getMessage());
         }
@@ -61,11 +66,18 @@ public class AuctionDAO {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Auction a = mapAuction(rs, allUsers);
-                if (a != null) list.add(a);
+                try {
+                    Auction a = mapAuction(rs, allUsers);
+                    if (a != null) list.add(a);
+                } catch (Exception e) {
+                    logger.error("[AuctionDAO] Error mapping auction at row: {}", e.getMessage());
+                    e.printStackTrace();
+                }
             }
+            logger.info("[AuctionDAO] getAllAuctions: Loaded {} auctions", list.size());
         } catch (SQLException e) {
-            System.err.println("[AuctionDAO] getAllAuctions: " + e.getMessage());
+            logger.error("[AuctionDAO] getAllAuctions SQL error: {}", e.getMessage());
+            e.printStackTrace();
         }
         return list;
     }
@@ -90,15 +102,15 @@ public class AuctionDAO {
     }
 
     /** Lưu auction mới vào DB, trả về id được sinh ra. */
-    public static int insertAuction(int itemId, double startingPrice, long durationSeconds, long endTimeMillis) {
-        String sql = "INSERT INTO auctions (item_id, status, current_price, duration_seconds, end_time_millis) "
+    public static int insertAuction(int itemId, double startingPrice, long durationSeconds, java.time.LocalDateTime endTime) {
+        String sql = "INSERT INTO auctions (item_id, status, current_price, duration_seconds, end_time) "
                 + "VALUES (?, 'OPEN', ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, itemId);
             ps.setDouble(2, startingPrice);
             ps.setLong(3, durationSeconds);
-            ps.setLong(4, endTimeMillis);
+            ps.setTimestamp(4, java.sql.Timestamp.valueOf(endTime));
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -157,18 +169,22 @@ public class AuctionDAO {
         );
         seller.setId(String.valueOf(rs.getInt("seller_id")));
 
-        Item item = ItemDAO.mapItem(rs, seller);
+        Item item = ItemDAO.mapItem(rs);
 
-        Auction auction = new Auction(seller, item);
+        Auction auction = new Auction(item);
+        auction.setId("auction-" + rs.getInt("auction_id"));
         auction.setCurrentPrice(rs.getDouble("auction_current_price"));
+        auction.setSeller(seller);
 
         int highestBidderId = rs.getInt("highest_bidder_id");
         if (!rs.wasNull() && allUsers != null) {
             allUsers.stream()
-                    .filter(u -> u.getId().equals(String.valueOf(highestBidderId)))
-                    .filter(u -> u instanceof Bidder)
+                    .filter(u -> u.getId().equals(String.valueOf(highestBidderId)) && u instanceof Bidder)
                     .findFirst()
-                    .ifPresent(u -> auction.setHighestBidderName(u.getName()));
+                    .ifPresent(u -> {
+                        auction.setHighestBidder((Bidder) u);
+                        auction.setHighestBidderName(u.getName());
+                    });
         }
 
         try {
@@ -177,6 +193,52 @@ public class AuctionDAO {
             auction.setStatus(AuctionStatus.OPEN);
         }
 
+        // Load bids from database
+        int auctionDbId = rs.getInt("auction_id");
+        List<org.example.loginregister.server.model.entity.BidTransaction> bids =
+                BidDAO.getBidsByAuction(auctionDbId);
+        auction.addBids(bids);
+
         return auction;
+    }
+    /** Lấy auction theo ID từ database. */
+    public static Auction getAuctionById(String auctionId) {
+        int dbId = parseDbId(auctionId);
+        if (dbId < 0) {
+            return null;
+        }
+
+        String sql = AUCTION_SELECT + "WHERE a.id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, dbId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAuction(rs, null);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[AuctionDAO] getAuctionById: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /** Lấy các auction đã thắng bởi bidder (status = FINISHED hoặc PAID). */
+    public static List<Auction> getWonAuctionsByBidder(int bidderId, List<User> allUsers) {
+        List<Auction> list = new ArrayList<>();
+        String sql = AUCTION_SELECT + "WHERE a.highest_bidder_id = ? AND a.status IN ('FINISHED', 'PAID') ORDER BY a.id DESC";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bidderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Auction a = mapAuction(rs, allUsers);
+                    if (a != null) list.add(a);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[AuctionDAO] getWonAuctionsByBidder: " + e.getMessage());
+        }
+        return list;
     }
 }

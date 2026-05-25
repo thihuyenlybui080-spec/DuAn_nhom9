@@ -1,12 +1,16 @@
 package org.example.loginregister.server;
 
-import org.example.loginregister.server.util.AuctionManager;
+import org.example.loginregister.server.service.AuctionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +36,6 @@ public class AuctionServer {
     private final ExecutorService threadPool = Executors.newVirtualThreadPerTaskExecutor();
     private volatile boolean running = false;
 
-
     /**
      * Khởi động server
      * chạy vòng lặp vô hạn cho đến khi gọi stop()
@@ -42,7 +45,7 @@ public class AuctionServer {
             serverSocket = new ServerSocket(PORT);
             running = true;
 
-            AuctionManager.getInstance().getActiveAuctions();
+            AuctionService.getInstance().getActiveAuctions();
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept();
@@ -74,7 +77,7 @@ public class AuctionServer {
     private void stop(){
         running = false;
         try{
-            if(!serverSocket.isClosed() || serverSocket == null){
+            if(serverSocket == null || !serverSocket.isClosed()){
                 serverSocket.close();
             }
         } catch (IOException e) {

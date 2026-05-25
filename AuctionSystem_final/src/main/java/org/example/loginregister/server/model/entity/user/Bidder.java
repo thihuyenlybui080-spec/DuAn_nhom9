@@ -1,50 +1,42 @@
 package org.example.loginregister.server.model.entity.user;
 
-import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.AuthenticationException;
-import org.example.loginregister.common.exception.InvalidBidException;
+import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.InvalidBidException;
+import org.example.loginregister.server.dao.AuctionDAO;
+import org.example.loginregister.server.dao.AutoBidDAO;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionResult;
-import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.BidTransaction;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidAgent;
 import org.example.loginregister.server.model.entity.auto_bidding.AutoBidConfig;
 import org.example.loginregister.server.model.entity.item.Item;
+import org.example.loginregister.server.service.BidService;
+import org.example.loginregister.server.service.PaymentService;
 import org.example.loginregister.server.util.AuctionHistoryManager;
-import org.example.loginregister.server.util.AuctionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Bidder extends User  {
-
-    //lưu những bid thành công
+    private static final Logger logger = LoggerFactory.getLogger(Bidder.class);
     private final List<BidTransaction> history = new CopyOnWriteArrayList<>();
-    //lưu auto bid
-    private final Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
-    //ds lưu những auction mà bidder này thắng
+    private final transient Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
     private final Map<String, AuctionResult> wonAuctions = new ConcurrentHashMap<>();
 
     public Bidder( String name, String password, String email, String fullName) {
         super( name, password, email, fullName);
     }
 
-    //hành động sau khi bị BAN hoặc DELETED
-    @Override
-    public void onStatusChanged(UserStatus newStatus) {
-        if (newStatus == UserStatus.BANNED || newStatus == UserStatus.DELETED) {
-
-            // Huỷ tất cả bid đang chạy của bidder này
-            AuctionManager.getInstance().getActiveAuctions().forEach(auction -> auction.cancelBidsFrom(this));
-
-            System.out.println("[Bidder] " + getName() + " was set to " + newStatus + ": all bids were canceled");
-        }
+    public Bidder(String id, String name, String password, String email, String fullName) {
+        super(id, name, password, email, fullName);
     }
 
     /**
      * Bidder chủ động đặt giá vào một phiên đấu giá.
-     * Kiểm tra tài khoản trước, sau đó chuyển toàn bộ logic xuống AuctionManager.*/
+     */
     public boolean bid(Auction auction, double amount) throws InvalidBidException, AuctionClosedException {
         if (!isActive()) {
             throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot place bids");
@@ -52,114 +44,98 @@ public class Bidder extends User  {
         if (auction == null) {
             throw new IllegalArgumentException("[Bidder] " + getName() + ": invalid auction");
         }
-        return AuctionManager.getInstance().placeBid(auction.getId(), this, amount);
+        return BidService.getInstance().placeBid(auction.getId(), this, amount);
     }
 
     //Lưu lịch sử giao dịch sau khi đặt giá thành công.
     public void recordBid(Item item, double amount) {
         if (!isActive()) throw new IllegalStateException("Account is locked and cannot place bids");
         history.add(new BidTransaction(this, item, amount));
-        System.out.println(this.getName() + " placed a bid of " + amount + " for item " + item.getItemName());
+        logger.info("{} placed a bid of {} for item {}", getName(), amount, item.getItemName());
     }
 
-
-
-
-    // Cập nhật danh sách auction đã thắng từ AuctionHistoryManager
-
+    // Cập nhật danh sách auction đã thắng từ database
     public void refreshWonAuctions() {
         wonAuctions.clear();
-        List<AuctionResult> allResults = AuctionHistoryManager.getInstance().getAllResults();
+        int bidderDbId = AuctionDAO.parseDbId(this.getId());
+        if (bidderDbId < 0) {
+            return;
+        }
 
-        for (AuctionResult result : allResults) {
-            if (result.getWinner() != null && result.getWinner().equals(this)) {
-                wonAuctions.put(result.getAuctionId(), result);
-            }
+        // Load all users to map auction data
+        List<org.example.loginregister.server.model.entity.user.User> allUsers = org.example.loginregister.server.dao.UserDAO.getAllUsers();
+        List<Auction> wonAuctionsList = AuctionDAO.getWonAuctionsByBidder(bidderDbId, allUsers);
+
+        for (Auction auction : wonAuctionsList) {
+            AuctionResult result = new AuctionResult(auction);
+            wonAuctions.put(result.getAuctionId(), result);
         }
     }
-
-
-
-
 
     // Kiểm tra xem bidder có thắng phiên này không
     public boolean hasWonAuction(String auctionId) {
         return getWonAuction(auctionId).isPresent();
     }
 
-
-    // Giả lập thanh toán cho phiên đấu giá đã thắng
+    /** Thanh toán phiên đã thắng qua {@link PaymentService}. */
     public boolean payForAuction(String auctionId) {
-        Optional<AuctionResult> resultOpt = getWonAuction(auctionId);
-
-        if (resultOpt.isEmpty()) {
-            System.err.println("You are not the winner of this auction.");
-            return false;
-        }
-
-        AuctionResult result = resultOpt.get();
-
-        if (result.getStatus() == AuctionStatus.PAID) {
-            System.out.println("This auction has already been paid.");
-            return true;
-        }
-
-        if (result.getStatus() != AuctionStatus.FINISHED) {
-            System.err.println("This auction cannot be paid at this time.");
-            return false;
-        }
-
-        // Giả lập thanh toán
-        System.out.println(getName() + " is paying " + result.getFinalPrice()  + " for item: " + result.getItem().getItemName());
-        AuctionHistoryManager ahm=AuctionHistoryManager.getInstance();
-
-        //thay đổi trạng thái của auction từ FINISHED->PAID
-        ahm.updateStatus(auctionId,AuctionStatus.PAID);
-
-        System.out.println("Payment completed successfully.");
-
-        // Refresh lại danh sách
-        refreshWonAuctions();
-        return true;
+        return PaymentService.getInstance().processPayment(this, auctionId);
     }
-
-
-
-
-
 
     //=====AUTO BIDDING====
     public void enableAutoBid(Auction auction, AutoBidConfig config) {
-        // Dừng agent cũ nếu đã tồn tại cho phiên này
+        if (!isActive()) {
+            throw new IllegalStateException("[Bidder] " + getName() + ": account is locked and cannot enable auto-bid");
+        }
+        logger.debug("[Bidder] enableAutoBid called for {}", getName());
         AutoBidAgent existing = agents.get(auction.getId());
         if (existing != null) {
             existing.stop();
         }
         AutoBidAgent agent = new AutoBidAgent(this, auction,config);
         agents.put(auction.getId(), agent);
+        // Save to database for persistence
+        int auctionDbId = AuctionDAO.parseDbId(auction.getId());
+        int bidderDbId = AuctionDAO.parseDbId(this.getId());
+        logger.debug("[Bidder] auctionId={} -> auctionDbId={}, bidderId={} -> bidderDbId={}", auction.getId(), auctionDbId, this.getId(), bidderDbId);
+        if (auctionDbId > 0 && bidderDbId > 0) {
+            AutoBidDAO.saveAutoBid(auctionDbId, bidderDbId, config.getMaxBid(), config.getIncrement());
+        } else {
+            logger.error("[Bidder] FAILED: Invalid IDs");
+        }
     }
 
     public void disableAutoBid(String auctionId) {
         AutoBidAgent agent = agents.remove(auctionId);
         if (agent != null) agent.stop();
-        System.out.println("[AutoBid] " + getName() + " disabled auto-bid for auction " + auctionId);
+        // Delete from database
+        int auctionDbId = AuctionDAO.parseDbId(auctionId);
+        int bidderDbId = AuctionDAO.parseDbId(this.getId());
+        if (auctionDbId > 0 && bidderDbId > 0) {
+            AutoBidDAO.deleteAutoBid(auctionDbId, bidderDbId);
+        }
+        logger.info("[AutoBid] {} disabled auto-bid for auction {}", getName(), auctionId);
     }
 
-
-
+    /** Re-register auto-bid agent as observer when auction is reloaded from database. */
+    public void reRegisterAutoBidAgent(Auction auction) {
+        AutoBidAgent agent = agents.get(auction.getId());
+        if (agent != null) {
+            auction.addObserver(agent);
+            logger.info("Re-registered auto-bid agent for {} on auction {}", getName(), auction.getId());
+        }
+    }
 
     /**=====GETTER===== */
     public List<BidTransaction> getHistory() {
         return Collections.unmodifiableList(history);
     }
 
-    // Lấy danh sách các phiên đã thắng
     public List<AuctionResult> getWonAuctions() {
-        refreshWonAuctions(); // Luôn lấy dữ liệu mới nhất
+        refreshWonAuctions();
         return new ArrayList<>(wonAuctions.values());
     }
 
-    // Lấy thông tin chi tiết một phiên đã thắng theo auctionId
     public Optional<AuctionResult> getWonAuction(String auctionId) {
         refreshWonAuctions();
         return Optional.ofNullable(wonAuctions.get(auctionId));

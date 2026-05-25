@@ -1,8 +1,10 @@
 package org.example.loginregister.server.model.entity;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public abstract class Entity{
+public abstract class Entity implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     protected Entity() {
         this.id = generateId();

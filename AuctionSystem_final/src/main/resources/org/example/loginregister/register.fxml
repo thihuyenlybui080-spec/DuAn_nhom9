@@ -123,7 +123,7 @@
                                 <PasswordField fx:id="confirmPasswordPF" prefHeight="35.0" style="-fx-background-color: #1a0a0c; -fx-text-fill: white; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 5;" />
                             </VBox>
                         </HBox>
-                  <Label fx:id="confirmPasswordLabel" alignment="CENTER" layoutX="50.0" layoutY="440.0" prefHeight="16.0" prefWidth="0.0" textFill="#ae142b">
+                        <Label fx:id="confirmPasswordLabel" alignment="CENTER" prefHeight="16.0" maxWidth="Infinity" textFill="#ae142b">
                      <font>
                         <Font size="11.0" />
                      </font>
@@ -133,7 +133,7 @@
                             <Label text="Phone Number" textFill="#c0c43f"><font><Font name="System Bold" size="11.0" /></font></Label>
                             <TextField fx:id="phoneNumberTF" prefHeight="35.0" style="-fx-background-color: #1a0a0c; -fx-text-fill: white; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 5;" />
                         </VBox>
-                  <VBox layoutX="50.0" layoutY="355.0" spacing="3.0">
+                  <VBox spacing="3.0">
                      <children>
                         <Label text="Email" textFill="#c0c43f">
                            <font>
@@ -164,7 +164,7 @@
                             </HBox>
                         </VBox>
 
-                        <Label fx:id="registrationMessageLabel" alignment="CENTER" prefHeight="16.0" prefWidth="0.0" textFill="#ae142b">
+                        <Label fx:id="registrationMessageLabel" alignment="CENTER" prefHeight="16.0" maxWidth="Infinity" textFill="#ae142b">
                             <font><Font size="11.0" /></font>
                             <VBox.margin><Insets bottom="1" top="1" /></VBox.margin>
                         </Label>

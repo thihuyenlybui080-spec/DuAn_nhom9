@@ -13,17 +13,13 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import org.example.loginregister.client.util.ImageLoader;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
-import org.example.loginregister.server.dao.UserDAO;
-import org.example.loginregister.server.database.DatabaseConfig;
+import org.example.loginregister.server.model.entity.user.Bidder;
+import org.example.loginregister.server.model.entity.user.Seller;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ResourceBundle;
 
 import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
@@ -110,8 +106,6 @@ public class RegisterController implements Initializable {
         selectedGender = selected.getText();
     }
 
-
-    //kiểm tra điền đủ thông tin hay chưa
     public void onRegisterButtonClicked(ActionEvent event) {
         registrationMessageLabel.setText("");
         confirmPasswordLabel.setText("");
@@ -140,13 +134,40 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Email must be abc@gmail.com");
             isValid = false;
         }
+        if (!isValid) return;
         boolean isSuccess = registerUser();
         if (isSuccess) {
             String selectedRole = roleComboBox.getValue();
             if (ROLE_SELLER.equalsIgnoreCase(selectedRole)) {
-                sceneManager.switchScene(event, "seller_dashboard.fxml", "Seller Dashboard");
+                String fullName = firstNameTF.getText() + lastnameTF.getText();
+                try{
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/org/example/loginregister/seller_dashboard.fxml"));
+                    Scene scene = new Scene(loader.load());
+
+                    SellerDashboardController ctrl = loader.getController();
+                    ctrl.setCurrentUser(new Seller(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName ));
+                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+                    stage.setScene(scene);
+                    stage.show();
+                }  catch (IOException e){
+                    e.printStackTrace();
+                }
             } else {
-                sceneManager.switchScene(event, "bidder_dashboard.fxml", "Bidder Dashboard");
+                String fullName = firstNameTF.getText() + lastnameTF.getText();
+                try{
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/org/example/loginregister/bidder_dashboard.fxml"));
+                    Scene scene = new Scene(loader.load());
+
+                    BidderDashboardController ctrl = loader.getController();
+                    ctrl.setCurrent(new Bidder(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
+                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+                    stage.setScene(scene);
+                    stage.show();
+                }  catch (IOException e){
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -195,18 +216,19 @@ public class RegisterController implements Initializable {
         String role     = roleComboBox.getValue().toUpperCase();
         String email    = emailTF.getText().trim();
 
-        if (UserDAO.isUsernameTaken(username)) {
-            registrationMessageLabel.setText("Username already exists, please choose another!");
+        try {
+            AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
+            registrationMessageLabel.setText("Registration successful!");
+            return true;
+        } catch (RuntimeException e) {
+            String message = e.getMessage() != null ? e.getMessage() : "Registration failed";
+            if (message.toLowerCase().contains("duplicate") || message.toLowerCase().contains("already exists")) {
+                registrationMessageLabel.setText("Username already exists, please choose another!");
+            } else {
+                registrationMessageLabel.setText(message);
+            }
             return false;
         }
-
-        boolean success = UserDAO.registerUser(username, password, fullName, email, selectedGender, phone, role);
-        if (success) {
-            registrationMessageLabel.setText("Registration successful!");
-        } else {
-            registrationMessageLabel.setText("Unable to connect to server, please try again!");
-        }
-        return success;
     }
 }
 

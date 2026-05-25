@@ -1,10 +1,8 @@
 package org.example.loginregister.server.model.entity;
 
-import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.InvalidBidException;
-import org.example.loginregister.common.observer.Observer;
-import org.example.loginregister.server.model.entity.Auction;
-import org.example.loginregister.server.model.entity.BidTransaction;
+import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.InvalidBidException;
+import org.example.loginregister.server.common.observer.Observer;
 import org.example.loginregister.server.model.entity.item.Electronics;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
@@ -29,10 +27,11 @@ class AuctionTest {
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
 
-        item = new Electronics("Laptop Dell", seller1, item.getDescription(), 1000, start, end);
         seller1 = new Seller("Seller1", "987654321","sell@gmail.com","Nguye Van Sell");
+        item = new Electronics("Laptop Dell", seller1.getId(), item.getDescription(), 1000, start, end);
+        seller1.addItem(item);
         // Khởi tạo phiên đấu giá kéo dài 3600 giây (1 giờ)
-        auction = new Auction(seller1,item);
+        auction = new Auction(item);
 
         bidder1 = new Bidder("Duong", "123456789", "duong@gmail.com","Tran Lam Duong");
         bidder2 = new Bidder("Duong2", "1234567890", "duong2@gmail.com","Tran Lam Duong2");

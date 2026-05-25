@@ -1,0 +1,39 @@
+name: Code Style Check
+
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  checkstyle:
+    name: Run Checkstyle
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 25
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: Execute Checkstyle
+      working-directory: ./AuctionSystem_final
+      run: mvn checkstyle:check
+      
+    - name: Checkstyle Reviewer Bot
+      uses: jwgmeligmeyling/checkstyle-github-action@master
+      if: always() 
+      with:
+        path: '**/checkstyle-result.xml'

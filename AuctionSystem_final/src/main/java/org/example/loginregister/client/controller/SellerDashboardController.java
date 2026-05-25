@@ -5,15 +5,21 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.AuctionStatus;
@@ -24,9 +30,13 @@ import org.example.loginregister.server.model.factory.ArtFactory;
 import org.example.loginregister.server.model.factory.ElectronicsFactory;
 import org.example.loginregister.server.model.factory.ItemFactory;
 import org.example.loginregister.server.model.factory.VehicleFactory;
+import org.example.loginregister.server.service.AuctionService;
+import org.example.loginregister.server.service.ItemService;
 import org.example.loginregister.server.util.AuctionManager;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -110,8 +120,6 @@ public class SellerDashboardController implements Initializable {
     @FXML
     private TextField txtStartingPrice;
     @FXML
-    private TextField txtIncrement;
-    @FXML
     private DatePicker dpStartDate;
     @FXML
     private TextField txtStartTime;
@@ -123,14 +131,19 @@ public class SellerDashboardController implements Initializable {
     private Label lblFormError;
     @FXML
     private BorderPane rootBorderPane;
+    @FXML
+    private  Button btnProductImage;
 
     @FXML
     private Label lblStatusBar;
+    @FXML
+    private ImageView imvProduct;
 
     private Seller seller;
     private ObservableList<Auction> myAuctions;
     private ObservableList<Item> myItems;
     private ScheduledExecutorService scheduler;
+    private String selectedImagePath;
 
     private final SceneManager sceneManager = new SceneManager(getClass());
 
@@ -203,8 +216,7 @@ public class SellerDashboardController implements Initializable {
     // ── My Auctions ───────────────────────────────────────────────────────────
 
     private void loadMyAuctions() {
-        List<Auction> list = AuctionManager.getInstance()
-                .getAuctionsBySeller(seller.getId());
+        List<Auction> list = AuctionClientService.getInstance().getAuctionsBySeller(seller.getId());
         myAuctions = FXCollections.observableArrayList(list);
         renderAuctions(myAuctions);
     }
@@ -275,7 +287,7 @@ public class SellerDashboardController implements Initializable {
         thumb.setPrefSize(64, 64);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
         Label icon = new Label(getCategoryIcon(auction.getItem().getCategory()));
-        icon.setStyle("-fx-font-size: 22px;");
+        icon.setStyle("-fx-font-size: 22px; -fx-text-fill: #722f37");
         Label cat = new Label(auction.getItem().getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
@@ -294,17 +306,19 @@ public class SellerDashboardController implements Initializable {
         Label priceLabel = new Label(
                 "Current: " + formatPrice(auction.getCurrentPrice()) + " ₫"
                         + "  ·  " + auction.getBids().size() + " bids");
-        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #fff; -fx-opacity: 0.7");
 
         Label timeLabel = new Label(
-                "Ends: " + (auction.getItem().getEndTime() != null
+                "Starts: " + (auction.getItem().getStartTime() != null
+                        ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                        : "—")
+                + "  ·  Ends: " + (auction.getItem().getEndTime() != null
                         ? auction.getItem().getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                         : "—"));
         timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
 
         info.getChildren().addAll(row1, priceLabel, timeLabel);
 
-        // Actions
         VBox actions = new VBox(6);
         actions.setAlignment(Pos.CENTER);
         actions.setPrefWidth(80);
@@ -320,8 +334,8 @@ public class SellerDashboardController implements Initializable {
         btnDelete.setMaxWidth(Double.MAX_VALUE);
         btnDelete.setDisable(auction.getStatus() != AuctionStatus.OPEN);
         btnDelete.setStyle(
-                "-fx-background-color: #fff0f0; -fx-border-color: #e53935;"
-                        + "-fx-border-radius: 4; -fx-text-fill: #e53935; -fx-font-size: 11px;");
+                "-fx-background-color: transparent; -fx-border-color: #fff;"
+                        + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
         btnDelete.setOnAction(e -> onDeleteAuction(auction));
 
         actions.getChildren().addAll(btnView, btnDelete);
@@ -332,8 +346,7 @@ public class SellerDashboardController implements Initializable {
 
 
     private void loadMyItems() {
-        List<Item> list = AuctionManager.getInstance()
-                .getItemsBySeller(seller.getId());
+        List<Item> list = AuctionClientService.getInstance().getItemsBySeller(seller.getId());
         myItems = FXCollections.observableArrayList(list);
         renderItems(myItems);
     }
@@ -356,8 +369,10 @@ public class SellerDashboardController implements Initializable {
         HBox card = new HBox(14);
         card.setPadding(new Insets(12));
         card.setStyle(
-                "-fx-background-color: #fff; -fx-border-color: #eee;"
-                        + "-fx-border-radius: 8; -fx-background-radius: 8;");
+                "-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21);"
+                        + "-fx-border-color: #3d1c21;"
+                        + "-fx-border-radius: 8;"
+                        + "-fx-background-radius: 8;");
 
         // Thumb
         VBox thumb = new VBox(3);
@@ -365,23 +380,23 @@ public class SellerDashboardController implements Initializable {
         thumb.setPrefSize(56, 56);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
         Label icon = new Label(getCategoryIcon(item.getCategory()));
-        icon.setStyle("-fx-font-size: 20px;");
+        icon.setStyle("-fx-font-size: 20px; -fx-text-fill: #722f37;");
         Label cat = new Label(item.getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
         thumb.getChildren().addAll(icon, cat);
 
-        // Info
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
         Label nameLabel = new Label(item.getItemName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
+        nameLabel.setStyle("-fx-text-fill: #c0c43f;");
 
         Label descLabel = new Label(item.getDescription());
-        descLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
+        descLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #fff; -fx-opacity: 0.7");
 
         Label priceLabel = new Label("Starting Price: " + formatPrice(item.getStartingPrice()) + " ₫");
-        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #fff;");
 
         info.getChildren().addAll(nameLabel, descLabel, priceLabel);
 
@@ -393,17 +408,16 @@ public class SellerDashboardController implements Initializable {
         Button btnEdit = new Button("Edit");
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #722f37;"
-                        + "-fx-border-radius: 4; -fx-text-fill: #722f37; -fx-font-size: 11px;");
+                "-fx-background-color: transparent; -fx-border-color: #c0c43f;"
+                        + "-fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 11px;");
         btnEdit.setOnAction(e -> onEditItem(item));
 
         Button btnDelete = new Button("Delete");
         btnDelete.setMaxWidth(Double.MAX_VALUE);
         btnDelete.setStyle(
-                "-fx-background-color: #fff0f0; -fx-border-color: #e53935;"
-                        + "-fx-border-radius: 4; -fx-text-fill: #e53935; -fx-font-size: 11px;");
+                "-fx-background-color: transparent; -fx-border-color: #fff;"
+                        + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
         btnDelete.setOnAction(e -> onDeleteItem(item));
-
         actions.getChildren().addAll(btnEdit, btnDelete);
 
         card.getChildren().addAll(thumb, info, actions);
@@ -414,13 +428,11 @@ public class SellerDashboardController implements Initializable {
 
     @FXML
     private void onAddItem() {
-        // Chuyển sang tab Create Auction để điền thông tin item mới
         onNavCreateAuction();
         lblStatusBar.setText("Fill in the form to create a new auction.");
     }
 
     private void onEditItem(Item item) {
-        // Chuyển sang form và điền sẵn thông tin item
         onNavCreateAuction();
         txtItemName.setText(item.getItemName());
         cmbCategory.setValue(item.getCategory());
@@ -430,17 +442,42 @@ public class SellerDashboardController implements Initializable {
     }
 
     private void onDeleteItem(Item item) {
+        Auction relatedAuction = myAuctions.stream()
+                .filter(a -> a.getItem().getId().equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (relatedAuction != null && !relatedAuction.getBids().isEmpty()) {
+            showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the related auction has bids placed on it.");
+            return;
+        }
+
+        String message = "Delete \"" + item.getItemName() + "\"? This cannot be undone.";
+        if (relatedAuction != null) {
+            message += " This will also cancel the related auction.";
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Item");
         confirm.setHeaderText(null);
-        confirm.setContentText("Delete \"" + item.getItemName() + "\"? This cannot be undone.");
+        confirm.setContentText(message);
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    Seller.deleteItem(item);
+                    if (relatedAuction != null) {
+                        AuctionClientService.getInstance().cancelAuction(relatedAuction.getId());
+                        myAuctions.removeIf(a -> a.getId().equals(relatedAuction.getId()));
+                    }
+                    AuctionClientService.getInstance().deleteItem(item.getId());
                     myItems.remove(item);
                     loadMyItems();
-                    lblStatusBar.setText("Item deleted: " + item.getItemName());
+                    loadMyAuctions();
+
+                    if (relatedAuction != null) {
+                        lblStatusBar.setText("Item deleted and auction cancelled: " + item.getItemName());
+                    } else {
+                        lblStatusBar.setText("Item deleted: " + item.getItemName());
+                    }
 
                 } catch (IllegalArgumentException e) {
                     showErrorAlert("Secure error", e.getMessage());
@@ -464,8 +501,29 @@ public class SellerDashboardController implements Initializable {
 
     private void onViewAuction(Auction auction) {
         lblStatusBar.setText("Viewing: " + auction.getItem().getItemName());
-        Stage stage = (Stage) auctionListContainer.getScene().getWindow();
-        sceneManager.switchScene(stage, "auction_detail.fxml", "Auction detail");
+        try{
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/auction_detail.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            AuctionDetailController ctrl = loader.getController();
+            ctrl.setData(
+                    auction,
+                    seller,
+                    "seller_dashboard.fxml",
+                    "Seller"
+            );
+            Stage stage = (Stage) auctionListContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Auction detail");
+            stage.show();
+        }  catch (IOException e){
+            e.printStackTrace();
+            showErrorAlert("Load Error", "Failed to load auction detail: " + e.getMessage());
+        } catch (Exception e){
+            e.printStackTrace();
+            showErrorAlert("Error", "An error occurred: " + e.getMessage());
+        }
     }
 
     private void onDeleteAuction(Auction auction) {
@@ -473,12 +531,22 @@ public class SellerDashboardController implements Initializable {
         confirm.setTitle("Cancel Auction");
         confirm.setHeaderText(null);
         confirm.setContentText(
-                "Cancel auction for \"" + auction.getItem().getItemName() + "\"?");
+                "Cancel auction for \"" + auction.getItem().getItemName() + "\"? This will also delete the related item.");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                AuctionManager.getInstance().cancelAuction(auction.getId());
+                AuctionClientService.getInstance().cancelAuction(auction.getId());
+                Item relatedItem = auction.getItem();
+                if (relatedItem != null) {
+                    try {
+                        AuctionClientService.getInstance().deleteItem(relatedItem.getId());
+                        myItems.removeIf(item -> item.getId().equals(relatedItem.getId()));
+                    } catch (Exception e) {
+                        System.err.println("Failed to delete related item: " + e.getMessage());
+                    }
+                }
                 loadMyAuctions();
-                lblStatusBar.setText("Auction cancelled.");
+                loadMyItems();
+                lblStatusBar.setText("Auction cancelled and item deleted.");
             }
         });
     }
@@ -488,20 +556,22 @@ public class SellerDashboardController implements Initializable {
     @FXML
     private void onCreateAuction() {
         hideFormError();
+        if (!seller.isActive()) {
+            showFormError("Your account has been locked and cannot create auctions. Please contact the administrator.");
+            return;
+        }
 
-        // 1. Validate
         String itemName = txtItemName.getText().trim();
         String category = cmbCategory.getValue();
         String description = txtDescription.getText().trim();
         String startPriceStr = txtStartingPrice.getText().trim().replaceAll("[^0-9]", "");
-        String incrementStr = txtIncrement.getText().trim().replaceAll("[^0-9]", "");
         LocalDate startDate = dpStartDate.getValue();
         String startTimeStr = txtStartTime.getText().trim();
         LocalDate endDate = dpEndDate.getValue();
         String endTimeStr = txtEndTime.getText().trim();
 
         if (itemName.isEmpty() || category == null || startPriceStr.isEmpty()
-                || incrementStr.isEmpty() || startDate == null || startTimeStr.isEmpty()
+                || startDate == null || startTimeStr.isEmpty()
                 || endDate == null || endTimeStr.isEmpty()) {
             showFormError("Please fill in all required fields (*).");
             return;
@@ -546,18 +616,15 @@ public class SellerDashboardController implements Initializable {
                 throw new IllegalArgumentException("Unsupported category: " + category);
         }
 
-        Item item = factory.createItem(itemName, seller, description, startingPrice, startTime, endTime);
-        seller.listItemForAuction(item);
-
+        Item item = factory.createItem(itemName, seller.getId(), description, startingPrice, startTime, endTime);
+        item.setImagePath(selectedImagePath);
+        AuctionClientService.getInstance().createItemAndAuction(item);
         onClearForm();
         loadMyAuctions();
         loadMyItems();
-        onNavMyAuctions();
         lblStatusBar.setText("✅ Auction created: " + itemName);
-
-        new Alert(Alert.AlertType.INFORMATION,
-                "Auction created successfully for " + itemName)
-                .showAndWait();
+        showFormError("✅ Auction created successfully for " + itemName);
+        lblFormError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px;");
 
     }
 
@@ -567,12 +634,37 @@ public class SellerDashboardController implements Initializable {
         cmbCategory.getSelectionModel().selectFirst();
         txtDescription.clear();
         txtStartingPrice.clear();
-        txtIncrement.clear();
         dpStartDate.setValue(null);
         txtStartTime.clear();
         dpEndDate.setValue(null);
         txtEndTime.clear();
+        selectedImagePath = null;
+        imvProduct.setImage(null);
         hideFormError();
+    }
+
+    @FXML
+    private void onChooseProductImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Product Image");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp")
+        );
+
+        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+
+        if (selectedFile != null) {
+            selectedImagePath = selectedFile.getAbsolutePath();
+            try {
+                Image image = new Image(selectedFile.toURI().toString());
+                imvProduct.setImage(image);
+                imvProduct.setPreserveRatio(true);
+                imvProduct.setFitHeight(150);
+            } catch (Exception e) {
+                System.err.println("Error loading image: " + e.getMessage());
+            }
+        }
     }
 
     private void startAutoRefresh(){

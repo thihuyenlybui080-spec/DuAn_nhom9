@@ -21,8 +21,23 @@ CREATE TABLE IF NOT EXISTS users (
     gender      VARCHAR(10)  NOT NULL DEFAULT 'Other',
     phone       VARCHAR(11)  NOT NULL,
     role        ENUM('BIDDER','SELLER','ADMIN') NOT NULL DEFAULT 'BIDDER',
+    status      ENUM('ACTIVE','BANNED') NOT NULL DEFAULT 'ACTIVE',  -- ← thêm
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- ============================================================
+--  Bảng login_history (lịch sử đăng nhập)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS login_history (
+    id          BIGINT      NOT NULL AUTO_INCREMENT,
+    user_id     INT         NULL,          -- ← đổi thành NULL
+    username    VARCHAR(50) NOT NULL,
+    login_time  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip_address  VARCHAR(50),
+    status      ENUM('SUCCESS', 'FAILED') NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_login_user FOREIGN KEY (user_id)
+    REFERENCES users(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
@@ -54,6 +69,7 @@ CREATE TABLE IF NOT EXISTS items (
     start_time      DATETIME     NOT NULL,
     end_time        DATETIME     NOT NULL,
     created_by      INT          NOT NULL,
+    image_path      VARCHAR(500) NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_item_admin FOREIGN KEY (created_by)
     REFERENCES users(id) ON DELETE RESTRICT
@@ -71,7 +87,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     current_price       DOUBLE      NOT NULL,
     highest_bidder_id   INT         NULL,
     duration_seconds    BIGINT      NOT NULL,
-    end_time_millis     BIGINT      NOT NULL,
+    end_time            DATETIME    NOT NULL,
     created_at          DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT fk_auction_item   FOREIGN KEY (item_id)
@@ -116,6 +132,24 @@ CREATE TABLE IF NOT EXISTS bid_transactions (
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
+--  Bảng auto_bids (lưu cấu hình auto-bid của bidder)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS auto_bids (
+    id              BIGINT      NOT NULL AUTO_INCREMENT,
+    auction_id      INT         NOT NULL,
+    bidder_id       INT         NOT NULL,
+    max_bid         DOUBLE      NOT NULL,
+    increment       DOUBLE      NOT NULL DEFAULT 1.0,
+    created_at      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_auction_bidder (auction_id, bidder_id),
+    CONSTRAINT fk_auto_auction FOREIGN KEY (auction_id)
+    REFERENCES auctions(id) ON DELETE CASCADE,
+    CONSTRAINT fk_auto_bidder  FOREIGN KEY (bidder_id)
+    REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
 --  INDEX
 -- ============================================================
 CREATE INDEX idx_auctions_status ON auctions(status);
@@ -154,7 +188,7 @@ INSERT INTO users (username, password, email, full_name, gender, phone, role) VA
 --   JOIN items i ON a.item_id = i.id
 --   LEFT JOIN users u ON a.highest_bidder_id = u.id
 --   WHERE a.status IN ('OPEN','RUNNING')
---   ORDER BY a.end_time_millis ASC;
+--   ORDER BY a.end_time ASC;
 
 -- [Auction.placeBid()] Đặt giá:
 --   INSERT INTO bids (auction_id, bidder_id, amount) VALUES (?, ?, ?);

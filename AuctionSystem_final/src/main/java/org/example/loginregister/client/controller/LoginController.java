@@ -12,20 +12,14 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.loginregister.client.service.SceneManager;
-import org.example.loginregister.server.dao.UserDAO;
-import org.example.loginregister.server.database.DatabaseConfig;
-import org.example.loginregister.server.dao.LoginHistoryDAO;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.server.model.entity.user.User;
 
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ResourceBundle;
-
-import static org.example.loginregister.client.controller.MainController.LOGIN_FXML;
-import static org.example.loginregister.client.controller.MainController.LOGIN_TITLE;
+import org.example.loginregister.server.model.entity.user.Admin;
+import org.example.loginregister.server.model.entity.user.Seller;
+import org.example.loginregister.server.model.entity.user.Bidder;
 
 public class LoginController implements Initializable {
     @FXML
@@ -75,40 +69,50 @@ public class LoginController implements Initializable {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
-
     public void validateLogin() {
         String username = usernameTF.getText();
         String password = passwordTF.getText();
 
         try {
-            User user = UserDAO.getUserByCredentials(username, password);
+            User user = AuctionClientService.getInstance().login(username, password);
 
             if (user != null) {
-                int userId = Integer.parseInt(user.getId());
-                String role = user.getRole();
+                String rawId = user.getId();
+                int userId = Integer.parseInt(rawId.contains("-") ? rawId.substring(rawId.lastIndexOf("-") + 1) : rawId);
+                String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";
 
-                LoginHistoryDAO.saveLoginHistory(userId, username, "SUCCESS");  // gọi thẳng
                 messageLabel.setText("Login successful! Welcome, " + user.getName());
 
                 PauseTransition pause = new PauseTransition(Duration.seconds(1));
                 pause.setOnFinished(e -> {
                     Stage stage = (Stage) rootStackPane.getScene().getWindow();
                     switch (role) {
-                        case "ADMIN"  -> sceneManager.switchScene(stage, "admin_dashboard.fxml",  "Admin Dashboard");
-                        case "SELLER" -> sceneManager.switchScene(stage, "seller_dashboard.fxml", "Seller Dashboard");
-                        default       -> sceneManager.switchScene(stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+                        case "ADMIN" -> {
+                            AdminDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                                    stage, "admin_dashboard.fxml", "Admin Dashboard");
+                            if (ctrl != null) ctrl.setCurrentAdmin((Admin) user);
+                        }
+                        case "SELLER" -> {
+                            SellerDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                                    stage, "seller_dashboard.fxml", "Seller Dashboard");
+                            if (ctrl != null) ctrl.setCurrentUser((Seller) user);
+                        }
+                        default -> {
+                            BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                                    stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+                            if (ctrl != null) ctrl.setCurrent((Bidder) user);
+                        }
                     }
                 });
                 pause.play();
 
             } else {
-                LoginHistoryDAO.saveLoginHistory(-1, username, "FAILED");
                 messageLabel.setText("Incorrect username or password!");
             }
 
         } catch (Exception e) {
-            LoginHistoryDAO.saveLoginHistory(-1, username, "FAILED");
-            messageLabel.setText("Unable to connect to server, please try again!");
+            messageLabel.setText(e.getMessage());
+            e.printStackTrace();
         }
     }
 

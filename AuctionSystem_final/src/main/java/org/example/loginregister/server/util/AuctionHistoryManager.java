@@ -3,6 +3,8 @@ package org.example.loginregister.server.util;
 import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AuctionHistoryManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuctionHistoryManager.class);
     private static final AuctionHistoryManager instance = new AuctionHistoryManager();
     private final Map<String, AuctionResult> completedAuctions = new ConcurrentHashMap<>();
 
@@ -25,7 +28,7 @@ public class AuctionHistoryManager {
     public void saveResult(AuctionResult result) {
         if (result != null) {
             completedAuctions.put(result.getAuctionId(), result);
-            System.out.println("AUCTION RESULT SAVED: " + result);
+            logger.info("AUCTION RESULT SAVED: {}", result);
         }
     }
 

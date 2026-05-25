@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 public class ArtFactory extends ItemFactory {
     @Override
-    public Item createItem(String itemName, Seller seller, String description, double startingPrice, LocalDateTime startingTime, LocalDateTime endTime) {
-        return new Art( itemName,seller, description, startingPrice, startingTime, endTime);
+    public Item createItem(String itemName, String createdBy, String description, double startingPrice, LocalDateTime startingTime, LocalDateTime endTime) {
+        return new Art( itemName, createdBy, description, startingPrice, startingTime, endTime);
     }
 }

@@ -1,47 +1,83 @@
 package org.example.loginregister.server.model.entity.auto_bidding;
 
-import org.example.loginregister.common.observer.Observer;
+import org.example.loginregister.server.common.observer.Observer;
 import org.example.loginregister.server.model.entity.Auction;
 import org.example.loginregister.server.model.entity.user.Bidder;
+import org.example.loginregister.server.service.BidService;
 import org.example.loginregister.server.util.AuctionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class AutoBidAgent implements Observer {
+import java.io.Serializable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    private final Bidder  bidder;
-    private final Auction auction;
+public class AutoBidAgent implements Observer, Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(AutoBidAgent.class);
+    private static final ExecutorService autoBidExecutor = Executors.newCachedThreadPool();
+    private static final long serialVersionUID = 1L;
+
+    private final Bidder bidder;
+    private final String auctionId;
     private final AutoBidConfig config;
     private boolean active = true;
+    private final AtomicBoolean processing = new AtomicBoolean(false); // ← thêm
 
     public AutoBidAgent(Bidder bidder, Auction auction, AutoBidConfig config) {
         this.bidder = bidder;
-        this.auction= auction;
+        this.auctionId = auction.getId();
         this.config = config;
-        auction.addObserver(this);   // bắt đầu lắng nghe
+        auction.addObserver(this);
     }
 
     @Override
     public void update(String auctionId, double currentPrice, String highestBidder) {
         if (!active) return;
-
-        //  đang dẫn đầu , không cần làm gì
-        if (bidder.getName().equals(highestBidder)) return;
+        if (bidder.getName().equals(highestBidder)) return; // mình đang lead → không bid
+        if (!processing.compareAndSet(false, true)) return; // đang xử lý → bỏ qua
 
         double nextBid = currentPrice + config.getIncrement();
-
         if (nextBid > config.getMaxBid()) {
-            stop();   // hết ngân sách
+            processing.set(false);
+            stop();
             return;
         }
-        try {
-            bidder.bid(auction, nextBid);
 
-        }catch(Exception e){
-            System.err.println("[AutoBid] " + bidder.getName() + " failed to place bid in auction " + auctionId + ": " + e.getMessage());
-        }
+        autoBidExecutor.submit(() -> {
+            try {
+                Auction currentAuction = AuctionManager.getInstance().getActive(this.auctionId);
+                if (currentAuction == null || !active) return;
+
+                String currentLeader = currentAuction.getHighestBidder() != null
+                        ? currentAuction.getHighestBidder().getName() : "";
+                if (bidder.getName().equals(currentLeader)) return; // mình đang lead → không bid
+
+                double nextBidNow = currentAuction.getCurrentPrice() + config.getIncrement();
+                if (nextBidNow > config.getMaxBid()) {
+                    stop();
+                    return;
+                }
+
+                BidService.getInstance().processAutoBid(bidder, currentAuction, nextBidNow);
+                logger.info("Auto-bid placed: {} bid {} on auction {}",
+                        bidder.getName(), nextBidNow, auctionId);
+
+            } catch (Exception e) {
+                logger.error("Auto-bid failed for {} on auction {}: {}",
+                        bidder.getName(), auctionId, e.getMessage());
+            } finally {
+                processing.set(false);
+            }
+        });
     }
 
     public void stop() {
         active = false;
-        auction.removeObserver(this);
+        Auction currentAuction = AuctionManager.getInstance().getActive(auctionId);
+        if (currentAuction != null) {
+            currentAuction.removeObserver(this);
+        }
     }
 }

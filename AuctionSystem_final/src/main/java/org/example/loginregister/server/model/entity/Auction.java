@@ -2,14 +2,17 @@ package org.example.loginregister.server.model.entity;
 
 
 
-import org.example.loginregister.common.exception.AuctionClosedException;
-import org.example.loginregister.common.exception.InvalidBidException;
-import org.example.loginregister.common.observer.Observer;
-import org.example.loginregister.common.observer.Subject;
+import org.example.loginregister.server.common.exception.AuctionClosedException;
+import org.example.loginregister.server.common.exception.InvalidBidException;
+import org.example.loginregister.server.common.observer.Observer;
+import org.example.loginregister.server.common.observer.Subject;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.Bidder;
 import org.example.loginregister.server.model.entity.user.Seller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -20,11 +23,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Auction implements Subject {
+public class Auction implements Subject, Serializable {
+    private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(Auction.class);
 
     // ===== FIELDS =====
-    private final Seller seller;
     private String id;
+    private Seller seller;
     private final Item item;
     private volatile double  currentPrice;
     private volatile Bidder  highestBidder;
@@ -45,13 +50,12 @@ public class Auction implements Subject {
     /** Bid list chỉ được ghi bên trong lock nên dùng ArrayList bình thường. */
     private final List<BidTransaction> bids = new ArrayList<>();
 
-    private volatile ScheduledFuture<?> currentTimer;
+    private transient volatile ScheduledFuture<?> currentTimer;
 
 
 
     // ===== CONSTRUCTOR =====
-    public Auction(Seller seller, Item item) {
-        this.seller = seller;
+    public Auction(Item item) {
         this.id = "auction-" + item.getId().substring(5);
         this.item= item;
         this.currentPrice = item.getStartingPrice();
@@ -88,14 +92,14 @@ public class Auction implements Subject {
      */
     public boolean processBid(Bidder bidder, double amount) {
         if (bidder == null) {
-            System.err.println("Bidding error: Invalid user!");
+            logger.error("Bidding error: Invalid user!");
             return false;
         }
         try {
             placeBid(new BidTransaction(bidder,item, amount));
             return true;
         } catch (Exception e) {
-            System.err.println("Bidding error: " + e.getMessage());
+            logger.error("Bidding error: {}", e.getMessage());
             return false;
         }
     }
@@ -105,6 +109,15 @@ public class Auction implements Subject {
      * Mọi thay đổi trạng thái auction đều nằm trong lock.
      */
     public void placeBid(BidTransaction bid) throws InvalidBidException, AuctionClosedException {
+        placeBid(bid, true);
+    }
+
+    /**
+     * Thread-safe với ReentrantLock.
+     * Mọi thay đổi trạng thái auction đều nằm trong lock.
+     * @param notify whether to notify observers after bid is placed
+     */
+    public void placeBid(BidTransaction bid, boolean notify) throws InvalidBidException, AuctionClosedException {
         if (bid == null) throw new IllegalArgumentException("Invalid bid!");
 
         lock.lock();
@@ -119,13 +132,12 @@ public class Auction implements Subject {
             currentPrice  = bid.getAmount();
             highestBidder = bid.getBidder();
             bids.add(bid);
-            status = AuctionStatus.RUNNING;
         } finally {
             lock.unlock();
         }
-
-        // Notify ngoài lock để tránh deadlock nếu observer cũng cần acquire lock
-        notifyObservers();
+        if (notify) {
+            notifyObservers();
+        }
     }
 
 
@@ -141,8 +153,8 @@ public class Auction implements Subject {
         }
 
         notifyObservers();
-        System.out.println("=== AUCTION ENDED: " + finalStatus + " ===");
-        System.out.println("Winner: " + (highestBidder != null ? highestBidder.getName() : "None"));
+        logger.info("=== AUCTION ENDED: {} ===", finalStatus);
+        logger.info("Winner: {}", highestBidder != null ? highestBidder.getName() : "None");
     }
 
 
@@ -156,7 +168,7 @@ public class Auction implements Subject {
         } finally {
             lock.unlock();
         }
-        System.out.println("Extended auction " + id + " by " + additionalSeconds + " seconds");
+        logger.info("Extended auction {} by {} seconds", id, additionalSeconds);
     }
 
     public void setTimer(ScheduledFuture<?> timer) {
@@ -212,7 +224,6 @@ public class Auction implements Subject {
         try {
             bids.removeIf(b -> b.getBidder().equals(bidder));
             if (highestBidder != null && highestBidder.equals(bidder)) {
-                // Tìm bid cao nhất còn lại
                 bids.stream().max(Comparator.comparingDouble(BidTransaction::getAmount))
                         .ifPresentOrElse(
                                 top -> { highestBidder = top.getBidder(); currentPrice = top.getAmount(); },
@@ -226,7 +237,6 @@ public class Auction implements Subject {
 
 
     // ===== GETTERS =====
-    public Seller getSeller(){return seller;}
 
     public void setCurrentPrice(double currentPrice) {
         this.currentPrice = currentPrice;
@@ -256,8 +266,30 @@ public class Auction implements Subject {
     public List<BidTransaction> getBids() {
         return Collections.unmodifiableList(bids);
     }
+
+    /**
+     * Add multiple bids to the auction (used when loading from database).
+     * Thread-safe: acquires lock before modifying the bids list.
+     */
+    public void addBids(List<BidTransaction> bidsToAdd) {
+        if (bidsToAdd == null) return;
+        lock.lock();
+        try {
+            bids.addAll(bidsToAdd);
+        } finally {
+            lock.unlock();
+        }
+    }
     public long getSecondsRemaining() {
         return Math.max(0, ChronoUnit.SECONDS.between(LocalDateTime.now(), item.getEndTime()));
+    }
+
+    public Seller getSeller() {
+        return seller;
+    }
+
+    public void setSeller(Seller seller) {
+        this.seller = seller;
     }
 
     public void setId(String id) {

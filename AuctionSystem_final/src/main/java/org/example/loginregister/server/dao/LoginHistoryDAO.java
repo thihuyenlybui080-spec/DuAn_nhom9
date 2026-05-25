@@ -1,10 +1,14 @@
 package org.example.loginregister.server.dao;
 
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.server.database.DatabaseConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 
 public class LoginHistoryDAO {
+    private static final Logger logger = LoggerFactory.getLogger(LoginHistoryDAO.class);
 
     /** Lưu lịch sử đăng nhập. userId = -1 nếu đăng nhập thất bại. */
     public static void saveLoginHistory(int userId, String username, String status) {
@@ -16,9 +20,9 @@ public class LoginHistoryDAO {
             stmt.setString(2, username);
             stmt.setString(3, status);
             stmt.executeUpdate();
-            System.out.println("[LoginHistoryDAO] Saved: " + username + " - " + status);
+            logger.info("[LoginHistoryDAO] Saved: {} - {}", username, status);
         } catch (Exception e) {
-            System.err.println("[LoginHistoryDAO] Failed to save login history: " + e.getMessage());
+            logger.error("[LoginHistoryDAO] Failed to save login history: {}", e.getMessage());
         }
     }
 }

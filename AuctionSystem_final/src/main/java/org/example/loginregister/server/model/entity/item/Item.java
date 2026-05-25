@@ -2,18 +2,22 @@ package org.example.loginregister.server.model.entity.item;
 
 import org.example.loginregister.server.model.entity.Entity;
 import org.example.loginregister.server.model.entity.user.Seller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 public abstract class Item extends Entity {
+    private static final Logger logger = LoggerFactory.getLogger(Item.class);
     private String itemName;
-    private Seller seller;
+    private String createdBy;
     private String description;
     private double startingPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    public Item(String itemName,Seller seller, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+    private String imagePath;
+    public Item(String itemName, String createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
         super();
-        this.seller = seller;
+        this.createdBy = createdBy;
         this.itemName = itemName;
         this.description = description;
         this.startingPrice = startingPrice;
@@ -57,18 +61,18 @@ public abstract class Item extends Entity {
     }
     public abstract String getCategory();
     public void printInfo(){
-        System.out.println(itemName + ": " + description + " - StartingPrice: " + startingPrice);
-    }
-
-    public Seller getSeller() {
-        return seller;
-    }
-
-    public void setSeller(Seller seller) {
-        this.seller = seller;
+        logger.info("{}: {} - StartingPrice: {}", itemName, description, startingPrice);
     }
 
     public String getSellerId() {
-        return this.seller.getId();
+        return this.createdBy;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

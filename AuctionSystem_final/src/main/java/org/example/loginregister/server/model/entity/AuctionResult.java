@@ -3,12 +3,13 @@ package org.example.loginregister.server.model.entity;
 import org.example.loginregister.server.model.entity.item.Item;
 import org.example.loginregister.server.model.entity.user.User;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-//lưu kết quả
-public class AuctionResult {
+public class AuctionResult implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final String auctionId;
     private final Item item;
@@ -16,7 +17,7 @@ public class AuctionResult {
     private final double finalPrice;
     private final LocalDateTime endTime;
     private static List<BidTransaction> bidHistory;
-    private  AuctionStatus status;//có thể thay đổi từ FINISHED->PAID
+    private  AuctionStatus status;
 
     public AuctionResult(Auction auction) {
         this.auctionId = auction.getId();
@@ -24,8 +25,8 @@ public class AuctionResult {
         this.winner = auction.getHighestBidder();
         this.finalPrice = auction.getCurrentPrice();
         this.status=auction.getStatus();
-        this.endTime = LocalDateTime.now();
-        this.bidHistory = new ArrayList<>(auction.getBids()); // copy để tránh thay đổi sau này
+        this.endTime = auction.getItem().getEndTime();
+        this.bidHistory = new ArrayList<>(auction.getBids());
     }
 
     public void setStatus(AuctionStatus newStatus){

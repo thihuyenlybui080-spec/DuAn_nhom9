@@ -9,20 +9,18 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.example.loginregister.client.service.AuctionClientService;
 import org.example.loginregister.client.service.SceneManager;
 import org.example.loginregister.server.model.entity.Auction;
+import org.example.loginregister.server.model.entity.AuctionResult;
 import org.example.loginregister.server.model.entity.AuctionStatus;
 import org.example.loginregister.server.model.entity.user.Bidder;
-import org.example.loginregister.server.model.entity.user.User;
-import org.example.loginregister.server.util.AuctionManager;
-
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -42,6 +40,7 @@ public class BidderDashboardController implements Initializable {
     @FXML private Button btnNavAuctions;
     @FXML private Button btnNavHistory;
     @FXML private Button btnNavWon;
+    @FXML private Button btnNavPayment;
     @FXML private Label lblUserName;
 
     @FXML private Label lblPageTitle;
@@ -61,9 +60,13 @@ public class BidderDashboardController implements Initializable {
     @FXML private VBox auctionContainer;
     @FXML private VBox paneHistory;
     @FXML private VBox paneWon;
+    @FXML private VBox panePayment;
 
     @FXML private Label lblCount;
     @FXML private Label lblUpdate;
+
+    @FXML
+    private ScrollPane historyContainer;
 
     @FXML private BorderPane rootBorderPane;
 
@@ -75,7 +78,7 @@ public class BidderDashboardController implements Initializable {
             "-fx-background-color: transparent; -fx-text-fill: #fff; -fx-background-radius: 15; -fx-font-weight: bold;";
     private static final String STYLE_NAV_NORMAL =
             "-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #fff; -fx-background-radius: 10;";
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     private Bidder bidder;
     private ObservableList<Auction> allAutions;
@@ -95,12 +98,13 @@ public class BidderDashboardController implements Initializable {
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 stage.setFullScreen(true);
             }
+
         });
     }
 
     public void setCurrent(Bidder bidder){
         this.bidder = bidder;
-        lblUserName.setText(bidder.getFullname());
+        lblUserName.setText(bidder.getFullName());
     }
 
     @FXML
@@ -118,7 +122,7 @@ public class BidderDashboardController implements Initializable {
     @FXML
     private void onNavHistory(){
         setActiveNav(btnNavHistory);
-        showPane(paneHistory);
+        showPane(historyContainer);
         filterbar.setVisible(false);
         filterbar.setManaged(false);
         searchBox.setVisible(false);
@@ -126,6 +130,7 @@ public class BidderDashboardController implements Initializable {
         lblPageTitle.setText("Bidding History");
         lblSubtitle.setText("Your past Bid");
         lblCount.setText("");
+        loadBiddingHistory();
     }
 
     @FXML
@@ -139,6 +144,20 @@ public class BidderDashboardController implements Initializable {
         lblPageTitle.setText("Won Items");
         lblSubtitle.setText("Auctions you won");
         lblCount.setText("");
+        loadWonItems();
+    }
+    @FXML
+    private void onNavPayment(){
+        setActiveNav(btnNavPayment);
+        showPane(panePayment);
+        filterbar.setVisible(false);
+        filterbar.setManaged(false);
+        searchBox.setVisible(false);
+        searchBox.setManaged(false);
+        lblPageTitle.setText("Complete Payment");
+        lblSubtitle.setText("Pay within 24h to complete your order");
+        lblCount.setText("");
+        loadPaymentPane();
     }
     @FXML
     private void onSignOut(ActionEvent event){
@@ -186,8 +205,7 @@ public class BidderDashboardController implements Initializable {
     }
 
     private void loadAuctions(){
-        List<Auction> list = AuctionManager.getInstance().getActiveAuctions();
-        // để khi thêm sửa xóa dữ liệu trong danh sách thì javFX sẽ tự động vẽ lại
+        List<Auction> list = AuctionClientService.getInstance().getAllAuctions();
         allAutions = FXCollections.observableArrayList(list);
         renderAuctions(allAutions);
         updateSubtitle();
@@ -249,13 +267,13 @@ public class BidderDashboardController implements Initializable {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(
                 () -> Platform.runLater(() -> {
-                    List<Auction> updated = AuctionManager.getInstance().getActiveAuctions();
+                    List<Auction> updated = AuctionClientService.getInstance().getAllAuctions();
                     allAutions.setAll(updated);
                     applyFilter();
                     updateSubtitle();
                     lblUpdate.setText("Updated " + LocalDateTime.now().format(TIME_FORMAT));
                 }),
-                5, 5, TimeUnit.SECONDS
+                30, 30, TimeUnit.SECONDS
         );
     }
 
@@ -294,6 +312,11 @@ public class BidderDashboardController implements Initializable {
         Label bidsLabel = new Label("· " + auction.getBids().size() + " bids");
         bidsLabel.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 11px; -fx-opacity: 0.7;");
         row2.getChildren().addAll(priceLabel, bidsLabel);
+
+        Label startTimeLabel = new Label("Starts: " + (auction.getItem().getStartTime() != null
+                ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                : "—"));
+        startTimeLabel.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 11px; -fx-opacity: 0.7;");
 
         Label timeLabel = new Label("⏱ " + formatTimeRemaining(auction));
         timeLabel.setStyle(getTimeStyle(auction));
@@ -334,7 +357,7 @@ public class BidderDashboardController implements Initializable {
 
         Button btnDetail = new Button("Details");
         btnDetail.setMaxWidth(Double.MAX_VALUE);
-        btnDetail.setStyle("-fx-background-color: transparent; -fx-border-color: #c0c43f; -fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 12px;");
+        btnDetail.setStyle("-fx-background-color: transparent; -fx-border-color: #c0c43f; -fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 12px; -fx-cursor: hand;");
         btnDetail.setOnAction(e -> onDetailClicked(auction));
         actions.getChildren().addAll(btnBid, btnDetail);
         return actions;
@@ -378,16 +401,70 @@ public class BidderDashboardController implements Initializable {
         return empty;
     }
 
-    private void onBidClicked(Auction auction){
-        if(auction.getStatus() == FINISHED) {
+
+    private void onBidClicked(Auction auction) {
+        if (auction.getStatus() == FINISHED) {
             new Alert(Alert.AlertType.INFORMATION, "This auction has ended.").showAndWait();
             return;
         }
-        navigateTo("bidding.fxml", "bidding");
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/bidding.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            BiddingController ctrl = loader.getController();
+            ctrl.setData(
+                    auction,
+                    bidder,
+                    "bidder_dashboard.fxml",  // ← màn quay lại
+                    "Bidder Dashboard"
+            );
+
+            Stage stage = (Stage) auctionContainer.getScene().getWindow();
+            stopAutoRefresh();
+            stage.setScene(scene);
+            stage.setTitle("Bidding");
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Failed to load bidding screen: " + e.getMessage()).showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).showAndWait();
+        }
     }
 
     private void onDetailClicked(Auction auction){
-        navigateTo("auction_detail.fxml", "auction detail");
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/org/example/loginregister/auction_detail.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            AuctionDetailController ctrl = loader.getController();
+
+            String dashboardFxml = "bidder_dashboard.fxml";
+            String dashboardTitle = "Bidder Dashboard";
+            ctrl.setData(
+                    auction,
+                    bidder,
+                    dashboardFxml,
+                    dashboardTitle
+            );
+
+            Stage stage = (Stage) auctionContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Auction detail");
+            stage.show();
+            stopAutoRefresh();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Failed to load auction detail: " + e.getMessage()).showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).showAndWait();
+        }
     }
 
     private void navigateTo(String fxmlFile, String title){
@@ -399,28 +476,242 @@ public class BidderDashboardController implements Initializable {
     //Chỉ hiện pane được chọn, ẩn các pane còn lại
     private void showPane(javafx.scene.Node target){
         paneAuctions.setVisible(false);
-        paneHistory.setVisible(false);
+        paneAuctions.setManaged(false);
+        historyContainer.setVisible(false);
+        historyContainer.setManaged(false);
         paneWon.setVisible(false);
+        paneWon.setManaged(false);
+        panePayment.setVisible(false);
+        panePayment.setManaged(false);
         target.setVisible(true);
+        target.setManaged(true);
+    }
+
+    private void loadBiddingHistory() {
+        paneHistory.getChildren().clear();
+
+        if (bidder == null) {
+            Label error = new Label("Bidder information not available");
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneHistory.getChildren().add(error);
+            return;
+        }
+
+        try {
+            List<org.example.loginregister.server.model.entity.BidTransaction> history =
+                    AuctionClientService.getInstance().getBidderHistory(bidder.getId());
+
+            if (history.isEmpty()) {
+                Label empty = new Label("No records found yet.");
+                empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
+                paneHistory.getChildren().add(empty);
+                return;
+            }
+
+            for (org.example.loginregister.server.model.entity.BidTransaction bid : history) {
+                HBox row = new HBox(15);
+                HBox.setHgrow(paneHistory, Priority.ALWAYS);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setPadding(new Insets(10, 0, 10, 0));
+                row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
+
+                Label lblItem = new Label(bid.getItem() != null ? bid.getItem().getItemName() : "Unknown Item");
+                lblItem.setFont(Font.font("System", FontWeight.BOLD, 13));
+                lblItem.setStyle("-fx-text-fill: #fff;");
+                lblItem.setPrefWidth(200);
+
+                Label lblAuctionId = new Label(bid.getAuctionId() != null ? bid.getAuctionId() : "—");
+                lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
+                lblAuctionId.setPrefWidth(100);
+
+                // Amount
+                Label lblAmount = new Label(formatPrice(bid.getAmount()) + " ₫");
+                lblAmount.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
+                lblAmount.setPrefWidth(150);
+
+                // Time
+                Label lblTime = new Label(bid.getTimestamp() != null ? bid.getTimestamp().format(TIME_FORMAT) : "—");
+                lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblAmount, lblTime);
+                paneHistory.getChildren().add(row);
+            }
+
+            lblCount.setText(history.size() + " records");
+        } catch (Exception e) {
+            Label error = new Label("Failed to load history: " + e.getMessage());
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneHistory.getChildren().add(error);
+            e.printStackTrace();
+        }
+    }
+
+    private void loadWonItems() {
+        paneWon.getChildren().clear();
+
+        if (bidder == null) {
+            Label error = new Label("Bidder information not available");
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneWon.getChildren().add(error);
+            return;
+        }
+
+        try {
+            List<org.example.loginregister.server.model.entity.AuctionResult> wonAuctions = bidder.getWonAuctions();
+
+            if (wonAuctions.isEmpty()) {
+                Label empty = new Label("No won items yet.");
+                empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
+                paneWon.getChildren().add(empty);
+                return;
+            }
+
+            for (org.example.loginregister.server.model.entity.AuctionResult result : wonAuctions) {
+                HBox row = new HBox(15);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setPadding(new Insets(10, 0, 10, 0));
+                row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
+
+                // Item name
+                Label lblItem = new Label(result.getItem() != null ? result.getItem().getItemName() : "Unknown Item");
+                lblItem.setFont(Font.font("System", FontWeight.BOLD, 13));
+                lblItem.setStyle("-fx-text-fill: #fff;");
+                lblItem.setPrefWidth(200);
+
+                // Auction ID
+                Label lblAuctionId = new Label(result.getAuctionId() != null ? result.getAuctionId() : "—");
+                lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
+                lblAuctionId.setPrefWidth(100);
+
+                // Final price
+                Label lblPrice = new Label(formatPrice(result.getFinalPrice()) + " ₫");
+                lblPrice.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
+                lblPrice.setPrefWidth(150);
+
+                // Status
+                Label lblStatus = new Label(result.getStatus() != null ? result.getStatus().toString() : "—");
+                lblStatus.setStyle("-fx-font-size: 11px; -fx-text-fill: #4ade80; -fx-font-weight: bold;");
+
+                // End time
+                Label lblTime = new Label(result.getEndTime() != null ? result.getEndTime().format(TIME_FORMAT) : "—");
+                lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblPrice, lblStatus, lblTime);
+                paneWon.getChildren().add(row);
+            }
+
+            lblCount.setText(wonAuctions.size() + " items");
+        } catch (Exception e) {
+            Label error = new Label("Failed to load won items: " + e.getMessage());
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            paneWon.getChildren().add(error);
+            e.printStackTrace();
+        }
+    }
+
+    private  void loadPaymentPane(){
+        panePayment.getChildren().clear();
+        if(bidder == null) return;
+        try{
+            List<AuctionResult> wonList = AuctionClientService.getInstance().getWonAuctions(bidder.getId());
+
+            List<AuctionResult> unpaid = wonList.stream()
+                    .filter(result -> result.getStatus() == FINISHED)
+                    .collect(Collectors.toList());
+            if(unpaid.isEmpty()){
+                Label empty = new Label("No pending payments");
+                empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
+                panePayment.getChildren().add(empty);
+                return;
+            }
+            for (AuctionResult result : unpaid){
+                panePayment.getChildren().add(buildPaymentCard(result));
+            }
+        } catch (Exception e) {
+            Label error = new Label("Failed to load payment items: " + e.getMessage());
+            error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
+            panePayment.getChildren().add(error);
+            e.printStackTrace();
+        }
+    }
+
+    private VBox buildPaymentCard(AuctionResult result){
+        VBox card = new VBox(8);
+        card.setPadding(new Insets(12));
+        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21);"
+                + "-fx-background-radius: 8; -fx-border-color: #c0c43f;"
+                + "-fx-border-radius: 8; -fx-border-width: 1;");
+
+        Label lblItem = new Label(result.getItem() != null
+                        ? result.getItem().getItemName() : "Unknow Item");
+        lblItem.setFont(Font.font("System", FontWeight.BOLD, 14));
+        lblItem.setStyle("-fx-text-fill: #c0c43f;");
+
+        Label lblPrice = new Label("Final price: "
+                        + formatPrice(result.getFinalPrice()) + " ₫");
+        lblPrice.setStyle("-fx-text-fill: #fff; -fx-font-size: 13px;");
+
+        Label lblDeadline = new Label("⚠ Pay within 24 hours or order will be cancelled");
+        lblDeadline.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 11px;");
+
+        Button btnPay = new Button("💳 Pay Now");
+        btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
+                + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                + "-fx-cursor: hand; -fx-font-size: 13px;");
+        btnPay.setOnAction(event -> onPayClicked(result, card, btnPay));
+        card.getChildren().addAll(lblItem,lblPrice, lblDeadline, btnPay);
+        return  card;
+    }
+
+    private void onPayClicked(AuctionResult result, VBox card, Button btn){
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Payment");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Pay " + formatPrice(result.getFinalPrice())
+                + " ₫ for \"" + result.getItem().getItemName() + "\"?");
+        confirm.showAndWait().ifPresent(reponse -> {
+                    try {
+                        AuctionClientService.getInstance().payAuction(result.getAuctionId());
+
+                        btn.setText("✅ Paid");
+                        btn.setDisable(true);
+                        btn.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
+                                + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                                + "-fx-font-size: 13px;");
+                        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
+                                + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
+                                + "-fx-border-radius: 8; -fx-border-width: 1;");
+                    } catch (RuntimeException e){
+                        new Alert(Alert.AlertType.ERROR,
+                                "Payment failed: " + e.getMessage()).showAndWait();
+                    }
+                }
+        );
     }
 
     private void setActiveNav(Button active){
-        active.setStyle(STYLE_NAV_ACTIVE);
-
         btnNavWon.setStyle(STYLE_NAV_NORMAL);
         btnNavAuctions.setStyle(STYLE_NAV_NORMAL);
         btnNavHistory.setStyle(STYLE_NAV_NORMAL);
+        btnNavPayment.setStyle(STYLE_NAV_NORMAL);
+
+        active.setStyle(STYLE_NAV_ACTIVE);
 
     }
 
     private  void updateCategoryStyles(ToggleButton active){
-        active.setStyle(STYLE_FILTER_ACTIVE);
-
         btnArt.setStyle(STYLE_FILTER_NORMAL);
         btnElectronics.setStyle(STYLE_FILTER_NORMAL);
         btnVehicles.setStyle(STYLE_FILTER_NORMAL);
         btnAll.setStyle(STYLE_FILTER_NORMAL);
 
+        active.setStyle(STYLE_FILTER_ACTIVE);
     }
 
     private String getCategoryIcon(String category){
