@@ -23,7 +23,7 @@ public class AutoBidDAO {
     public static void saveAutoBid(int auctionDbId, int bidderDbId, double maxBid, double increment) {
         String sql = "INSERT INTO auto_bids (auction_id, bidder_id, max_bid, increment) " +
                      "VALUES (?, ?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE max_bid = VALUES(max_bid), increment = VALUES(increment)";
+                     "ON CONFLICT(auction_id, bidder_id) DO UPDATE SET max_bid = excluded.max_bid, increment = excluded.increment";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, auctionDbId);

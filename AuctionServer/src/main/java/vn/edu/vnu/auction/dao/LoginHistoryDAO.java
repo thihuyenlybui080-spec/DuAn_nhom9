@@ -24,4 +24,17 @@ public class LoginHistoryDAO {
             logger.error("[LoginHistoryDAO] Failed to save login history: {}", e.getMessage());
         }
     }
+
+    /** Lấy lịch sử đăng nhập. */
+    public static ResultSet getLoginHistory() {
+        try {
+            Connection conn = DatabaseConfig.getConnection();
+            String sql = "SELECT user_id, username, status, login_time FROM login_history ORDER BY login_time DESC";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            return stmt.executeQuery();
+        } catch (Exception e) {
+            logger.error("[LoginHistoryDAO] Failed to get login history: {}", e.getMessage());
+            return null;
+        }
+    }
 }
