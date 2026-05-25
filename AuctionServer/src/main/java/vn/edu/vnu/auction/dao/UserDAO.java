@@ -104,14 +104,14 @@ public class UserDAO {
     }
 
     /** Đăng ký user mới, throw DuplicateUsernameException nếu username đã tồn tại. */
-    public static void registerUser(String username, String password, String fullName,
+    public static User registerUser(String username, String password, String fullName,
                                      String email, String gender, String phone, String role) throws DuplicateUsernameException {
         if (isUsernameTaken(username)) {
             throw new DuplicateUsernameException("Username '" + username + "' already exists");
         }
         String sql = "INSERT INTO users (username, password, email, full_name, gender, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, username);
             ps.setString(2, password);
             ps.setString(3, email);
@@ -120,10 +120,24 @@ public class UserDAO {
             ps.setString(6, phone);
             ps.setString(7, role);
             ps.executeUpdate();
+
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int dbId = generatedKeys.getInt(1);
+                    String id = String.valueOf(dbId);
+                    User user = switch (role) {
+                        case "SELLER" -> new Seller("seller-" + id, username, password, email, fullName);
+                        case "ADMIN" -> new Admin("admin-" + id, username, password, email, fullName);
+                        default -> new Bidder("bidder-" + id, username, password, email, fullName);
+                    };
+                    return user;
+                }
+            }
         } catch (SQLException e) {
             System.err.println("[UserDAO] registerUser: " + e.getMessage());
             throw new DuplicateUsernameException("Failed to register user: " + e.getMessage());
         }
+        return null;
     }
 
 

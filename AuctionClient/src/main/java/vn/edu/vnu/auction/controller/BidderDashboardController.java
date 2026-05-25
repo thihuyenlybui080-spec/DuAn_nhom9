@@ -55,6 +55,7 @@ public class BidderDashboardController implements Initializable {
     @FXML private ToggleButton btnAll;
     @FXML private ToggleButton btnVehicles;
     @FXML private ToggleButton btnElectronics;
+    @FXML private ToggleButton btnOthers;
     @FXML private ToggleButton btnArt;
     @FXML private ComboBox<String> cmbStatus;
 
@@ -206,6 +207,13 @@ public class BidderDashboardController implements Initializable {
         applyFilter();
     }
 
+    @FXML
+    private void onCategoryOther(){
+        currentCategory = "Other";
+        updateCategoryStyles(btnOthers);
+        applyFilter();
+    }
+
     private void loadAuctions(){
         List<Auction> list = AuctionClientService.getInstance().getAllAuctions();
         allAutions = FXCollections.observableArrayList(list);
@@ -239,7 +247,6 @@ public class BidderDashboardController implements Initializable {
 
     }
 
-    // hiển thị lên màn hình
     private void renderAuctions(List<Auction> list) {
         auctionContainer.getChildren().clear();
 
@@ -562,7 +569,6 @@ public class BidderDashboardController implements Initializable {
         }
 
         try {
-//            List<AuctionResult> wonAuctions = bidder.getWonAuctions();
             List<AuctionResult> wonAuctions = new ArrayList<>();
 
             if (wonAuctions.isEmpty()) {
@@ -715,6 +721,7 @@ public class BidderDashboardController implements Initializable {
         btnArt.setStyle(STYLE_FILTER_NORMAL);
         btnElectronics.setStyle(STYLE_FILTER_NORMAL);
         btnVehicles.setStyle(STYLE_FILTER_NORMAL);
+        btnOthers.setStyle(STYLE_FILTER_NORMAL);
         btnAll.setStyle(STYLE_FILTER_NORMAL);
 
         active.setStyle(STYLE_FILTER_ACTIVE);
@@ -728,6 +735,7 @@ public class BidderDashboardController implements Initializable {
             case "electronics": return "💻";
             case "art":         return "🎨";
             case "vehicle":     return "🚗";
+            case "other":       return "📦";
             default:            return "📦";
         }
     }

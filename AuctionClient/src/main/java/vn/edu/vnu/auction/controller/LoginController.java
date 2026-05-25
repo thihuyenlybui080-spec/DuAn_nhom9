@@ -80,6 +80,7 @@ public class LoginController implements Initializable {
                 String rawId = user.getId();
                 int userId = Integer.parseInt(rawId.contains("-") ? rawId.substring(rawId.lastIndexOf("-") + 1) : rawId);
                 String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";
+                RegisterController.setCurrentUserId(rawId);
 
                 messageLabel.setText("Login successful! Welcome, " + user.getName());
 

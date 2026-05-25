@@ -28,6 +28,7 @@ import vn.edu.vnu.auction.model.entity.user.Seller;
 import vn.edu.vnu.auction.model.factory.ArtFactory;
 import vn.edu.vnu.auction.model.factory.ElectronicsFactory;
 import vn.edu.vnu.auction.model.factory.ItemFactory;
+import vn.edu.vnu.auction.model.factory.OtherFactory;
 import vn.edu.vnu.auction.model.factory.VehicleFactory;
 
 
@@ -413,6 +414,18 @@ public class SellerDashboardController implements Initializable {
         btnDelete.setStyle(
                 "-fx-background-color: transparent; -fx-border-color: #fff;"
                         + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
+
+        Auction relatedAuction = myAuctions.stream()
+                .filter(a -> a.getItem().getId().equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+        if (relatedAuction != null && relatedAuction.getStatus() == AuctionStatus.RUNNING) {
+            btnDelete.setDisable(true);
+            btnDelete.setStyle(
+                    "-fx-background-color: transparent; -fx-border-color: #555;"
+                            + "-fx-border-radius: 4; -fx-text-fill: #555; -fx-font-size: 11px;");
+        }
+        
         btnDelete.setOnAction(e -> onDeleteItem(item));
         actions.getChildren().addAll(btnEdit, btnDelete);
 
@@ -443,9 +456,15 @@ public class SellerDashboardController implements Initializable {
                 .findFirst()
                 .orElse(null);
 
-        if (relatedAuction != null && !relatedAuction.getBids().isEmpty()) {
-            showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the related auction has bids placed on it.");
-            return;
+        if (relatedAuction != null) {
+            if (relatedAuction.getStatus() == AuctionStatus.RUNNING) {
+                showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the auction is currently live.");
+                return;
+            }
+            if (!relatedAuction.getBids().isEmpty()) {
+                showErrorAlert("Cannot Delete", "Cannot delete item \"" + item.getItemName() + "\" because the related auction has bids placed on it.");
+                return;
+            }
         }
 
         String message = "Delete \"" + item.getItemName() + "\"? This cannot be undone.";
@@ -608,6 +627,9 @@ public class SellerDashboardController implements Initializable {
             case "Vehicle":
                 factory = new VehicleFactory();
                 break;
+            case "Other":
+                factory = new OtherFactory();
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported category: " + category);
         }
@@ -768,6 +790,7 @@ public class SellerDashboardController implements Initializable {
             case "electronics": return "💻";
             case "art":         return "🎨";
             case "vehicle":     return "🚗";
+            case "other":       return "📦";
             default:            return "📦";
         }
 

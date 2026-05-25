@@ -67,10 +67,19 @@ public class RegisterController implements Initializable {
     private StackPane rootStackPane;
 
     String selectedGender = "";
+    private static String currentUserId; // Lưu userId của user hiện tại
 
     @FXML
     ToggleGroup genderGroup = new ToggleGroup();
     private final SceneManager sceneManager = new SceneManager(getClass());
+
+    public static String getCurrentUserId() {
+        return currentUserId;
+    }
+
+    public static void setCurrentUserId(String userId) {
+        currentUserId = userId;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -137,39 +146,7 @@ public class RegisterController implements Initializable {
         if (!isValid) return;
         boolean isSuccess = registerUser();
         if (isSuccess) {
-            //switch to login screen
-//            String selectedRole = roleComboBox.getValue();
-//            if (ROLE_SELLER.equalsIgnoreCase(selectedRole)) {
-//                String fullName = firstNameTF.getText() + lastnameTF.getText();
-//                try{
-//                    FXMLLoader loader = new FXMLLoader(
-//                            getClass().getResource("/vn/edu/vnu/auctionclient/seller_dashboard.fxml"));
-//                    Scene scene = new Scene(loader.load());
-//
-//                    SellerDashboardController ctrl = loader.getController();
-//                    ctrl.setCurrentUser(new Seller(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName ));
-//                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-//                    stage.setScene(scene);
-//                    stage.show();
-//                }  catch (IOException e){
-//                    e.printStackTrace();
-//                }
-//            } else {
-//                String fullName = firstNameTF.getText() + lastnameTF.getText();
-//                try{
-//                    FXMLLoader loader = new FXMLLoader(
-//                            getClass().getResource("/vn/edu/vnu/auctionclient/bidder_dashboard.fxml"));
-//                    Scene scene = new Scene(loader.load());
-//
-//                    BidderDashboardController ctrl = loader.getController();
-//                    ctrl.setCurrent(new Bidder(userNameTF.getText(), passwordPF.getText(), emailTF.getText(), fullName));
-//                    Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-//                    stage.setScene(scene);
-//                    stage.show();
-//                }  catch (IOException e){
-//                    e.printStackTrace();
-//                }
-//            }
+            registrationMessageLabel.setText("Registration successful");
             sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
         }
     }
@@ -219,7 +196,8 @@ public class RegisterController implements Initializable {
         String email    = emailTF.getText().trim();
 
         try {
-            AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
+            String userId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
+            currentUserId = userId; // Lưu userId để dùng khi tạo sản phẩm
             registrationMessageLabel.setText("Registration successful!");
             return true;
         } catch (RuntimeException e) {

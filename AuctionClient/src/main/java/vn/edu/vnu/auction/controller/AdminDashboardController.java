@@ -548,6 +548,7 @@ public class AdminDashboardController implements Initializable {
             case "electronics": return "💻";
             case "art":         return "🎨";
             case "vehicle":     return "🚗";
+            case "other":       return "📦";
             default:            return "📦";
         }
     }
