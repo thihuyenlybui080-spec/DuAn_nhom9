@@ -75,6 +75,7 @@ public class DatabaseConfig {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DB_URL);
+        config.setDriverClassName("org.sqlite.JDBC");
         config.setMaximumPoolSize(20);
         config.setMinimumIdle(2);
         config.setConnectionTimeout(30000);

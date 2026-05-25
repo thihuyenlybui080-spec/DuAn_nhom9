@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>vn.edu.vnu</groupId>
+    <groupId>vn.edu.vnu.auction</groupId>
     <artifactId>AuctionServer</artifactId>
     <version>1.0</version>
 
@@ -76,7 +76,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.auction.server.AuctionServer</mainClass>
+                            <mainClass>vn.edu.vnu.auction.AuctionServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -95,7 +95,7 @@
                             <finalName>${project.artifactId}-${project.version}</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.example.auction.server.AuctionServer</mainClass>
+                                    <mainClass>vn.edu.vnu.auction.AuctionServer</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
