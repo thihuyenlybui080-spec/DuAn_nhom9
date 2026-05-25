@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<StackPane fx:id="rootStackPane" style="-fx-background-color: #12080a;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.edu.vnu.auction.controller.LoginController">
+    <ImageView fitHeight="${rootStackPane.height}" fitWidth="${rootStackPane.width}" pickOnBounds="true" preserveRatio="false">
+        <image>
+            <Image url="@hele.jpg" />
+        </image>
+    </ImageView>
+    <StackPane alignment="CENTER" maxHeight="900.0" maxWidth="1300.0">
+        <AnchorPane fx:id="loginWrapper" maxHeight="900.0" maxWidth="1300.0">
+            <StackPane.margin><Insets bottom="50" left="50" right="50" top="50" /></StackPane.margin>
+
+            <AnchorPane maxHeight="900.0" maxWidth="1300.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 0, 0);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+                <AnchorPane fx:id="rootAnchorPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="380" AnchorPane.topAnchor="0">
+                    <ImageView fx:id="loginSideImageView" fitHeight="${rootAnchorPane.height}" fitWidth="${rootAnchorPane.width}" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0">
+                        <image><Image url="@hele.jpg" /></image>
+                    </ImageView>
+
+                    <AnchorPane prefHeight="550.0" prefWidth="540.0" style="-fx-background-color: linear-gradient(to right, rgba(26,10,12,0.9) 0%, rgba(26,10,12,0.6) 80%);" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
+
+                    <VBox alignment="CENTER_LEFT" prefHeight="550.0" prefWidth="540.0" spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0">
+                        <padding><Insets bottom="40.0" left="50.0" right="40.0" top="60.0" /></padding>
+
+                        <Label text="NETBID" textFill="#c0c43f">
+                            <font><Font name="Bell MT Bold" size="44.0" /></font>
+                        </Label>
+                        <Label style="-fx-font-size: 11px; -fx-opacity: 0.6; -fx-letter-spacing: 3px;" text="SECURE ACCESS SYSTEM" textFill="#c0c43f">
+                            <VBox.margin><Insets bottom="20" /></VBox.margin>
+                        </Label>
+
+                        <HBox prefHeight="2" prefWidth="80" style="-fx-background-color: linear-gradient(to right, #722f37, #c0c43f);">
+                            <VBox.margin><Insets bottom="30" /></VBox.margin>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <children>
+                                <Label style="-fx-font-size: 20px;" text="🏷️" textFill="#ae142b" />
+                                <VBox spacing="3">
+                                    <children>
+                                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-letter-spacing: 0.5px;" text="Real-Time Bidding" textFill="#c0c43f">
+                                            <font>
+                                                <Font name="System Bold" size="13.0" />
+                                            </font>
+                                        </Label>
+                                        <Label style="-fx-font-size: 11px; -fx-opacity: 0.5;" text="Place bids instantly and watch prices update live." textFill="WHITE" wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <VBox.margin>
+                                <Insets bottom="20.0" />
+                            </VBox.margin>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <children>
+                                <Label style="-fx-font-size: 20px;" text="🔒" textFill="#ae142b" />
+                                <VBox spacing="3">
+                                    <children>
+                                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold;" text="Secure &amp; Transparent" textFill="#c0c43f">
+                                            <font>
+                                                <Font name="System Bold" size="13.0" />
+                                            </font>
+                                        </Label>
+                                        <Label style="-fx-font-size: 11px; -fx-opacity: 0.5;" text="Every transaction is logged. Fair competition, guaranteed." textFill="WHITE" wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <VBox.margin>
+                                <Insets bottom="20.0" left="15.0" />
+                            </VBox.margin>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <children>
+                                <Label style="-fx-font-size: 20px;" text="⚡" textFill="#ae142b" />
+                                <VBox spacing="3">
+                                    <children>
+                                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold;" text="Auto-Bidding" textFill="#c0c43f">
+                                            <font>
+                                                <Font name="System Bold" size="13.0" />
+                                            </font>
+                                        </Label>
+                                        <Label style="-fx-font-size: 11px; -fx-opacity: 0.5;" text="Set your max price and let the system bid automatically." textFill="WHITE" wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <VBox.margin>
+                                <Insets bottom="20.0" left="25.0" />
+                            </VBox.margin>
+                        </HBox>
+
+                        <Region prefHeight="74.0" prefWidth="450.0" VBox.vgrow="ALWAYS" />
+                        <Label style="-fx-font-size: 10px; -fx-opacity: 0.2;" text="© 2026 NETBID — LTNC PROJECT" textFill="WHITE" />
+                    </VBox>
+                </AnchorPane>
+
+                <VBox fx:id="vboxLogin" alignment="CENTER" prefHeight="550.0" prefWidth="382.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.4); -fx-border-width: 0 0 0 1;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+                    <HBox maxHeight="3" maxWidth="Infinity" prefHeight="3" style="-fx-background-color: linear-gradient(to right, #722f37, #c0c43f, #722f37);" />
+
+                    <VBox alignment="CENTER_LEFT" spacing="0" VBox.vgrow="ALWAYS">
+                        <padding><Insets bottom="40" left="40" right="40" top="50" /></padding>
+                        <HBox alignment="CENTER_RIGHT">
+                            <children>
+                                <Label style="-fx-background-color: rgba(192,196,63,0.1);                               -fx-border-color: rgba(192,196,63,0.3);                               -fx-border-radius: 20; -fx-background-radius: 20;                               -fx-text-fill: #c0c43f; -fx-font-size: 10px;                               -fx-padding: 3 10; -fx-letter-spacing: 1px;" text="v3.6" />
+                                <Region HBox.hgrow="ALWAYS" />
+                            </children>
+                            <VBox.margin>
+                                <Insets />
+                            </VBox.margin>
+                            <padding>
+                                <Insets bottom="4.0" />
+                            </padding>
+                        </HBox>
+
+                        <VBox spacing="8">
+                            <VBox.margin><Insets bottom="30" /></VBox.margin>
+                            <Label text="Welcome Back" textFill="WHITE">
+                                <font><Font name="Bell MT Bold" size="33.0" /></font>
+                            </Label>
+                        </VBox>
+
+                        <VBox spacing="8">
+                            <VBox.margin><Insets bottom="20" /></VBox.margin>
+                            <Label text="Username" textFill="#c0c43f">
+                                <font><Font name="System Bold" size="13.0" /></font>
+                            </Label>
+                            <TextField fx:id="usernameTF" prefHeight="40.0" promptText="Enter your username" style="-fx-background-color: #1a0a0c; -fx-text-fill: white; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 5;" />
+                        </VBox>
+
+                        <VBox spacing="8">
+                            <VBox.margin><Insets bottom="10" /></VBox.margin>
+                            <Label text="Password" textFill="#c0c43f">
+                                <font><Font name="System Bold" size="13.0" /></font>
+                            </Label>
+                            <PasswordField fx:id="passwordTF" prefHeight="40.0" promptText="Enter your password" style="-fx-background-color: #1a0a0c; -fx-text-fill: white; -fx-border-color: rgba(192,196,63,0.2); -fx-border-radius: 5;" />
+                        </VBox>
+
+                        <Label fx:id="messageLabel" textFill="#ae142b">
+                            <VBox.margin><Insets bottom="20" /></VBox.margin>
+                            <font><Font size="11.0" /></font>
+                        </Label>
+
+                        <Button fx:id="loginButton" maxWidth="Infinity" onAction="#LoginButtonAction" style="-fx-background-color: linear-gradient(to bottom right, #8b3a44, #543735 , #D7CCB7); -fx-cursor: hand; -fx-background-radius: 6;" text="LOGIN" textFill="#c0c43f">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                            <padding><Insets bottom="14" top="14" /></padding>
+                            <VBox.margin><Insets bottom="12" /></VBox.margin>
+                        </Button>
+
+                        <Button fx:id="cancelButton" maxWidth="Infinity" onAction="#cancelButtonAction" style="-fx-background-color: transparent; -fx-border-color: rgba(192,196,63,0.4); -fx-border-radius: 6; -fx-cursor: hand;" text="CANCEL" textFill="#c0c43f">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                            <padding><Insets bottom="14" top="14" /></padding>
+                        </Button>
+                        <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="279.0" VBox.vgrow="ALWAYS">
+                            <children>
+                                <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="182.0" text="Don't have an account  ?" textFill="#a19c9c" HBox.hgrow="ALWAYS" />
+                                <Region prefHeight="31.0" prefWidth="10.0" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="btnRegister" mnemonicParsing="false" onAction="#onRegister" prefHeight="26.0" prefWidth="101.0" style="-fx-background-color: transparent;" text="register" textFill="#c0c43f" HBox.hgrow="ALWAYS">
+                                    <font>
+                                        <Font name="System Bold" size="15.0" />
+                                    </font>
+                                    <padding>
+                                        <Insets bottom="1.0" right="35.0" />
+                                    </padding>
+                                    <HBox.margin>
+                                        <Insets />
+                                    </HBox.margin>
+                                </Button>
+                            </children>
+                        </HBox>
+
+                        <Region VBox.vgrow="ALWAYS" />
+
+                        <Label alignment="CENTER" maxWidth="Infinity" style="-fx-font-size: 9px; -fx-opacity: 0.12;" text="NETBID AUCTION SYSTEM · 2026" textFill="WHITE" />
+                    </VBox>
+                </VBox>
+            </AnchorPane>
+        </AnchorPane>
+    </StackPane>
+</StackPane>
