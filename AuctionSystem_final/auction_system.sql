@@ -41,6 +41,21 @@ CREATE TABLE IF NOT EXISTS login_history (
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
+--  Bảng login_history (lịch sử đăng nhập)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS login_history (
+    id          BIGINT      NOT NULL AUTO_INCREMENT,
+    user_id     INT         NULL,          -- ← đổi thành NULL
+    username    VARCHAR(50) NOT NULL,
+    login_time  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip_address  VARCHAR(50),
+    status      ENUM('SUCCESS', 'FAILED') NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_login_user FOREIGN KEY (user_id)
+    REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
 --  Bảng items (Art, Electronics, Vehicle)
 --  Dùng cột item_type thay vì 3 bảng riêng
 -- ============================================================
