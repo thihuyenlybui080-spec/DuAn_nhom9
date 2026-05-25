@@ -419,6 +419,8 @@ public class BiddingController implements Initializable, Observer {
                             + "-fx-font-size: 12px; -fx-font-weight: bold;"
                             + "-fx-background-radius: 6; -fx-cursor: hand;"
             );
+            txtMaxBid.clear();
+            txtIncrement.clear();
         }
     }
 
@@ -467,56 +469,46 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        AuctionClientService.getInstance().enableAutoBid(auction.getId(), bidder.getId(), maxBid, increment);
+        lblAutoBidStatus.setText("⏳ Enabling...");
+        btnEnableAutoBid.setDisable(true);
 
-        autoBidEnable = true;
-        lblAutoBidStatus.setText("✅ Active — Max: " + formatPrice(maxBid) + " ₫"
-                + "  Inc: " + formatPrice(increment) + " ₫");
-        btnEnableAutoBid.setText("✅ Auto-Bid Active");
-        btnEnableAutoBid.setStyle("-fx-background-color: #052e16; -fx-text-fill: #34d399;"
-                + "-fx-font-size: 12px; -fx-font-weight: bold;"
-                + "-fx-background-radius: 6;");
+        new Thread(() -> {
+            try {
+                AuctionClientService.getInstance().enableAutoBid(auction.getId(), bidder.getId(), maxBid, increment);
 
-        txtMaxBid.clear();
-        txtIncrement.clear();
+                Platform.runLater(() -> {
+                    autoBidEnable = true;
+                    lblAutoBidStatus.setText("✅ Active — Max: " + formatPrice(maxBid) + " ₫"
+                            + "  Inc: " + formatPrice(increment) + " ₫");
+                    lblAutoBidStatus.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px; -fx-font-weight: bold;");
+                    btnEnableAutoBid.setText("✅ Auto-Bid Active");
+                    btnEnableAutoBid.setStyle("-fx-background-color: #052e16; -fx-text-fill: #34d399;"
+                            + "-fx-font-size: 12px; -fx-font-weight: bold;"
+                            + "-fx-background-radius: 6;");
+                    btnEnableAutoBid.setDisable(false);
 
-        if (btnDisableAutoBid != null) {
-            btnDisableAutoBid.setVisible(true);
-            btnDisableAutoBid.setManaged(true);
-        }
+                    txtMaxBid.clear();
+                    txtIncrement.clear();
 
+                    autoBidForm.setVisible(false);
+                    autoBidForm.setManaged(false);
+                    lblAutoBidHint.setVisible(false);
+                    lblAutoBidHint.setManaged(false);
 
-        boolean isCurrentUserLeading = auction.getHighestBidder() != null
-
-                && auction.getHighestBidder().getId().equals(bidder.getId());
-        
-        if (!isCurrentUserLeading) {
-            double nextBidAmount = auction.getCurrentPrice() + increment;
-            if (nextBidAmount <= maxBid) {
-                try {
-                    Auction updatedAuction = AuctionClientService.getInstance().placeBid(
-                            auction.getId(), bidder.getId(), nextBidAmount);
-                    if (updatedAuction != null) {
-                        this.auction.setCurrentPrice(updatedAuction.getCurrentPrice());
-                        if (updatedAuction.getHighestBidder() != null) {
-                            this.auction.setHighestBidder(updatedAuction.getHighestBidder());
-                            this.auction.setHighestBidderName(updatedAuction.getHighestBidder().getName());
-                        }
-                        if (updatedAuction.getBids() != null && !updatedAuction.getBids().isEmpty()) {
-                            localBids.clear();
-                            localBids.addAll(updatedAuction.getBids());
-                            localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
-                        }
-                        updatePriceArea();
-                        refreshBidHistory();
-                        showBidError("🤖 Auto-bid placed: " + formatPrice(nextBidAmount) + " ₫");
-                        lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
+                    if (btnDisableAutoBid != null) {
+                        btnDisableAutoBid.setVisible(true);
+                        btnDisableAutoBid.setManaged(true);
                     }
-                } catch (RuntimeException e) {
-                    logger.error("Failed to place immediate auto-bid: {}", e.getMessage());
-                }
+                });
+            } catch (Exception e) {
+                logger.error("Failed to enable auto-bid: {}", e.getMessage());
+                Platform.runLater(() -> {
+                    lblAutoBidStatus.setText("❌ Failed: " + e.getMessage());
+                    lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+                    btnEnableAutoBid.setDisable(false);
+                });
             }
-        }
+        }).start();
 
     }
     @Override
@@ -551,9 +543,9 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = true;
                     chkAutoBid.setSelected(true);
-                    // Populate form fields with saved values
-                    txtMaxBid.setText(VND_FORMAT.format((long) maxBid));
-                    txtIncrement.setText(VND_FORMAT.format((long) increment));
+                    // Clear form fields - don't populate with saved values
+                    txtMaxBid.clear();
+                    txtIncrement.clear();
                 } else {
                     lblAutoBidActiveStatus.setText("");
                     if (btnDisableAutoBid != null) {
@@ -709,6 +701,11 @@ public class BiddingController implements Initializable, Observer {
             if (ctrl != null) {
                 ctrl.setCurrent(bidder);
             }
+        } else if (comingFromFile.equals("auction_detail.fxml")) {
+            AuctionDetailController ctrl = sceneManager.switchSceneAndGetController(stage, comingFromFile, comingFromTitle);
+            if (ctrl != null) {
+                ctrl.setData(auction, bidder, "bidder_dashboard.fxml", "Bidder Dashboard");
+            }
         } else {
             sceneManager.switchScene(stage, comingFromFile, comingFromTitle);
         }
@@ -716,7 +713,12 @@ public class BiddingController implements Initializable, Observer {
 
     @FXML
     private void onNavAuctions(ActionEvent event) {
-        onBack(event);
+        stopScheduler();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+        if (ctrl != null) {
+            ctrl.setCurrent(bidder);
+        }
     }
 
     @FXML

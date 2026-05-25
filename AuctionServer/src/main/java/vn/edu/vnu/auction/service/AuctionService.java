@@ -265,32 +265,7 @@ public class AuctionService {
         }
 
         // Restore auto-bid configurations from database AFTER all auctions are registered
-        // This ensures we get the auction instance from AuctionManager (in-memory)
-        if (auctions == null || auctions.size() == 0) return auctions;
-        int auctionDbId = Utils.parseDbId(auctions.get(0).getId());
-        if (auctionDbId > 0) {
-            for (User user : allUsers) {
-                if (user instanceof Bidder) {
-                    Bidder bidder = (Bidder) user;
-                    int bidderDbId = Utils.parseDbId(bidder.getId());
-                    if (bidderDbId > 0) {
-                        for (Auction auction : auctions) {
-                            auctionDbId = Utils.parseDbId(auction.getId());
-                            AutoBidConfig config = autoBidConfigConcurrentHashMap.get(auctionDbId + "-" + bidderDbId);
-                            if (config != null) {
-                                // Get the auction from AuctionManager to ensure we use the in-memory instance
-                                Auction inMemoryAuction = auctionManager.getActive(auction.getId());
-                                if (inMemoryAuction != null) {
-                                    //bidder.enableAutoBid(inMemoryAuction, config);
-                                    logger.debug("Restored auto-bid for bidder {} on auction {} (maxBid={}, increment={})",
-                                            bidder.getName(), auction.getId(), config.getMaxBid(), config.getIncrement());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Note: Auto-bid restoration is now done when bidder logs in, not here to avoid deadlock
         logger.info("Loaded and registered {} active auctions from database", auctions.size());
         return auctions;
     }
@@ -309,26 +284,7 @@ public class AuctionService {
             } else {
                 // If no in-memory instance, put this one in the manager
                 auctionManager.putActive(auction);
-                // Re-register auto-bid agents for this auction
-                List<User> allUsers = UserDAO.getAllUsers();
-                Map<String, AutoBidConfig> autoBidConfigConcurrentHashMap = AutoBidDAO.getAllAutoBidConfig();
-                int auctionDbId = Utils.parseDbId(auctionId);
-                if (auctionDbId > 0) {
-                    for (User user : allUsers) {
-                        if (user instanceof Bidder) {
-                            Bidder bidder = (Bidder) user;
-                            int bidderDbId = Utils.parseDbId(bidder.getId());
-                            if (bidderDbId > 0) {
-                                AutoBidConfig config = autoBidConfigConcurrentHashMap.get(auctionDbId + "-" + bidderDbId);
-                                if (config != null) {
-                                    //bidder.enableAutoBid(auction, config);
-                                    logger.debug("Re-registered auto-bid for bidder {} on auction {} (maxBid={}, increment={})",
-                                            bidder.getName(), auction.getId(), config.getMaxBid(), config.getIncrement());
-                                }
-                            }
-                        }
-                    }
-                }
+                // Note: Auto-bid restoration is now done when bidder logs in, not here
             }
         }
         return auction;
