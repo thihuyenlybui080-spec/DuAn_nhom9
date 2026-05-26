@@ -35,5 +35,10 @@ build/
 ### VS Code ###
 .vscode/
 
+# Thêm vào file .gitignore ở root project
+*.db
+*.db-shm
+*.db-wal
+
 ### Mac OS ###
 .DS_Store
