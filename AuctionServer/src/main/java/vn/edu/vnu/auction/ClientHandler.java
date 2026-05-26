@@ -90,7 +90,8 @@ public class ClientHandler implements Runnable{
 
             }
         } catch (IOException e) {
-            logger.info("Client disconnected: " + e.getMessage());
+            logger.warn("Client disconnected - IOException: {} (socket closed: {}, connected: {})",
+                    e.getMessage(), clientSocket.isClosed(), clientSocket.isConnected());
         }
         finally {
             cleanup();
@@ -667,11 +668,20 @@ public class ClientHandler implements Runnable{
      */
     private synchronized void sendResponse(Response response){
         try{
+            logger.info("Sending response: {}", response);
             outputStream.writeObject(response);
             outputStream.flush();
             outputStream.reset();
+
+            if (clientSocket.isClosed()) {
+                logger.warn("Response sent but socket is closed - client may have disconnected");
+            } else if (!clientSocket.isConnected()) {
+                logger.warn("Response sent but socket is not connected - client may have disconnected");
+            } else {
+                logger.info("Response sent successfully, client still connected");
+            }
         } catch (IOException e){
-            logger.error("Failed to send response:", e);
+            logger.error("Failed to send response - client may have disconnected or network error: {}", e.getMessage());
         }
     }
 

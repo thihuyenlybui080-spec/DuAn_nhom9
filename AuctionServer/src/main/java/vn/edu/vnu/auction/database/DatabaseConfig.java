@@ -84,6 +84,9 @@ public class DatabaseConfig {
         config.setIdleTimeout(600000);
         config.setMaxLifetime(1800000);
         config.setPoolName("AuctionSystemHikariPool");
+        config.addDataSourceProperty("journal_mode", "WAL");
+        config.addDataSourceProperty("synchronous", "NORMAL");
+        config.addDataSourceProperty("busy_timeout", "30000");
 
         jdbcDataSource = new HikariDataSource(config);
         logger.info("DatabaseConfig: HikariCP connection pool initialized");

@@ -82,7 +82,7 @@ public class Bidder extends User  {
 //            existing.stop();
 //        }
 //        AutoBidAgent agent = new AutoBidAgent(this, auction,config);
-//        agents.put(auction.getId(), agent);     
+//        agents.put(auction.getId(), agent);
 //        logger.debug("[Bidder] auctionId={} -> auctionDbId={}, bidderId={} -> bidderDbId={}", auction.getId(), auctionDbId, this.getId(), bidderDbId);
 //        if (auctionDbId > 0 && bidderDbId > 0) {
 //            AutoBidDAO.saveAutoBid(auctionDbId, bidderDbId, config.getMaxBid(), config.getIncrement());

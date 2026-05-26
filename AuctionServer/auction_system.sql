@@ -128,6 +128,7 @@ INSERT INTO users (username, password, email, full_name, gender, phone, role) VA
                                                                                   ('lamduong', '123456789', 'lamduong@auction.com', 'Tran Lam Duong',    'Female', '0900000003', 'ADMIN'),
                                                                                   ('dongnhat', '123456789', 'dongnhat@auction.com', 'Bui Dong Nhat',     'Male',   '0900000004', 'ADMIN');
 
+
 -- ============================================================
 --  TRUY VẤN DÙNG TRONG CONTROLLER
 -- ============================================================

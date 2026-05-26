@@ -107,32 +107,53 @@ public class UserDAO {
         if (isUsernameTaken(username)) {
             throw new DuplicateUsernameException("Username '" + username + "' already exists");
         }
-        String sql = "INSERT INTO users (username, password, email, full_name, gender, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, username);
-            ps.setString(2, password);
-            ps.setString(3, email);
-            ps.setString(4, fullName);
-            ps.setString(5, gender);
-            ps.setString(6, phone);
-            ps.setString(7, role);
-            ps.executeUpdate();
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getConnection();
+            conn.setAutoCommit(false);
+            String sql = "INSERT INTO users (username, password, email, full_name, gender, phone, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, username);
+                ps.setString(2, password);
+                ps.setString(3, email);
+                ps.setString(4, fullName);
+                ps.setString(5, gender);
+                ps.setString(6, phone);
+                ps.setString(7, role);
+                ps.executeUpdate();
 
-            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    int dbId = generatedKeys.getInt(1);
-                    User user = switch (role) {
-                        case "SELLER" -> new Seller( dbId, username, password, email, fullName);
-                        case "ADMIN" -> new Admin( dbId, username, password, email, fullName);
-                        default -> new Bidder(dbId, username, password, email, fullName);
-                    };
-                    return user;
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int dbId = generatedKeys.getInt(1);
+                        User user = switch (role) {
+                            case "SELLER" -> new Seller( dbId, username, password, email, fullName);
+                            case "ADMIN" -> new Admin( dbId, username, password, email, fullName);
+                            default -> new Bidder(dbId, username, password, email, fullName);
+                        };
+                        conn.commit();
+                        return user;
+                    }
                 }
             }
         } catch (SQLException e) {
             System.err.println("[UserDAO] registerUser: " + e.getMessage());
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    System.err.println("[UserDAO] Rollback failed: " + ex.getMessage());
+                }
+            }
             throw new DuplicateUsernameException("Failed to register user: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("[UserDAO] Close connection failed: " + e.getMessage());
+                }
+            }
         }
         return null;
     }
