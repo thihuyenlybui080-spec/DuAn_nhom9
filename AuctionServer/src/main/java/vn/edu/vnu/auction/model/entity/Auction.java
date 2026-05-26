@@ -28,7 +28,7 @@ public class Auction implements Subject, Serializable {
     private static final Logger logger = LoggerFactory.getLogger(Auction.class);
 
     // ===== FIELDS =====
-    private String id;
+    private int id = -1;
     private Seller seller;
     private final Item item;
     private volatile double  currentPrice;
@@ -56,8 +56,14 @@ public class Auction implements Subject, Serializable {
 
     // ===== CONSTRUCTOR =====
     public Auction(Item item) {
-        this.id = "auction-" + item.getId().substring(5);
+        this.id = -1;
         this.item= item;
+        this.currentPrice = item.getStartingPrice();
+    }
+
+    public Auction(int id, Item item) {
+        this.id = id;
+        this.item = item;
         this.currentPrice = item.getStartingPrice();
     }
 
@@ -248,8 +254,11 @@ public class Auction implements Subject, Serializable {
     public void setHighestBidderName(String highestBidderName){
         this.highestBidder.setName(highestBidderName);
     }
-    public String getId() {
+    public int getId() {
         return id;
+    }
+    public void setId(int id) {
+        this.id = id;
     }
     public Item   getItem() {
         return item;
@@ -290,9 +299,5 @@ public class Auction implements Subject, Serializable {
 
     public void setSeller(Seller seller) {
         this.seller = seller;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 }

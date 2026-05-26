@@ -9,13 +9,8 @@ public class Admin extends User {
         super( userName, password, email, fullName);
     }
 
-    public Admin(String id, String userName, String password, String email, String fullName) {
+    public Admin(int id, String userName, String password, String email, String fullName) {
         super(id, userName, password, email, fullName);
-    }
-
-    @Override
-    protected String getIdPrefix(){
-        return "admin";
     }
 
     @Override

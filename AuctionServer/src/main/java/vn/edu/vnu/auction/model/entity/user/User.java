@@ -21,7 +21,7 @@ public abstract class User extends Entity {
         this.fullName = fullName;
     }
 
-    public User(String id, String userName, String password, String email, String fullName){
+    public User(int id, String userName, String password, String email, String fullName){
         super(id);
         this.userName = userName;
         this.password = password;

@@ -47,7 +47,7 @@ public class BiddingController implements Initializable, Observer {
     private static final DateTimeFormatter DT_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter TIME_FORMAT =
-            DateTimeFormatter.ofPattern("HH:mm:ss");
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private static final NumberFormat VND_FORMAT =
             NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
@@ -62,6 +62,7 @@ public class BiddingController implements Initializable, Observer {
     @FXML private Label lblItemName;
     @FXML private Label lblCategory;
     @FXML private Label lblCountdown;
+    @FXML private Label lblCountdownLabel;
     @FXML private Label lblStatusBadge;
     @FXML private Button btnBack;
 
@@ -217,7 +218,7 @@ public class BiddingController implements Initializable, Observer {
         startAutoRefresh();
     }
     private void populateView() {
-        lblUsername.setText(bidder.getFullName());
+        lblUsername.setText(bidder.getName());
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
         updateStatusBadge();
@@ -330,7 +331,7 @@ public class BiddingController implements Initializable, Observer {
     }
 
     private void updateBidButton(){
-        boolean canBid = auction.getStatus() == AuctionStatus.RUNNING || auction.getStatus() == AuctionStatus.OPEN;
+        boolean canBid = auction.getStatus() == AuctionStatus.RUNNING;
         btnPlaceBid.setDisable(!canBid);
         txtBidAmount.setDisable(!canBid);
         chkAutoBid.setDisable(!canBid);
@@ -512,7 +513,7 @@ public class BiddingController implements Initializable, Observer {
 
     }
     @Override
-    public void update(String auctionId, double newPrice, String highestBidder){
+    public void update(int auctionId, double newPrice, String highestBidder){
         Platform.runLater(() -> {
             this.auction.setCurrentPrice(newPrice);
             this.auction.setHighestBidderName(highestBidder);
@@ -630,6 +631,7 @@ public class BiddingController implements Initializable, Observer {
         Label lblTime = new Label(tx.getTimestamp() != null
                 ? tx.getTimestamp().format(TIME_FORMAT) : "—");
         lblTime.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+        lblTime.setPrefWidth(150);
 
         row.getChildren().addAll(lblName, spacer, lblPrice, lblTime);
         return row;
@@ -647,22 +649,31 @@ public class BiddingController implements Initializable, Observer {
     }
 
     private void updateCountdown() {
-        if (auction.getItem().getEndTime() == null
-                || auction.getStatus() == AuctionStatus.FINISHED) {
+        if (auction.getStatus() == AuctionStatus.FINISHED) {
             lblCountdown.setText("ENDED");
+            lblCountdownLabel.setText("Time Left");
             lblCountdown.setStyle(
                     "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #722f37;");
             stopScheduler();
             return;
         }
 
-        long totalSecs = Duration
-                .between(LocalDateTime.now(), auction.getItem().getEndTime())
-                .getSeconds();
-
-        if (totalSecs <= 0) {
-            lblCountdown.setText("ENDED");
-            stopScheduler();
+        long totalSecs;
+        if(auction.getStatus() == AuctionStatus.OPEN && auction.getItem().getStartTime() != null){
+            totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getStartTime()).getSeconds();
+            lblCountdownLabel.setText("Starts in");
+            if(totalSecs <= 0){
+                return;
+            }
+        } else if(auction.getItem().getEndTime() != null){
+            totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
+            lblCountdownLabel.setText("Time Left");
+            if (totalSecs <= 0) {
+                lblCountdown.setText("ENDED");
+                stopScheduler();
+                return;
+            }
+        } else {
             return;
         }
 
@@ -670,7 +681,10 @@ public class BiddingController implements Initializable, Observer {
         long m = (totalSecs % 3600) / 60;
         long s = totalSecs % 60;
         lblCountdown.setText(String.format("%02d:%02d:%02d", h, m, s));
-        if (totalSecs <= 300) {
+
+        if(auction.getStatus() == AuctionStatus.OPEN){
+            lblCountdown.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #60a5fa;");
+        } else if (totalSecs <= 300) {
             lblCountdown.setStyle(
                     "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #fff;");
         } else if (totalSecs <= 1800) {

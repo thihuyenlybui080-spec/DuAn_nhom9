@@ -113,7 +113,7 @@
                   <Region prefHeight="70.0" prefWidth="59.0" HBox.hgrow="ALWAYS" />
                   <VBox alignment="TOP_RIGHT" prefHeight="70.0" prefWidth="142.0">
                      <children>
-                        <Label text="Time Left" textFill="#c0c240bc">
+                        <Label fx:id="lblCountdownLabel" text="Time Left" textFill="#c0c240bc">
                            <font>
                               <Font size="10.0" />
                            </font>
@@ -166,6 +166,26 @@
                                  </children>
                               </HBox>
                               <Separator opacity="0.49" prefWidth="200.0" style="-fx-background-color: #c0c43f;" />
+                              <HBox prefHeight="25.0" spacing="8.0">
+                                 <children>
+                                    <Label text="BIDDER" textFill="#c0c43f">
+                                       <font>
+                                          <Font name="System Bold" size="10.0" />
+                                       </font>
+                                    </Label>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label text="AMOUNT" textFill="#c0c43f">
+                                       <font>
+                                          <Font name="System Bold" size="10.0" />
+                                       </font>
+                                    </Label>
+                                    <Label prefWidth="150" text="TIME" textFill="#c0c43f">
+                                       <font>
+                                          <Font name="System Bold" size="10.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </HBox>
                               <ScrollPane fitToWidth="true" prefHeight="290.0" prefWidth="408.0" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
                                  <content>
                                     <VBox fx:id="bidHistoryContainer" prefHeight="200.0" prefWidth="100.0" spacing="10.0" />

@@ -13,14 +13,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Bidder extends User  {
     private static final Logger logger = LoggerFactory.getLogger(Bidder.class);
     private final List<BidTransaction> history = new CopyOnWriteArrayList<>();
-//    private final transient Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
-    private final Map<String, AuctionResult> wonAuctions = new ConcurrentHashMap<>();
+//    private final transient Map<Integer, AutoBidAgent> agents = new ConcurrentHashMap<>();
+    private final Map<Integer, AuctionResult> wonAuctions = new ConcurrentHashMap<>();
 
     public Bidder( String name, String password, String email, String fullName) {
         super( name, password, email, fullName);
     }
 
-    public Bidder(String id, String name, String password, String email, String fullName) {
+    public Bidder(int id, String name, String password, String email, String fullName) {
         super(id, name, password, email, fullName);
     }
 
@@ -130,11 +130,6 @@ public class Bidder extends User  {
 //        refreshWonAuctions();
 //        return Optional.ofNullable(wonAuctions.get(auctionId));
 //    }
-
-    @Override
-    protected String getIdPrefix(){
-        return "bidder";
-    }
 
     @Override
     public String getRole(){

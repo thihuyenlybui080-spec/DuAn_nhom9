@@ -4,7 +4,6 @@ import vn.edu.vnu.auction.common.exception.DuplicateUsernameException;
 import vn.edu.vnu.auction.database.DatabaseConfig;
 import vn.edu.vnu.auction.model.entity.user.*;
 import vn.edu.vnu.auction.model.entity.item.Item;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ public class UserDAO {
     /** Lấy toàn bộ danh sách user (Admin + Seller + Bidder). */
     public static List<User> getAllUsers() {
         List<User> list = new ArrayList<>();
-        ConcurrentHashMap<String, List<Item>> itemsMap = ItemDAO.getAllItemsGroupedByCreatedBy();
+        ConcurrentHashMap<Integer, List<Item>> itemsMap = ItemDAO.getAllItemsGroupedByCreatedBy();
         String sql = "SELECT id, username, password, email, full_name, role, status FROM users";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -53,13 +52,12 @@ public class UserDAO {
     }
 
     /** Cập nhật status user trong DB */
-    public static void updateUserStatus(String userId, UserStatus status) {
-        int dbId = Integer.parseInt(userId.substring(userId.lastIndexOf('-') + 1));
+    public static void updateUserStatus(int userId, UserStatus status) {
         String sql = "UPDATE users SET status = ? WHERE id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status.name());
-            ps.setInt(2, dbId);
+            ps.setInt(2, userId);
             ps.executeUpdate();
         } catch (SQLException e) {
             System.err.println("[UserDAO] updateUserStatus: " + e.getMessage());
@@ -76,9 +74,9 @@ public class UserDAO {
                 if (rs.next()) {
                     User user = mapUser(rs);
                     if (user instanceof Seller) {
-                        ((Seller) user).setOwnedItems(ItemDAO.getItemsBySeller(Utils.parseDbId(user.getId())));
+                        ((Seller) user).setOwnedItems(ItemDAO.getItemsBySeller(user.getId()));
                     }
-                    return mapUser(rs);
+                    return user;
                 }
             }
         } catch (SQLException e) {
@@ -129,7 +127,7 @@ public class UserDAO {
 
     /** Map một dòng ResultSet → User (Bidder / Seller / Admin). */
     public static User mapUser(ResultSet rs) throws SQLException {
-        String id       = String.valueOf(rs.getInt("id"));
+        int id       = rs.getInt("id");
         String username = rs.getString("username");
         String password = rs.getString("password");
         String email    = rs.getString("email");
@@ -138,9 +136,9 @@ public class UserDAO {
         String status   = rs.getString("status");
 
         User user = switch (role) {
-            case "SELLER" -> new Seller("seller-" + id, username, password, email, fullName);
-            case "ADMIN" -> new Admin("admin-" + id, username, password, email, fullName);
-            default -> new Bidder("bidder-" + id, username, password, email, fullName);
+            case "SELLER" -> new Seller(id, username, password, email, fullName);
+            case "ADMIN" -> new Admin(id, username, password, email, fullName);
+            default -> new Bidder(id, username, password, email, fullName);
         };
 
         switch (status) {

@@ -15,7 +15,7 @@ public class AuctionHistoryManager {
 
     private static final Logger logger = LoggerFactory.getLogger(AuctionHistoryManager.class);
     private static final AuctionHistoryManager instance = new AuctionHistoryManager();
-    private final Map<String, AuctionResult> completedAuctions = new ConcurrentHashMap<>();
+    private final Map<Integer, AuctionResult> completedAuctions = new ConcurrentHashMap<>();
 
     private AuctionHistoryManager() {}
 
@@ -34,7 +34,7 @@ public class AuctionHistoryManager {
 
 
     //Lấy kết quả của một phiên theo ID
-    public AuctionResult getResult(String auctionId) {
+    public AuctionResult getResult(int auctionId) {
         return completedAuctions.get(auctionId);
     }
 
@@ -68,7 +68,7 @@ public class AuctionHistoryManager {
      * nếu người đó thanh toán đúng hạn FINISHED->PAID
      * nếu không ->CANCELED
      * */
-    public void updateStatus(String auctionId, AuctionStatus status){
+    public void updateStatus(int auctionId, AuctionStatus status){
         completedAuctions.get(auctionId).setStatus(status);
     }
 }

@@ -44,15 +44,16 @@ public class ItemDAO {
     }
 
     /** Lấy tất cả items, group by created_by trả về ConcurrentHashMap với key là id (created_by) */
-    public static ConcurrentHashMap<String, List<Item>> getAllItemsGroupedByCreatedBy() {
-        ConcurrentHashMap<String, List<Item>> resultMap = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Integer, List<Item>> getAllItemsGroupedByCreatedBy() {
+        ConcurrentHashMap<Integer, List<Item>> resultMap = new ConcurrentHashMap<>();
         String sql = "SELECT * FROM items ORDER BY created_by";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Item item = mapItemSingle(rs);
-                resultMap.computeIfAbsent(item.getSellerId(), k -> new ArrayList<>()).add(item);
+                int sellerId = item.getSellerId();
+                resultMap.computeIfAbsent(sellerId, k -> new ArrayList<>()).add(item);
             }
         } catch (SQLException e) {
             System.err.println("[ItemDAO] getAllItemsGroupedByCreatedBy: " + e.getMessage());
@@ -107,7 +108,7 @@ public class ItemDAO {
         double startPrice = rs.getDouble("starting_price");
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
-        String createdBy = rs.getString("created_by");
+        int createdBy = rs.getInt("created_by");
         String imagePath = rs.getString("image_path");
         Item item = buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
         item.setImagePath(imagePath);
@@ -123,7 +124,7 @@ public class ItemDAO {
         double startPrice = rs.getDouble("starting_price");
         LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
         LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
-        String createdBy = rs.getString("created_by");
+        int createdBy = rs.getInt("created_by");
         String imagePath = rs.getString("image_path");
         Item item = buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
         item.setImagePath(imagePath);
@@ -132,14 +133,13 @@ public class ItemDAO {
 
     private static Item buildItem(int id, String itemName, String desc, String itemType,
                                   double startPrice, LocalDateTime startTime, LocalDateTime endTime,
-                                  String createdBy) {
+                                  int createdBy) {
         Item item;
         switch (itemType) {
-            case "ELECTRONICS": item = new Electronics(itemName, createdBy, desc, startPrice, startTime, endTime); break;
-            case "VEHICLE":     item = new Vehicle(itemName, createdBy, desc, startPrice, startTime, endTime);     break;
-            default:            item = new Art(itemName, createdBy, desc, startPrice, startTime, endTime);
+            case "ELECTRONICS": item = new Electronics(id, itemName, createdBy, desc, startPrice, startTime, endTime); break;
+            case "VEHICLE":     item = new Vehicle(id, itemName, createdBy, desc, startPrice, startTime, endTime);     break;
+            default:            item = new Art(id, itemName, createdBy, desc, startPrice, startTime, endTime);
         }
-        item.setId("item-" + id);
         return item;
     }
 }

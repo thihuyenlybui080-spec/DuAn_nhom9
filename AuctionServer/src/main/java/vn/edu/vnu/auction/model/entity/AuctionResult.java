@@ -11,7 +11,7 @@ import java.util.List;
 public class AuctionResult implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final String auctionId;
+    private final int auctionId;
     private final Item item;
     private final User winner;
     private final double finalPrice;
@@ -34,7 +34,7 @@ public class AuctionResult implements Serializable {
     }
 
     //getter
-    public String getAuctionId() { return auctionId; }
+    public int getAuctionId() { return auctionId; }
     public Item getItem() { return item; }
     public User getWinner() { return winner; }
     public double getFinalPrice() { return finalPrice; }

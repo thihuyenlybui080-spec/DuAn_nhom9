@@ -10,7 +10,6 @@ import vn.edu.vnu.auction.model.entity.user.Seller;
 import vn.edu.vnu.auction.model.entity.user.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -159,19 +158,19 @@ public class AuctionDAO {
                 rs.getString("seller_email"),
                 rs.getString("seller_fullname")
         );
-        seller.setId(String.valueOf(rs.getInt("seller_id")));
+        seller.setId(rs.getInt("seller_id"));
 
         Item item = ItemDAO.mapItem(rs);
 
         Auction auction = new Auction(item);
-        auction.setId("auction-" + rs.getInt("auction_id"));
+        auction.setId(rs.getInt("auction_id"));
         auction.setCurrentPrice(rs.getDouble("auction_current_price"));
         auction.setSeller(seller);
 
         int highestBidderId = rs.getInt("highest_bidder_id");
         if (!rs.wasNull() && allUsers != null) {
             allUsers.stream()
-                    .filter(u -> u.getId().equals(String.valueOf(highestBidderId)) && u instanceof Bidder)
+                    .filter(u -> u.getId() == highestBidderId && u instanceof Bidder)
                     .findFirst()
                     .ifPresent(u -> {
                         auction.setHighestBidder((Bidder) u);
@@ -194,16 +193,15 @@ public class AuctionDAO {
         return auction;
     }
     /** Lấy auction theo ID từ database. */
-    public static Auction getAuctionById(String auctionId) {
-        int dbId = Utils.parseDbId(auctionId);
-        if (dbId < 0) {
+    public static Auction getAuctionById(int auctionId) {
+        if (auctionId < 0) {
             return null;
         }
 
         String sql = AUCTION_SELECT + "WHERE a.id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, dbId);
+            ps.setInt(1, auctionId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapAuction(rs, null);

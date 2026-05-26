@@ -10,7 +10,6 @@ import vn.edu.vnu.auction.model.entity.user.Bidder;
 import vn.edu.vnu.auction.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.util.List;
 
@@ -52,7 +51,7 @@ public class BidService {
      *
      * @return true nếu đặt giá thành công
      */
-    public boolean placeBid(String auctionId, Bidder bidder, double amount)
+    public boolean placeBid(int auctionId, Bidder bidder, double amount)
             throws InvalidBidException, AuctionClosedException {
         Auction auction = auctionManager.getActive(auctionId);
         if (auction == null) {
@@ -121,23 +120,21 @@ public class BidService {
         }
     }
 
-    public List<BidTransaction> getBidsByAuction(String auctionId){
-        int auctionDbId = Utils.parseDbId(auctionId);
-        List<BidTransaction> bidTransactionList = BidDAO.getBidsByAuction(auctionDbId);
+    public List<BidTransaction> getBidsByAuction(int auctionId){
+        List<BidTransaction> bidTransactionList = BidDAO.getBidsByAuction(auctionId);
         return  bidTransactionList;
 
     }
-    private boolean persistBid(String auctionId, Bidder bidder, double amount) {
-        int auctionDbId = Utils.parseDbId(auctionId);
-        int bidderId = Utils.parseDbId(bidder.getId());
-        logger.info("[BidService] persistBid START: auctionId={} -> auctionDbId={}, bidderId={} -> bidderDbId={}, amount={}",
-                auctionId, auctionDbId, bidder.getId(), bidderId, amount);
-        if (auctionDbId > 0 && bidderId > 0) {
-            boolean result = BidDAO.insertBid(auctionDbId, bidderId, amount);
-            logger.info("[BidService] persistBid END: auctionDbId={}, result={}", auctionDbId, result);
+    private boolean persistBid(int auctionId, Bidder bidder, double amount) {
+        int bidderId = bidder.getId();
+        logger.info("[BidService] persistBid START: auctionId={}, bidderId={}, amount={}",
+                auctionId, bidderId, amount);
+        if (auctionId > 0 && bidderId > 0) {
+            boolean result = BidDAO.insertBid(auctionId, bidderId, amount);
+            logger.info("[BidService] persistBid END: auctionId={}, result={}", auctionId, result);
             return result;
         } else {
-            logger.error("[BidService] persistBid FAILED: Invalid IDs - auctionDbId= {}, bidderDbId={}", auctionDbId, bidderId);
+            logger.error("[BidService] persistBid FAILED: Invalid IDs - auctionId= {}, bidderId={}", auctionId, bidderId);
             return false;
         }
     }

@@ -137,7 +137,7 @@
 
                                     <Region prefHeight="25" />
 
-                                    <Label opacity="0.8" text="TIME REMAINING" textFill="#c0c43f" VBox.vgrow="ALWAYS">
+                                    <Label fx:id="lblCountdownLabel" opacity="0.8" text="TIME REMAINING" textFill="#c0c43f" VBox.vgrow="ALWAYS">
                                        <font><Font name="System Bold" size="11.0" /></font>
                                     </Label>
                                     <Label fx:id="lblCountdown" text="00:36:36" textFill="WHITE" VBox.vgrow="ALWAYS">
