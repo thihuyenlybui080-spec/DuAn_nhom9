@@ -67,17 +67,17 @@ public class RegisterController implements Initializable {
     private StackPane rootStackPane;
 
     String selectedGender = "";
-    private static String currentUserId; // Lưu userId của user hiện tại
+    private static int currentUserId; // Lưu userId của user hiện tại
 
     @FXML
     ToggleGroup genderGroup = new ToggleGroup();
     private final SceneManager sceneManager = new SceneManager(getClass());
 
-    public static String getCurrentUserId() {
+    public static int getCurrentUserId() {
         return currentUserId;
     }
 
-    public static void setCurrentUserId(String userId) {
+    public static void setCurrentUserId(int userId) {
         currentUserId = userId;
     }
 
@@ -196,7 +196,7 @@ public class RegisterController implements Initializable {
         String email    = emailTF.getText().trim();
 
         try {
-            String userId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
+            int userId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
             currentUserId = userId; // Lưu userId để dùng khi tạo sản phẩm
             registrationMessageLabel.setText("Registration successful!");
             return true;

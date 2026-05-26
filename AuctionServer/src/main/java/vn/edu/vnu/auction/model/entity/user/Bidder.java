@@ -2,15 +2,10 @@ package vn.edu.vnu.auction.model.entity.user;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.dao.AutoBidDAO;
-import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.AuctionResult;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
-import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidAgent;
-import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidConfig;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.service.PaymentService;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +14,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Bidder extends User  {
     private static final Logger logger = LoggerFactory.getLogger(Bidder.class);
     private final List<BidTransaction> history = new CopyOnWriteArrayList<>();
-//    private final transient Map<String, AutoBidAgent> agents = new ConcurrentHashMap<>();
     private final Map<String, AuctionResult> wonAuctions = new ConcurrentHashMap<>();
 
     public Bidder( String name, String password, String email, String fullName) {
@@ -43,7 +37,6 @@ public class Bidder extends User  {
 //        return BidService.getInstance().placeBid(auction.getId(), this, amount);
 //    }
 
-    //Lưu lịch sử giao dịch sau khi đặt giá thành công.
     public void recordBid(Item item, double amount) {
         if (!isActive()) throw new IllegalStateException("Account is locked and cannot place bids");
         history.add(new BidTransaction(this, item, amount));
@@ -73,7 +66,7 @@ public class Bidder extends User  {
 //        return getWonAuction(auctionId).isPresent();
 //    }
 
-    ///** Thanh toán phiên đã thắng qua {@link PaymentService}. */
+    /** Thanh toán phiên đã thắng qua {@link PaymentService}. */
 //    public boolean payForAuction(String auctionId) {
 //        return PaymentService.getInstance().processPayment(this, auctionId);
 //    }
@@ -89,10 +82,7 @@ public class Bidder extends User  {
 //            existing.stop();
 //        }
 //        AutoBidAgent agent = new AutoBidAgent(this, auction,config);
-//        agents.put(auction.getId(), agent);
-//        // Save to database for persistence
-//        int auctionDbId = Utils.parseDbId(auction.getId());
-//        int bidderDbId = Utils.parseDbId(this.getId());
+//        agents.put(auction.getId(), agent);     
 //        logger.debug("[Bidder] auctionId={} -> auctionDbId={}, bidderId={} -> bidderDbId={}", auction.getId(), auctionDbId, this.getId(), bidderDbId);
 //        if (auctionDbId > 0 && bidderDbId > 0) {
 //            AutoBidDAO.saveAutoBid(auctionDbId, bidderDbId, config.getMaxBid(), config.getIncrement());

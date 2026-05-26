@@ -67,7 +67,7 @@ public class AuctionClientService {
      * @param role        vai trò : Bidder hoặc Seller
      * @return userId của user vừa đăng ký
      */
-    public String register(String username, String password, String fullName,
+    public int register(String username, String password, String fullName,
                          String email, String phoneNumber, String gender, String role) {
         Map<String, String> data = new HashMap<>();
 
@@ -85,8 +85,8 @@ public class AuctionClientService {
             throw new RuntimeException(response.getMessage());
         }
         @SuppressWarnings("unchecked")
-        Map<String, String> responseData = (Map<String, String>) response.getData();
-        return responseData.get("userId");
+        Map<String, Object> responseData = (Map<String, Object>) response.getData();
+        return (Integer) responseData.get("userId");
     }
 
     /**

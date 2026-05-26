@@ -21,7 +21,6 @@ import vn.edu.vnu.auction.service.*;
 import vn.edu.vnu.auction.util.AuctionHistoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -197,7 +196,7 @@ public class ClientHandler implements Runnable{
 
             User user = UserDAO.registerUser(username, password, fullName, email, gender, phoneNumber, role);
 
-            Map<String, String> responseData = new java.util.HashMap<>();
+            Map<String, Object> responseData = new java.util.HashMap<>();
             responseData.put("userId", user.getId());
             responseData.put("message", "Registration successful");
 

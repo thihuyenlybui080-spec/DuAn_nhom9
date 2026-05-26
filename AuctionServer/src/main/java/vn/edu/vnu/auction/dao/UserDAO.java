@@ -122,11 +122,10 @@ public class UserDAO {
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     int dbId = generatedKeys.getInt(1);
-                    String id = String.valueOf(dbId);
                     User user = switch (role) {
-                        case "SELLER" -> new Seller("seller-" + id, username, password, email, fullName);
-                        case "ADMIN" -> new Admin("admin-" + id, username, password, email, fullName);
-                        default -> new Bidder("bidder-" + id, username, password, email, fullName);
+                        case "SELLER" -> new Seller( dbId, username, password, email, fullName);
+                        case "ADMIN" -> new Admin( dbId, username, password, email, fullName);
+                        default -> new Bidder(dbId, username, password, email, fullName);
                     };
                     return user;
                 }

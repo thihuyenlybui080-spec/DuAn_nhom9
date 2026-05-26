@@ -416,7 +416,7 @@ public class SellerDashboardController implements Initializable {
                         + "-fx-border-radius: 4; -fx-text-fill: #fff; -fx-font-size: 11px;");
 
         Auction relatedAuction = myAuctions.stream()
-                .filter(a -> a.getItem().getId().equals(item.getId()))
+                .filter(a -> a.getItem().getId() == item.getId())
                 .findFirst()
                 .orElse(null);
         if (relatedAuction != null && relatedAuction.getStatus() == AuctionStatus.RUNNING) {

@@ -142,7 +142,7 @@ public class PaymentGatewayController {
         );
 
         String itemName = result.getItem() != null ? result.getItem().getItemName() : "Unknown Item";
-        String auctionId = result.getAuctionId() != null ? result.getAuctionId() : "Unknown";
+        int auctionId = result.getAuctionId();
 
         card.getChildren().addAll(
                 buildInfoRow("🛍 Item", itemName),

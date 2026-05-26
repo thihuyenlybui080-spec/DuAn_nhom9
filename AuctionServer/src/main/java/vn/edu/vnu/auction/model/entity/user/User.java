@@ -33,9 +33,6 @@ public abstract class User extends Entity {
         this.statusRecord = newRecord;
         onStatusChanged(newRecord.getStatus());
     }
-
-    //hành vi sau khi thay đổi status
-    //để abstract thì admin bắt buộc pk Override mà không có hành vi gì
     public void onStatusChanged(UserStatus newStatus){};
 
 
