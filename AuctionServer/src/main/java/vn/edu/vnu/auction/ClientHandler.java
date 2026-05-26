@@ -231,10 +231,10 @@ public class ClientHandler implements Runnable{
 
     private Response handleGetAuctionById(Request request){
         try{
-            String auctionId = (String) request.getData();
+            int auctionId = (Integer) request.getData();
             Auction auction = AuctionService.getInstance().getAuction(auctionId);
 
-            if(auctionId == null){
+            if(auction == null){
                 return Response.error("Auction not found: " + auctionId);
             }
 
@@ -255,8 +255,8 @@ public class ClientHandler implements Runnable{
             @SuppressWarnings("unchecked")
             Map<String, Object> bidData = (Map<String, Object>) request.getData();
 
-            String auctionId = (String) bidData.get("auctionId");
-            String bidderId = (String) bidData.get("bidderId");
+            int auctionId = (Integer) bidData.get("auctionId");
+            int bidderId = (Integer) bidData.get("bidderId");
             double amount = ((Number) bidData.get("amount")).doubleValue();
 
             Auction auction = AuctionService.getInstance().getAuction(auctionId);
@@ -265,7 +265,7 @@ public class ClientHandler implements Runnable{
                 return Response.error("Auction not found");
             }
 
-            loggedInUser = UserDAO.getUserById(Integer.parseInt(bidderId.split("-")[1]));
+            loggedInUser = UserDAO.getUserById(bidderId);
 
             if(loggedInUser == null){
                 return Response.error("Bidder not found");
@@ -325,7 +325,7 @@ public class ClientHandler implements Runnable{
     }
 
     private Response handleDeleteItem(Request request){
-        String itemId = (String) request.getData();
+        int itemId = (Integer) request.getData();
         ItemService.getInstance().deleteItem(itemId);
         return Response.ok("Item deleted successfully.", (Object) null);
     }
@@ -333,8 +333,8 @@ public class ClientHandler implements Runnable{
     private Response handleCreateAuctionAndItem(Request request){
         try{
             Item item= (Item) request.getData();
-            String sellerId = item.getSellerId();
-            User seller = UserDAO.getUserById(Utils.parseDbId(sellerId));
+            int sellerId = item.getSellerId();
+            User seller = UserDAO.getUserById(sellerId);
             
             if(seller == null){
                 return Response.error("Seller not found");
@@ -354,7 +354,7 @@ public class ClientHandler implements Runnable{
 
     private Response handleGetBidsByAuction(Request request){
         try{
-            String auctionId = (String) request.getData();
+            int auctionId = (Integer) request.getData();
             List<BidTransaction> list = BidService.getInstance().getBidsByAuction(auctionId);
             return Response.ok(list);
         } catch (Exception e){
@@ -370,7 +370,7 @@ public class ClientHandler implements Runnable{
      */
     private Response handleGetBidHistory(Request request){
         try{
-            String auctionId = (String) request.getData();
+            int auctionId = (Integer) request.getData();
             return Response.ok(AuctionHistoryManager.getInstance().getResult(auctionId));
         } catch (Exception e){
             return Response.error("Failed to get bid history");
@@ -384,8 +384,8 @@ public class ClientHandler implements Runnable{
      */
     private Response handelGetWonAuctions(Request request){
         try{
-            String bidderId = (String) request.getData();
-            if(bidderId == null){
+            int bidderId = (Integer) request.getData();
+            if(bidderId <= 0){
                 return Response.error("BidderId not found");
             }
             if(!(loggedInUser instanceof Bidder)){
@@ -408,8 +408,8 @@ public class ClientHandler implements Runnable{
      */
     private Response handlePayAuction(Request request) {
         try {
-            String auctionId = (String) request.getData();
-            if (auctionId == null) {
+            int auctionId = (Integer) request.getData();
+            if (auctionId < 0) {
                 return Response.error("AuctionId not found");}
             if (!(loggedInUser instanceof Bidder)) {
                 return Response.error("Only Bidder can pay auction");}
@@ -429,7 +429,7 @@ public class ClientHandler implements Runnable{
      * @return phản hồi từ server
      */
     private Response handleWatchAuction(Request request){
-        String auctionId = (String) request.getData();
+        int auctionId = (Integer) request.getData();
         ClientRegistry.getInstance().register(auctionId, outputStream);
         return Response.ok("Watching auction: " + auctionId, (Object) null);
 
@@ -441,15 +441,15 @@ public class ClientHandler implements Runnable{
      * @return phản hồi từ server
      */
     private Response handleLeaveAuction(Request request){
-        String auctionId = (String) request.getData();
+        int auctionId = (Integer) request.getData();
         ClientRegistry.getInstance().unregister(auctionId, outputStream);
         return Response.ok("Left auction: " + auctionId, (Object) null);
     }
 
     private Response handleGetAuctionsBySeller(Request request){
         try {
-            String sellerId = (String) request.getData();
-            if (sellerId == null) {
+            int sellerId = (Integer) request.getData();
+            if (sellerId <= 0) {
                 return Response.error("SellerID not found");
             }
             List<Auction> auctions = AuctionService.getInstance().getAuctionsBySeller(sellerId);
@@ -462,8 +462,8 @@ public class ClientHandler implements Runnable{
 
     private Response handleCancelAuction(Request request){
         try{
-            String auctionId = (String) request.getData();
-            if(auctionId == null){
+            int auctionId = (Integer) request.getData();
+            if(auctionId <= 0){
                 return Response.error("AuctionID not found");
             }
             Auction auction = AuctionService.getInstance().getAuction(auctionId);
@@ -486,8 +486,8 @@ public class ClientHandler implements Runnable{
 
     private Response handleForceEndAuction(Request request){
         try{
-            String auctionId = (String) request.getData();
-            if(auctionId == null){
+            int auctionId = (Integer) request.getData();
+            if(auctionId <= 0){
                 return Response.error("AuctionID not found");
             }
             Auction auction = AuctionService.getInstance().endAuction(auctionId, true);
@@ -502,8 +502,8 @@ public class ClientHandler implements Runnable{
 
     private Response handleGetItemsBySeller(Request request){
         try {
-            String sellerId = (String) request.getData();
-            if (sellerId == null) {
+            int sellerId = (Integer) request.getData();
+            if (sellerId <= 0) {
                 return Response.error("SellerID not found");
             }
             List<Item> items = ItemService.getInstance().getItemsBySeller(sellerId);
@@ -544,8 +544,8 @@ public class ClientHandler implements Runnable{
     private Response handleEnableAutoBid(Request request){
         try{
             Map<String, Object> data = (Map<String, Object>) request.getData();
-            String auctionId = (String) data.get("auctionId");
-            String bidderId = (String) data.get("bidderId");
+            int auctionId = (Integer) data.get("auctionId");
+            int bidderId = (Integer) data.get("bidderId");
             double maxBid = ((Number) data.get("maxBid")).doubleValue();
             double increment = ((Number) data.get("increment")).doubleValue();
 
@@ -597,8 +597,7 @@ public class ClientHandler implements Runnable{
         try{
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) request.getData();
-            String auctionId = (String) data.get("auctionId");
-            String bidderId = (String) data.get("bidderId");
+            int bidderId = (Integer) data.get("bidderId");
             loggedInUser = UserService.getInstance().getUserById(bidderId);
             if(loggedInUser == null){
                 return Response.error("Bidder not found");
@@ -607,7 +606,7 @@ public class ClientHandler implements Runnable{
                 return Response.error("Only bidders can use auto bid");
             }
             //((Bidder) loggedInUser).disableAutoBid(auctionId);
-            logger.info("AutoBid disabled: user={} auction={}", loggedInUser.getFullName(), auctionId);
+            logger.info("AutoBid disabled: user={}", loggedInUser.getFullName());
 
             return Response.ok("Auto bid disabled", (Object) null);
         } catch (Exception e){
@@ -620,17 +619,14 @@ public class ClientHandler implements Runnable{
         try{
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) request.getData();
-            String auctionId = (String) data.get("auctionId");
-            String bidderId = (String) data.get("bidderId");
+            int auctionId = (Integer) data.get("auctionId");
+            int bidderId = (Integer) data.get("bidderId");
 
-            int auctionDbId = Utils.parseDbId(auctionId);
-            int bidderDbId = Utils.parseDbId(bidderId);
-
-            if (auctionDbId <= 0 || bidderDbId <= 0) {
+            if (auctionId <= 0 || bidderId <= 0) {
                 return Response.error("Invalid IDs");
             }
 
-            AutoBidConfig config = AutoBidDAO.getAutoBidConfig(auctionDbId, bidderDbId);
+            AutoBidConfig config = AutoBidDAO.getAutoBidConfig(auctionId, bidderId);
             boolean isActive = config != null;
 
             Map<String, Object> result = new HashMap<>();
@@ -649,15 +645,14 @@ public class ClientHandler implements Runnable{
 
     private Response handleGetBidderHistory(Request request){
         try{
-            String bidderId = (String) request.getData();
-            int bidderDbId = Utils.parseDbId(bidderId);
+            int bidderId = (Integer) request.getData();
 
-            if (bidderDbId <= 0) {
+            if (bidderId <= 0) {
                 return Response.error("Invalid bidder ID");
             }
 
             List<vn.edu.vnu.auction.model.entity.BidTransaction> history =
-                    vn.edu.vnu.auction.dao.BidDAO.getBidHistory(bidderDbId, null);
+                    vn.edu.vnu.auction.dao.BidDAO.getBidHistory(bidderId, null);
 
             return Response.ok("Bidder history retrieved", history);
         } catch (Exception e){
@@ -698,7 +693,7 @@ public class ClientHandler implements Runnable{
         if(user == null){
             return false;
         }
-        User freshUser = UserDAO.getUserById(Integer.parseInt(user.getId().split("-")[1]));
+        User freshUser = UserDAO.getUserById(user.getId());
         return freshUser != null && freshUser.isActive();
     }
 

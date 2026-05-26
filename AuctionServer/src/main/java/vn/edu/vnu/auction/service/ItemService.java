@@ -5,7 +5,6 @@ import vn.edu.vnu.auction.dao.ItemDAO;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,31 +36,20 @@ public class ItemService {
     /**
      * Lấy danh sách item của seller từ DB.
      *
-     * @param sellerId id seller (prefix hoặc số nguyên)
+     * @param sellerId id seller (số nguyên)
      * @return danh sách item, rỗng nếu id không hợp lệ
      */
-    public List<Item> getItemsBySeller(String sellerId) {
-        if (sellerId == null) {
+    public List<Item> getItemsBySeller(int sellerId) {
+        if (sellerId < 0) {
             return Collections.emptyList();
         }
-        int dbId = Utils.parseDbId(sellerId);
-        if (dbId < 0) {
-            try {
-                dbId = Integer.parseInt(sellerId);
-            } catch (NumberFormatException e) {
-                logger.warn("getItemsBySeller: invalid sellerId {}", sellerId);
-                return Collections.emptyList();
-            }
-        }
-//        Seller dummy = new Seller("", "", "", "");
-//        dummy.setId(sellerId);
-        List<Item> items = ItemDAO.getItemsBySeller(dbId);
+        List<Item> items = ItemDAO.getItemsBySeller(sellerId);
         logger.debug("Found {} items for seller {}", items.size(), sellerId);
         return items;
     }
-    public void deleteItem(String itemId){
-        int dbId = Utils.parseDbId(itemId);
-        ItemDAO.deleteItem(dbId);
+
+    public void deleteItem(int itemId){
+        ItemDAO.deleteItem(itemId);
     }
 
     public static synchronized void resetForTesting() {

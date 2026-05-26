@@ -105,12 +105,12 @@ public class AuctionClientService {
 
     /**
      * Lấy danh sách phiên của seller
-     * @param sellerId id của seller
+     * @param id id của seller
      * @return danh sách phiên của seller
      */
     @SuppressWarnings("unchecked")
-    public List<Auction> getAuctionsBySeller(String sellerId){
-        Response response = sendRequest(new Request(Request.ACTION_GET_AUCTIONS_BY_SELLER, sellerId));
+    public List<Auction> getAuctionsBySeller(int id){
+        Response response = sendRequest(new Request(Request.ACTION_GET_AUCTIONS_BY_SELLER, id));
         if(response.isSuccess()){
             return (List<Auction>) response.getData();
         }
@@ -120,11 +120,11 @@ public class AuctionClientService {
 
     /**
      * Lấy danh sách item của seller
-     * @param sellerId id của seller
+     * @param id id của seller
      * @return danh sách item của seller
      */
-    public List<Item> getItemsBySeller(String sellerId){
-        Response response = sendRequest(new Request(Request.ACTION_GET_ITEMS_BY_SELLER, sellerId));
+    public List<Item> getItemsBySeller(int id){
+        Response response = sendRequest(new Request(Request.ACTION_GET_ITEMS_BY_SELLER, id));
         if(response.isSuccess()){
             return (List<Item>) response.getData();
         }
@@ -137,7 +137,7 @@ public class AuctionClientService {
      * @param auctionId id của phiên cần hủy
      * @return phiên đã hủy
      */
-    public Auction cancelAuction(String auctionId){
+    public Auction cancelAuction(int auctionId){
         Response response = sendRequest(new Request(Request.ACTION_CANCEL_AUCTION, auctionId));
         if(response.isSuccess()){
             return (Auction) response.getData();
@@ -178,7 +178,7 @@ public class AuctionClientService {
      * @param auctionId ID của phiên đấu giá
      * @return Auction hoặc null nếu không tìm thấy
      */
-    public Auction getAuctionById(String auctionId) {
+    public Auction getAuctionById(int auctionId) {
         Response response = sendRequest(new Request(Request.ACTION_GET_AUCTION_BY_ID, auctionId));
 
         if (response.isSuccess()) {
@@ -207,7 +207,7 @@ public class AuctionClientService {
      * @param maxBix số tiền mà bidder đưa để tự động dấu giá
      * @param increment bước giá
      */
-    public void enableAutoBid(String auctionId, String bidderId, double maxBix, double increment){
+    public void enableAutoBid(int auctionId, int bidderId, double maxBix, double increment){
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
         data.put("bidderId", bidderId);
@@ -221,7 +221,7 @@ public class AuctionClientService {
      * @param auctionId id của phiên đấu giá
      * @param bidderId id của bidder
      */
-    public void disableAutoBid(String auctionId, String bidderId){
+    public void disableAutoBid(int auctionId, int bidderId){
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
         data.put("bidderId", bidderId);
@@ -234,7 +234,7 @@ public class AuctionClientService {
      * @param bidderId id của bidder
      * @return thông tin tự động đấu giá của bidder đó
      */
-    public Map<String, Object> checkAutoBid(String auctionId, String bidderId){
+    public Map<String, Object> checkAutoBid(int auctionId, int bidderId){
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
         data.put("bidderId", bidderId);
@@ -253,7 +253,7 @@ public class AuctionClientService {
      * @param amount    số tiền đặt giá
      * @return
      */
-    public Auction placeBid(String auctionId, String bidderId, double amount) {
+    public Auction placeBid(int auctionId, int bidderId, double amount) {
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
         data.put("bidderId", bidderId);
@@ -271,7 +271,7 @@ public class AuctionClientService {
      * @param auctionId id của auction
      * @return auction đã kết thúc
      */
-    public Auction forceEndAuction(String auctionId){
+    public Auction forceEndAuction(int auctionId){
         Response response = sendRequest(new Request(Request.ACTION_FORCE_END_AUCTION, auctionId));
         if(response.isSuccess()){
             return (Auction) response.getData();
@@ -285,7 +285,7 @@ public class AuctionClientService {
      * @param auctionId ID của một phiên đấu giá
      * @return danh sách giao dịch bid
      */
-    public List<BidTransaction> getBidHistory(String auctionId) {
+    public List<BidTransaction> getBidHistory(int auctionId) {
         Response response = sendRequest(new Request(Request.ACTION_GET_BID_HISTORY, auctionId));
         if (response.isSuccess()) {
             return (List<BidTransaction>) response.getData();
@@ -298,7 +298,7 @@ public class AuctionClientService {
      * @param auctionId id của auction đó
      * @return danh sách giao dịch của auction đó
      */
-    public List<BidTransaction> getBidsByAuction(String auctionId){
+    public List<BidTransaction> getBidsByAuction(int auctionId){
         Response response = sendRequest(new Request(Request.ACTION_GET_BIDS_BY_AUCTION, auctionId));
         if(response.isSuccess()){
             return (List<BidTransaction>) response.getData();
@@ -311,7 +311,7 @@ public class AuctionClientService {
      * @param bidderId id của bidder
      * @return danh sách giao dịch của bidder
      */
-    public List<BidTransaction> getBidderHistory(String bidderId){
+    public List<BidTransaction> getBidderHistory(int bidderId){
         Response response = sendRequest(new Request(Request.ACTION_GET_BIDDER_HISTORY, bidderId));
         if(response.isSuccess()){
             return (List<BidTransaction>) response.getData();
@@ -325,7 +325,7 @@ public class AuctionClientService {
      * @param itemId id của item đó
      * @return item đã xóa
      */
-    public Item deleteItem(String itemId){
+    public Item deleteItem(int itemId){
         Response response = sendRequest(new Request(Request.ACTION_DELETE_ITEM, itemId));
         if(response.isSuccess()){
             return (Item) response.getData();
@@ -338,7 +338,7 @@ public class AuctionClientService {
      * @param bidderId id của Bidder
      * @return phản hồi từ server
      */
-    public List<AuctionResult> getWonAuctions(String bidderId){
+    public List<AuctionResult> getWonAuctions(int bidderId){
         Response response = sendRequest(new Request(Request.ACTION_GET_WON_AUCTIONS, bidderId));
         if(response.isSuccess()){
             return (List<AuctionResult>) response.getData();
@@ -346,7 +346,7 @@ public class AuctionClientService {
         throw new RuntimeException(response.getMessage());
     }
 
-    public boolean payAuction(String auctionId){
+    public boolean payAuction(int auctionId){
         Response response = sendRequest(new Request(Request.ACTION_PAY_AUCTION, auctionId));
         if(response.isSuccess()){
             return true;
@@ -401,7 +401,7 @@ public class AuctionClientService {
      * gọi khi mở màn BiddingController
      * @param auctionId id của phiên đấu giá
      */
-    public void watchAuction(String auctionId){
+    public void watchAuction(int auctionId){
         sendRequest(new Request(Request.ACTION_WATCH_AUCTION, auctionId));
     }
 
@@ -409,7 +409,7 @@ public class AuctionClientService {
      * Báo server biết client thoát phiên này -> không nhận thông báo nữa
      * @param auctionId id của phiên đấu giá
      */
-    public void leaveAuction(String auctionId){
+    public void leaveAuction(int auctionId){
         sendRequest(new Request(Request.ACTION_LEAVE_AUCTION, auctionId));
     }
 }

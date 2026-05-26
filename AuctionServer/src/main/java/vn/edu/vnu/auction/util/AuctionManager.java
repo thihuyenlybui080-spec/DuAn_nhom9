@@ -24,7 +24,7 @@ public class AuctionManager {
     private static final Logger logger = LoggerFactory.getLogger(AuctionManager.class);
     private static volatile AuctionManager instance;
 
-    private final Map<String, Auction> activeAuctions;
+    private final Map<Integer, Auction> activeAuctions;
     private final ScheduledExecutorService scheduler;
 
     private AuctionManager() {
@@ -50,7 +50,7 @@ public class AuctionManager {
      * Đăng ký phiên đang active trong bộ nhớ.
      */
     public void putActive(Auction auction) {
-        if (auction != null && auction.getId() != null) {
+        if (auction != null && auction.getId() > 0) {
             activeAuctions.put(auction.getId(), auction);
             logger.debug("Active auction registered: {}", auction.getId());
         }
@@ -59,14 +59,14 @@ public class AuctionManager {
     /**
      * Lấy phiên đang chạy từ bộ nhớ (không truy vấn DB).
      */
-    public Auction getActive(String auctionId) {
+    public Auction getActive(int auctionId) {
         return activeAuctions.get(auctionId);
     }
 
     /**
      * Gỡ phiên khỏi bộ nhớ active.
      */
-    public void removeActive(String auctionId) {
+    public void removeActive(int auctionId) {
         activeAuctions.remove(auctionId);
         logger.debug("Active auction removed: {}", auctionId);
     }

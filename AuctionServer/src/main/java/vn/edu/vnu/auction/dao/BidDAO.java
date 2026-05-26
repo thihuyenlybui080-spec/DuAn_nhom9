@@ -117,10 +117,10 @@ public class BidDAO {
                             rs.getString("email"),
                             rs.getString("full_name")
                     );
-                    bid.setId(String.valueOf(bidderId));
+                    bid.setId(bidderId);
                     BidTransaction tx = new BidTransaction(bid, item, rs.getDouble("bid_amount"));
                     tx.setTimestamp(rs.getTimestamp("bid_time").toLocalDateTime());
-                    tx.setAuctionId("auction-" + rs.getInt("auction_id"));
+                    tx.setAuctionId(rs.getInt("auction_id"));
                     list.add(tx);
                 }
             }

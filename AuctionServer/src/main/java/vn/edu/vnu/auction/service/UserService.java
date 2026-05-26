@@ -13,7 +13,6 @@ import vn.edu.vnu.auction.model.entity.user.UserStatus;
 import vn.edu.vnu.auction.model.entity.user.UserStatusRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.util.List;
 
@@ -109,8 +108,8 @@ public class UserService {
 //        logger.info("Bidder {} set to {}: all active bids canceled and auto-bids disabled", bidder.getName(), status);
     }
 
-    public User getUserById(String userId){
-        User user = UserDAO.getUserById(Integer.parseInt(userId.split("-")[1]));
+    public User getUserById(int userId){
+        User user = UserDAO.getUserById(userId);
         return user;
     }
 
@@ -135,8 +134,7 @@ public class UserService {
 
     private boolean belongsToSeller(Auction auction, Seller seller) {
         return auction.getSeller() != null
-                && seller.getId() != null
-                && seller.getId().equals(auction.getSeller().getId());
+                && auction.getSeller().getId() == seller.getId();
     }
 
     public static synchronized void resetForTesting() {

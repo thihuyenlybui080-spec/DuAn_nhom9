@@ -12,11 +12,11 @@ public class NotificationMessage implements Serializable {
     public static final String TYPE_AUTO_BID_AUCTION_ENDED = "AUTO_BID_AUCTION_ENDED";
 
     private final String type;
-    private final String auctionId;
+    private final int auctionId;
 
     private final Object data;
 
-    public NotificationMessage(String type, String auctionId, Object data){
+    public NotificationMessage(String type, int auctionId, Object data){
         this.type = type;
         this.auctionId = auctionId;
         this.data = data;
@@ -26,7 +26,7 @@ public class NotificationMessage implements Serializable {
         return type;
     }
 
-    public String getAuctionId() {
+    public int getAuctionId() {
         return auctionId;
     }
 

@@ -14,7 +14,7 @@ public class Seller extends User {
         super( name, password, email, fullName);
     }
 
-    public Seller(String id, String name, String password, String email, String fullName){
+    public Seller(int id, String name, String password, String email, String fullName){
         super(id, name, password, email, fullName);
     }
 
@@ -26,10 +26,6 @@ public class Seller extends User {
         return ownedItems;
     }
 
-    @Override
-    protected String getIdPrefix(){
-        return "seller";
-    }
     @Override
     public String getRole(){
         return "Seller";

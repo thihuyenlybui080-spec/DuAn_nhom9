@@ -26,7 +26,7 @@ public class Bidder extends User  {
         super( name, password, email, fullName);
     }
 
-    public Bidder(String id, String name, String password, String email, String fullName) {
+    public Bidder(int id, String name, String password, String email, String fullName) {
         super(id, name, password, email, fullName);
     }
 
@@ -127,11 +127,6 @@ public class Bidder extends User  {
 //        refreshWonAuctions();
 //        return Optional.ofNullable(wonAuctions.get(auctionId));
 //    }
-
-    @Override
-    protected String getIdPrefix(){
-        return "bidder";
-    }
 
     @Override
     public String getRole(){

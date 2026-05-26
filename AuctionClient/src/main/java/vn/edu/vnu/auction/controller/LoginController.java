@@ -77,8 +77,7 @@ public class LoginController implements Initializable {
             User user = AuctionClientService.getInstance().login(username, password);
 
             if (user != null) {
-                String rawId = user.getId();
-                int userId = Integer.parseInt(rawId.contains("-") ? rawId.substring(rawId.lastIndexOf("-") + 1) : rawId);
+                int userId = user.getId();
                 String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";
                 RegisterController.setCurrentUserId(rawId);
 

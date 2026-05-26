@@ -8,7 +8,6 @@ import vn.edu.vnu.auction.util.AuctionHistoryManager;
 import vn.edu.vnu.auction.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +45,7 @@ public class PaymentService {
     /**
      * Lên lịch hủy phiên nếu người thắng không thanh toán trong thời hạn.
      */
-    public void schedulePaymentDeadline(String auctionId) {
+    public void schedulePaymentDeadline(int auctionId) {
         AuctionHistoryManager historyManager = AuctionHistoryManager.getInstance();
         AuctionResult result = historyManager.getResult(auctionId);
         if (result == null) {
@@ -57,9 +56,8 @@ public class PaymentService {
             AuctionResult current = historyManager.getResult(auctionId);
             if (current != null && current.getStatus() == AuctionStatus.FINISHED) {
                 historyManager.updateStatus(auctionId, AuctionStatus.CANCELED);
-                int dbId = Utils.parseDbId(auctionId);
-                if (dbId > 0) {
-                    AuctionDAO.updateAuctionStatus(dbId, AuctionStatus.CANCELED);
+                if (auctionId > 0) {
+                    AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
                 }
                 logger.warn("Payment deadline expired for auction {}", auctionId);
             }
@@ -74,7 +72,7 @@ public class PaymentService {
      *
      * @return true nếu thanh toán thành công hoặc đã thanh toán trước đó
      */
-    public boolean processPayment(Bidder bidder, String auctionId) {
+    public boolean processPayment(Bidder bidder, int auctionId) {
         //TODO: reimplement
 //        Optional<AuctionResult> resultOpt = findWonAuction(bidder, auctionId);
 //        if (resultOpt.isEmpty()) {

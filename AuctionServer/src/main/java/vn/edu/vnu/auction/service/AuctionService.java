@@ -12,7 +12,6 @@ import vn.edu.vnu.auction.util.AuctionHistoryManager;
 import vn.edu.vnu.auction.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.util.Utils;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -70,13 +69,13 @@ public class AuctionService {
             logger.error("Auction end time is in the past for item {}", item.getItemName());
         }
 
-        int sellerId = Utils.parseDbId(item.getSellerId());
+        int sellerId = item.getSellerId();
         int itemDbId = ItemDAO.insertItem(item, sellerId);
         if (itemDbId <= 0) {
             logger.error("Failed to insert item {} into database for seller {}", item.getItemName(), sellerId);
             throw new RuntimeException("Failed to create item in database");
         }
-        item.setId("item-" + itemDbId);
+        item.setId(itemDbId);
 
         long durationSeconds = ChronoUnit.SECONDS.between(item.getStartTime(), item.getEndTime());
         int auctionDbId = AuctionDAO.insertAuction(itemDbId, item.getStartingPrice(),
@@ -89,7 +88,7 @@ public class AuctionService {
 
         Auction auction = new Auction(item);
         if (auctionDbId > 0) {
-            auction.setId("auction-" + auctionDbId);
+            auction.setId(auctionDbId);
         }
 
         if (startDelay <= 0) {
@@ -110,9 +109,9 @@ public class AuctionService {
         auction.setStatus(AuctionStatus.RUNNING);
         
         // Update database status when auction transitions to RUNNING
-        int auctionDbId = Utils.parseDbId(auction.getId());
-        if (auctionDbId > 0) {
-            AuctionDAO.updateAuctionStatus(auctionDbId, AuctionStatus.RUNNING);
+        int auctionId = auction.getId();
+        if (auctionId > 0) {
+            AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.RUNNING);
         }
         
         logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
@@ -128,7 +127,7 @@ public class AuctionService {
      * @param auctionId id phiên đấu giá
      * @param forced true nếu admin force end, false nếu kết thúc tự nhiên
      */
-    public Auction endAuction(String auctionId, boolean forced) {
+    public Auction endAuction(int auctionId, boolean forced) {
         Auction auction = auctionManager.getActive(auctionId);
         if (auction == null) {
             logger.warn("endAuction: auction {} not found in memory", auctionId);
@@ -144,14 +143,13 @@ public class AuctionService {
 
         auction.finishAuction(finalStatus);
 
-        int auctionDbId = Utils.parseDbId(auctionId);
-        if (auctionDbId > 0) {
-            AuctionDAO.updateAuctionStatus(auctionDbId, finalStatus);
+        if (auctionId > 0) {
+            AuctionDAO.updateAuctionStatus(auctionId, finalStatus);
             if (finalStatus == AuctionStatus.FINISHED && auction.getHighestBidder() != null) {
-                int bidderId = Utils.parseDbId(auction.getHighestBidder().getId());
-                int itemDbId = Utils.parseDbId(auction.getItem().getId());
+                int bidderId = auction.getHighestBidder().getId();
+                int itemDbId = auction.getItem().getId();
                 if (bidderId > 0 && itemDbId > 0) {
-                    BidDAO.insertBidTransaction(auctionDbId, bidderId, itemDbId, auction.getCurrentPrice());
+                    BidDAO.insertBidTransaction(auctionId, bidderId, itemDbId, auction.getCurrentPrice());
                 }
             }
         }
@@ -171,18 +169,17 @@ public class AuctionService {
      * Hủy phiên đang chạy (admin / seller / ban seller).
      * Tìm phiên nếu trên Ram không có, lấy từ database
      */
-    public void cancelAuction(String auctionId) {
+    public void cancelAuction(int auctionId) {
         Auction auction = auctionManager.getActive(auctionId);
         if (auction == null) {
             auction = AuctionDAO.getAuctionById(auctionId);
-            
+
             if (auction == null) {
                 logger.warn("cancelAuction: auction {} not found in DB or memory", auctionId);
                 return;
             }
-            int dbId = Utils.parseDbId(auctionId);
-            if (dbId > 0) {
-                AuctionDAO.updateAuctionStatus(dbId, AuctionStatus.CANCELED);
+            if (auctionId > 0) {
+                AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
             }
 
             AuctionManager.getInstance().putActive(auction);
@@ -193,9 +190,8 @@ public class AuctionService {
         }
 
         auction.setStatus(AuctionStatus.CANCELED);
-        int dbId = Utils.parseDbId(auctionId);
-        if (dbId > 0) {
-            AuctionDAO.updateAuctionStatus(dbId, AuctionStatus.CANCELED);
+        if (auctionId > 0) {
+            AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
         }
 
         AuctionResult result = new AuctionResult(auction);
@@ -207,11 +203,10 @@ public class AuctionService {
     /**
      * Gỡ phiên khỏi bộ nhớ (chưa chạy hoặc seller xóa item).
      */
-    public void removeAuction(String auctionId) {
+    public void removeAuction(int auctionId) {
         auctionManager.removeActive(auctionId);
-        int dbId = Utils.parseDbId(auctionId);
-        if (dbId > 0) {
-            AuctionDAO.updateAuctionStatus(dbId, AuctionStatus.CANCELED);
+        if (auctionId > 0) {
+            AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
         }
         logger.debug("Auction {} removed from active map", auctionId);
     }
@@ -248,9 +243,9 @@ public class AuctionService {
                 auction.setStatus(AuctionStatus.RUNNING);
                 
                 // Update database status when auction transitions to RUNNING
-                int auctionDbId = Utils.parseDbId(auction.getId());
-                if (auctionDbId > 0) {
-                    AuctionDAO.updateAuctionStatus(auctionDbId, AuctionStatus.RUNNING);
+                int auctionId = auction.getId();
+                if (auctionId > 0) {
+                    AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.RUNNING);
                 }
                 
                 logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
@@ -273,7 +268,7 @@ public class AuctionService {
     /**
      * Lấy auction: ưu tiên in-memory, fallback DB.
      */
-    public Auction getAuction(String auctionId) {
+    public Auction getAuction(int auctionId) {
         Auction auction = AuctionDAO.getAuctionById(auctionId);
         if (auction != null) {
             // Check if there's an in-memory instance in AuctionManager
@@ -297,20 +292,12 @@ public class AuctionService {
     }
 
     /** Lấy auction theo seller từ DB. */
-    public List<Auction> getAuctionsBySeller(String sellerId) {
-        if (sellerId == null) {
+    public List<Auction> getAuctionsBySeller(int sellerId) {
+        if (sellerId < 0) {
             return Collections.emptyList();
         }
-        int dbId = Utils.parseDbId(sellerId);
-        if (dbId < 0) {
-            try {
-                dbId = Integer.parseInt(sellerId);
-            } catch (NumberFormatException e) {
-                return Collections.emptyList();
-            }
-        }
         List<User> allUsers = UserDAO.getAllUsers();
-        return AuctionDAO.getAuctionsBySeller(dbId, allUsers);
+        return AuctionDAO.getAuctionsBySeller(sellerId, allUsers);
     }
 
     public static synchronized void resetForTesting() {

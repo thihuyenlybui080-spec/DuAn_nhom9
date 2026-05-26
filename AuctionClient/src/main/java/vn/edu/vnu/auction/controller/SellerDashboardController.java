@@ -452,7 +452,7 @@ public class SellerDashboardController implements Initializable {
 
     private void onDeleteItem(Item item) {
         Auction relatedAuction = myAuctions.stream()
-                .filter(a -> a.getItem().getId().equals(item.getId()))
+                .filter(a -> a.getItem().getId() == item.getId())
                 .findFirst()
                 .orElse(null);
 
@@ -481,7 +481,7 @@ public class SellerDashboardController implements Initializable {
                 try {
                     if (relatedAuction != null) {
                         AuctionClientService.getInstance().cancelAuction(relatedAuction.getId());
-                        myAuctions.removeIf(a -> a.getId().equals(relatedAuction.getId()));
+                        myAuctions.removeIf(a -> a.getId() == relatedAuction.getId());
                     }
                     AuctionClientService.getInstance().deleteItem(item.getId());
                     myItems.remove(item);
@@ -554,7 +554,7 @@ public class SellerDashboardController implements Initializable {
                 if (relatedItem != null) {
                     try {
                         AuctionClientService.getInstance().deleteItem(relatedItem.getId());
-                        myItems.removeIf(item -> item.getId().equals(relatedItem.getId()));
+                        myItems.removeIf(item -> item.getId() == relatedItem.getId());
                     } catch (Exception e) {
                         System.err.println("Failed to delete related item: " + e.getMessage());
                     }

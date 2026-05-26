@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ClientRegistry {
     private static final Logger logger = LoggerFactory.getLogger(ClientRegistry.class);
-    private final Map<String, Set<ObjectOutputStream>> registry = new ConcurrentHashMap<>();
+    private final Map<Integer, Set<ObjectOutputStream>> registry = new ConcurrentHashMap<>();
 
     private static ClientRegistry instance;
 
@@ -47,7 +47,7 @@ public class ClientRegistry {
      * @param auctionId ID phiên đang xem
      * @param stream    ObjectOutputStream của client vừa đăng kí
      */
-    public void register(String auctionId, ObjectOutputStream stream) {
+    public void register(int auctionId, ObjectOutputStream stream) {
         registry.computeIfAbsent(auctionId, k -> ConcurrentHashMap.newKeySet())
                 .add(stream);
         logger.info("Client registered for auction: {} (total: {} )", auctionId, registry.get(auctionId).size());
@@ -62,7 +62,7 @@ public class ClientRegistry {
      * @param auctionId ID của phiên
      * @param stream    ObjectOutputStream của người cần hủy
      */
-    public void unregister(String auctionId, ObjectOutputStream stream) {
+    public void unregister(int auctionId, ObjectOutputStream stream) {
         Set<ObjectOutputStream> streams = registry.get(auctionId);
         if (streams != null) {
             streams.remove(stream);
@@ -83,7 +83,7 @@ public class ClientRegistry {
         logger.info("Client stream remove from all aucions");
     }
 
-    public void notifyAll(String auctionId, NotificationMessage notification) {
+    public void notifyAll(int auctionId, NotificationMessage notification) {
         Set<ObjectOutputStream> streams = registry.get(auctionId);
         if (streams == null || streams.isEmpty()) {
             return;

@@ -107,7 +107,7 @@ public class BidderDashboardController implements Initializable {
 
     public void setCurrent(Bidder bidder){
         this.bidder = bidder;
-        lblUserName.setText(bidder.getFullName());
+        lblUserName.setText(bidder.getName());
     }
 
     @FXML
@@ -510,6 +510,38 @@ public class BidderDashboardController implements Initializable {
             List<BidTransaction> history =
                     AuctionClientService.getInstance().getBidderHistory(bidder.getId());
 
+            // Add column headers
+            HBox headerRow = new HBox(15);
+            headerRow.setAlignment(Pos.CENTER_LEFT);
+            headerRow.setPadding(new Insets(10, 0, 10, 0));
+            headerRow.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 2 0;");
+
+            Label lblItemHeader = new Label("ITEM");
+            lblItemHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblItemHeader.setStyle("-fx-text-fill: #c0c43f;");
+            lblItemHeader.setPrefWidth(200);
+
+            Label lblAuctionIdHeader = new Label("AUCTION ID");
+            lblAuctionIdHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblAuctionIdHeader.setStyle("-fx-text-fill: #c0c43f;");
+            lblAuctionIdHeader.setPrefWidth(100);
+
+            Label lblAmountHeader = new Label("AMOUNT");
+            lblAmountHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblAmountHeader.setStyle("-fx-text-fill: #c0c43f;");
+            lblAmountHeader.setPrefWidth(150);
+
+            Label lblTimeHeader = new Label("TIME");
+            lblTimeHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblTimeHeader.setStyle("-fx-text-fill: #c0c43f;");
+            lblTimeHeader.setPrefWidth(150);
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            headerRow.getChildren().addAll(lblItemHeader, lblAuctionIdHeader, spacer, lblAmountHeader, lblTimeHeader);
+            paneHistory.getChildren().add(headerRow);
+
             if (history.isEmpty()) {
                 Label empty = new Label("No records found yet.");
                 empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
@@ -529,7 +561,7 @@ public class BidderDashboardController implements Initializable {
                 lblItem.setStyle("-fx-text-fill: #fff;");
                 lblItem.setPrefWidth(200);
 
-                Label lblAuctionId = new Label(bid.getAuctionId() != null ? bid.getAuctionId() : "—");
+                Label lblAuctionId = new Label(String.valueOf(bid.getAuctionId()));
                 lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
                 lblAuctionId.setPrefWidth(100);
 
@@ -541,8 +573,9 @@ public class BidderDashboardController implements Initializable {
                 // Time
                 Label lblTime = new Label(bid.getTimestamp() != null ? bid.getTimestamp().format(TIME_FORMAT) : "—");
                 lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+                lblTime.setPrefWidth(150);
 
-                Region spacer = new Region();
+                spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
                 row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblAmount, lblTime);
@@ -591,7 +624,7 @@ public class BidderDashboardController implements Initializable {
                 lblItem.setPrefWidth(200);
 
                 // Auction ID
-                Label lblAuctionId = new Label(result.getAuctionId() != null ? result.getAuctionId() : "—");
+                Label lblAuctionId = new Label(String.valueOf(result.getAuctionId()));
                 lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
                 lblAuctionId.setPrefWidth(100);
 
@@ -754,6 +787,23 @@ public class BidderDashboardController implements Initializable {
         if(auction.getStatus() == FINISHED) {
             return "Ended";
         }
+
+        if(auction.getStatus() == OPEN && auction.getItem().getStartTime() != null){
+            long totalSeconds = java.time.Duration.between(LocalDateTime.now(), auction.getItem().getStartTime()).getSeconds();
+            if(totalSeconds <= 0){
+                return "Starting soon";
+            }
+            long hours   = totalSeconds / 3600;
+            long minutes = (totalSeconds % 3600) / 60;
+            long seconds = totalSeconds % 60;
+
+            if(hours > 24){
+                return "Starts in " + (hours / 24) + " days";
+            }
+            if(hours > 0) return "Starts in " + hours + "h " + minutes + "m";
+            return "Starts in " + minutes + "m " + seconds + "s";
+        }
+
         LocalDateTime end = auction.getItem().getEndTime();
         if(end == null){
             return "--";
@@ -769,12 +819,20 @@ public class BidderDashboardController implements Initializable {
         if(hours > 24){
             return (hours / 24) + " days left";
         }
-        if(hours > 0) return hours + " " + minutes + " left";
-        return minutes + " " + seconds + " left";
+        if(hours > 0) return hours + "h " + minutes + "m left";
+        return minutes + "m " + seconds + "s left";
     }
 
     private String getTimeStyle(Auction auction){
-        if(auction.getStatus() != RUNNING || auction.getItem().getEndTime() == null){
+        if(auction.getStatus() == FINISHED){
+            return "-fx-text-fill: #999; -fx-font-size: 12px;";
+        }
+
+        if(auction.getStatus() == OPEN){
+            return "-fx-text-fill: #1a56db; -fx-font-weight: bold; -fx-font-size: 12px;";
+        }
+
+        if(auction.getItem().getEndTime() == null){
             return "-fx-text-fill: #999; -fx-font-size: 12px;";
         }
 

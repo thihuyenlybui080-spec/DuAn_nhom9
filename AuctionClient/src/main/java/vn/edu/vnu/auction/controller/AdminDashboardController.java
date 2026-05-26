@@ -223,7 +223,7 @@ public class AdminDashboardController implements Initializable {
         Label emailLabel = new Label(user.getEmail());
         emailLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
 
-        Label idLabel = new Label(user.getId());
+        Label idLabel = new Label(String.valueOf(user.getId()));
         idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
 
         info.getChildren().addAll(row1, emailLabel, idLabel);
@@ -235,7 +235,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private Button buildLockButton(User user){
-        boolean isSelf = user.getId().equals(admin.getId());
+        boolean isSelf = user.getId() == admin.getId();
         Button btnLockOrUnlock = new Button(user.isActive() ? "🔒 Lock" : "🔓 Unlock" );
         btnLockOrUnlock.setDisable(isSelf);
 

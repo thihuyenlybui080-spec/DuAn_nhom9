@@ -20,7 +20,7 @@ public class AutoBidAgent implements Observer, Serializable {
     private static final long serialVersionUID = 1L;
 
     private final Bidder bidder;
-    private final String auctionId;
+    private final int auctionId;
     private final AutoBidConfig config;
     private boolean active = true;
     private final AtomicBoolean processing = new AtomicBoolean(false); // ← thêm
@@ -33,7 +33,7 @@ public class AutoBidAgent implements Observer, Serializable {
     }
 
     @Override
-    public void update(String auctionId, double currentPrice, String highestBidder) {
+    public void update(int auctionId, double currentPrice, String highestBidder) {
         if (!active) return;
         if (bidder.getName().equals(highestBidder)) return; // mình đang lead → không bid
         if (!processing.compareAndSet(false, true)) return; // đang xử lý → bỏ qua

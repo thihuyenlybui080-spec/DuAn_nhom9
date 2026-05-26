@@ -42,7 +42,7 @@ public class AuctionDetailController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailController.class);
 
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private static final NumberFormat VND_FORMAT = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
     @FXML private Label lblStatusBadge;;
@@ -60,6 +60,7 @@ public class AuctionDetailController implements Initializable {
     @FXML private Label lblCurrentPrice;
     @FXML private Label lblBidCount;
     @FXML private Label lblCountdown;
+    @FXML private Label lblCountdownLabel;
     @FXML private Button btnPlaceBid;
     @FXML private Button btnBack;
     @FXML private Label lblAuctionIdBar;
@@ -110,7 +111,7 @@ public class AuctionDetailController implements Initializable {
 
         lblCategory.setText(auction.getItem().getCategory());
 
-        lblItemId.setText(auction.getItem().getId());
+        lblItemId.setText(String.valueOf(auction.getItem().getId()));
         lblItemName.setText(auction.getItem().getItemName());
         lblDescription.setText(auction.getItem().getDescription());
 
@@ -211,7 +212,7 @@ public class AuctionDetailController implements Initializable {
     }
 
     private void updateBidButton(){
-        boolean canBid = auction.getStatus() == RUNNING || auction.getStatus() == OPEN;
+        boolean canBid = auction.getStatus() == RUNNING;
         btnPlaceBid.setDisable(!canBid);
         if(!canBid){
             btnPlaceBid.setStyle(
@@ -249,17 +250,30 @@ public class AuctionDetailController implements Initializable {
     }
 
     private void updateCountdown(){
-        if(auction.getItem().getEndTime() == null
-                || auction.getStatus() == FINISHED) {
+        if(auction.getStatus() == FINISHED) {
             lblCountdown.setText("ENDED");
+            lblCountdownLabel.setText("TIME REMAINING");
             lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #888;");
             stopAutoRefresh();
             return;
         }
-        long totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
-        if(totalSecs <= 0){
-            lblCountdown.setText("ENDED");
-            stopAutoRefresh();
+
+        long totalSecs;
+        if(auction.getStatus() == OPEN && auction.getItem().getStartTime() != null){
+            totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getStartTime()).getSeconds();
+            lblCountdownLabel.setText("STARTS IN");
+            if(totalSecs <= 0){
+                return;
+            }
+        } else if(auction.getItem().getEndTime() != null){
+            totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
+            lblCountdownLabel.setText("TIME REMAINING");
+            if(totalSecs <= 0){
+                lblCountdown.setText("ENDED");
+                stopAutoRefresh();
+                return;
+            }
+        } else {
             return;
         }
 
@@ -268,7 +282,9 @@ public class AuctionDetailController implements Initializable {
         long s = totalSecs % 60;
         lblCountdown.setText(String.format("%02d:%02d:%02d", h, m, s));
 
-        if(totalSecs <= 300){
+        if(auction.getStatus() == OPEN){
+            lblCountdown.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1a56db;");
+        } else if(totalSecs <= 300){
             lblCountdown.setStyle(
                     "-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #e53935;"
             );
