@@ -32,6 +32,11 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### DB ###
+*.db
+*.db-shm
+*.db-wal
+
 ### VS Code ###
 .vscode/
 
