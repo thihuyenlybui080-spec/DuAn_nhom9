@@ -195,9 +195,13 @@ public class ClientHandler implements Runnable{
                 return Response.error("Missing required fields");
             }
 
-            UserDAO.registerUser(username, password, fullName, email, gender, phoneNumber, role);
+            User user = UserDAO.registerUser(username, password, fullName, email, gender, phoneNumber, role);
 
-            return Response.ok("Registration successful.", null);
+            Map<String, String> responseData = new java.util.HashMap<>();
+            responseData.put("userId", user.getId());
+            responseData.put("message", "Registration successful");
+
+            return Response.ok(responseData);
         } catch (DuplicateUsernameException e){
             logger.warn("Register error: {}", e.getMessage());
             return Response.error("Username already exists");
@@ -323,7 +327,7 @@ public class ClientHandler implements Runnable{
     private Response handleDeleteItem(Request request){
         int itemId = (Integer) request.getData();
         ItemService.getInstance().deleteItem(itemId);
-        return Response.ok("Item deleted successfully.", null);
+        return Response.ok("Item deleted successfully.", (Object) null);
     }
 
     private Response handleCreateAuctionAndItem(Request request){
@@ -412,7 +416,7 @@ public class ClientHandler implements Runnable{
             boolean success = PaymentService.getInstance().processPayment((Bidder) loggedInUser, auctionId);
             if (!success) {
                 return Response.error("Payment failed");}
-            return Response.ok("Payment successful", auctionId);
+            return Response.ok("Payment successful", (Object) auctionId);
         } catch (Exception e) {
             logger.warn("PayAuction error", e);
             return Response.error("Failed to process payment");
@@ -427,7 +431,7 @@ public class ClientHandler implements Runnable{
     private Response handleWatchAuction(Request request){
         int auctionId = (Integer) request.getData();
         ClientRegistry.getInstance().register(auctionId, outputStream);
-        return Response.ok("Watching auction: " + auctionId, null);
+        return Response.ok("Watching auction: " + auctionId, (Object) null);
 
     }
 
@@ -439,7 +443,7 @@ public class ClientHandler implements Runnable{
     private Response handleLeaveAuction(Request request){
         int auctionId = (Integer) request.getData();
         ClientRegistry.getInstance().unregister(auctionId, outputStream);
-        return Response.ok("Left auction: " + auctionId, null);
+        return Response.ok("Left auction: " + auctionId, (Object) null);
     }
 
     private Response handleGetAuctionsBySeller(Request request){
@@ -581,7 +585,7 @@ public class ClientHandler implements Runnable{
             logger.info("User object hash: {}", System.identityHashCode(loggedInUser));
             //((Bidder) loggedInUser).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
             logger.info("enableAutoBid call completed");
-            return Response.ok("Auto-bid enabled", null);
+            return Response.ok("Auto-bid enabled", (Object) null);
         } catch (Exception e){
             logger.error("EnableAutoBid error", e);
             e.printStackTrace();
@@ -604,7 +608,7 @@ public class ClientHandler implements Runnable{
             //((Bidder) loggedInUser).disableAutoBid(auctionId);
             logger.info("AutoBid disabled: user={}", loggedInUser.getFullName());
 
-            return Response.ok("Auto bid disabled", null);
+            return Response.ok("Auto bid disabled", (Object) null);
         } catch (Exception e){
             logger.warn("DisableAutoBid error: {}", e.getMessage());
             return Response.error("Failed to disable auto-bid: " + e.getMessage());

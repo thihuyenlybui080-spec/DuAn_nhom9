@@ -16,7 +16,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootBorderPane" maxHeight="700.0" maxWidth="1150.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 30, 0, 0, 0);" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.edu.vnu.auction.controller.BidderDashboardController">
+<BorderPane fx:id="rootBorderPane" maxHeight="700.0" maxWidth="1150.0" style="-fx-background-color: #12080a; -fx-background-radius: 20; -fx-overflow: hidden; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 30, 0, 0, 0);" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.edu.vnu.auction.controller.BidderDashboardController">
 
     <left>
         <VBox alignment="TOP_CENTER" prefHeight="700.0" prefWidth="253.0" spacing="5.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;">
@@ -131,6 +131,7 @@
                         <ToggleButton fx:id="btnVehicles" mnemonicParsing="false" onAction="#onCategoryVehicles" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #3d1c21; -fx-border-radius: 15;" text="Vehicles" toggleGroup="$categoryGroup" />
                         <ToggleButton fx:id="btnElectronics" mnemonicParsing="false" onAction="#onCategoryElectronics" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #3d1c21; -fx-border-radius: 15;" text="Electronics" toggleGroup="$categoryGroup" />
                         <ToggleButton fx:id="btnArt" mnemonicParsing="false" onAction="#onCategoryArt" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #3d1c21; -fx-border-radius: 15;" text="Art" toggleGroup="$categoryGroup" />
+                        <ToggleButton fx:id="btnOthers" mnemonicParsing="false" onAction="#onCategoryOther" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #3d1c21; -fx-border-radius: 15;" text="Other" toggleGroup="$categoryGroup" />
 
                         <Region HBox.hgrow="ALWAYS" />
 
