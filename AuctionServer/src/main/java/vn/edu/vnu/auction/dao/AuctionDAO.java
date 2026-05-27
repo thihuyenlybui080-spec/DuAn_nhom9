@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +123,7 @@ public class AuctionDAO {
             ps.setInt(1, itemId);
             ps.setDouble(2, startingPrice);
             ps.setLong(3, durationSeconds);
-            ps.setTimestamp(4, java.sql.Timestamp.valueOf(endTime));
+            ps.setString(4, endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);

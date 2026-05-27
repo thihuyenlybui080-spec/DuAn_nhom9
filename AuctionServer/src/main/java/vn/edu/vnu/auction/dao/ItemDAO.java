@@ -6,6 +6,7 @@ import vn.edu.vnu.auction.model.entity.user.Seller;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,8 +73,8 @@ public class ItemDAO {
             ps.setString(3, item.getCategory().toUpperCase());
             ps.setDouble(4, item.getStartingPrice());
             ps.setDouble(5, item.getStartingPrice());
-            ps.setTimestamp(6, Timestamp.valueOf(item.getStartTime()));
-            ps.setTimestamp(7, Timestamp.valueOf(item.getEndTime()));
+            ps.setString(6, item.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            ps.setString(7, item.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             ps.setInt(8, sellerId);
             ps.setString(9, item.getImagePath());
             ps.executeUpdate();
@@ -106,8 +107,10 @@ public class ItemDAO {
         String desc       = rs.getString("description");
         String itemType   = rs.getString("item_type");
         double startPrice = rs.getDouble("starting_price");
-        LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
-        LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
+        String startTimeStr = rs.getString("start_time");
+        String endTimeStr = rs.getString("end_time");
+        LocalDateTime startTime = LocalDateTime.parse(startTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime endTime   = LocalDateTime.parse(endTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         int createdBy = rs.getInt("created_by");
         String imagePath = rs.getString("image_path");
         Item item = buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
@@ -122,8 +125,10 @@ public class ItemDAO {
         String desc       = rs.getString("description");
         String itemType   = rs.getString("item_type");
         double startPrice = rs.getDouble("starting_price");
-        LocalDateTime startTime = rs.getTimestamp("start_time").toLocalDateTime();
-        LocalDateTime endTime   = rs.getTimestamp("end_time").toLocalDateTime();
+        String startTimeStr = rs.getString("start_time");
+        String endTimeStr = rs.getString("end_time");
+        LocalDateTime startTime = LocalDateTime.parse(startTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime endTime   = LocalDateTime.parse(endTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         int createdBy = rs.getInt("created_by");
         String imagePath = rs.getString("image_path");
         Item item = buildItem(id, itemName, desc, itemType, startPrice, startTime, endTime, createdBy);
