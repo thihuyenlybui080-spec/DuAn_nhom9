@@ -108,13 +108,14 @@ public class AuctionService {
     public void openAuction(Auction auction) {
         auctionManager.putActive(auction);
         auction.setStatus(AuctionStatus.RUNNING);
-        
-        // Update database status when auction transitions to RUNNING
         int auctionId = auction.getId();
         if (auctionId > 0) {
             AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.RUNNING);
         }
-        
+
+        auction.addObserver(AutobidService.getInstance());
+        logger.info("Registered AutobidService as observer for auction {}", auction.getId());
+
         logger.info("Auction {} is now RUNNING (live) for bidding", auction.getId());
         auction.notifyObservers();
 
@@ -157,6 +158,11 @@ public class AuctionService {
 
         AuctionResult result = new AuctionResult(auction);
         AuctionHistoryManager.getInstance().saveResult(result);
+
+        auction.removeObserver(AutobidService.getInstance());
+        AutobidService.getInstance().clearAuction(auctionId);
+        logger.info("Removed AutobidService observer and cleared auto-bids for auction {}", auctionId);
+
         auctionManager.removeActive(auctionId);
 
         if (finalStatus == AuctionStatus.FINISHED) {
@@ -270,6 +276,8 @@ public class AuctionService {
                             user.getName(), auction.getId());
                 }
             }
+            auction.addObserver(AutobidService.getInstance());
+            logger.info("Registered AutobidService as observer for auction {}", auction.getId());
         }catch (Exception e) {
             logger.error("Failed to restore auto-bid agents for auction {}: {}",
                     auction.getId(), e.getMessage());

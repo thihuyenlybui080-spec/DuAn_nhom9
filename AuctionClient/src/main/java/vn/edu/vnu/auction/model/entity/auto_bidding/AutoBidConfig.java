@@ -1,7 +1,6 @@
 package vn.edu.vnu.auction.model.entity.auto_bidding;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * Lưu cấu hình auto-bid mà một Bidder đăng ký cho một phiên đấu giá.

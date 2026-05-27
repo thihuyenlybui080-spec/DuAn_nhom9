@@ -11,6 +11,7 @@ import vn.edu.vnu.auction.model.entity.user.Bidder;
 import vn.edu.vnu.auction.model.entity.user.Seller;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -31,7 +32,6 @@ public class Auction implements Subject, Serializable {
     private final Item item;
     private volatile double  currentPrice;
     private volatile Bidder  highestBidder;
-    //mặc định status khi mới khởi tạoo là OPEN
     private volatile AuctionStatus status = AuctionStatus.OPEN;
 
     /**
@@ -43,7 +43,7 @@ public class Auction implements Subject, Serializable {
     private final ReentrantLock lock = new ReentrantLock(true); // fair lock
 
     /** CopyOnWriteArrayList để observer list không cần lock riêng khi iterate. */
-    private final List<Observer> observers = new CopyOnWriteArrayList<>();
+    private transient final List<Observer> observers = new CopyOnWriteArrayList<>();
 
     /** Bid list chỉ được ghi bên trong lock nên dùng ArrayList bình thường. */
     private final List<BidTransaction> bids = new ArrayList<>();
@@ -64,16 +64,34 @@ public class Auction implements Subject, Serializable {
     // ===== OBSERVER (thread-safe via CopyOnWriteArrayList) =====
     @Override
     public void addObserver(Observer observer) {
-        if (observer != null) observers.add(observer);
+        if (observer != null) {
+            if (observers == null) {
+                Field field;
+                try {
+                    field = Auction.class.getDeclaredField("observers");
+                    field.setAccessible(true);
+                    field.set(this, new CopyOnWriteArrayList<>());
+                } catch (Exception e) {
+                    logger.error("Failed to reinitialize observers", e);
+                    return;
+                }
+            }
+            observers.add(observer);
+        }
     }
 
     @Override
     public void removeObserver(Observer observer) {
-        observers.remove(observer);
+        if (observers != null) {
+            observers.remove(observer);
+        }
     }
 
     @Override
     public void notifyObservers() {
+        if (observers == null) {
+            return;
+        }
         String bidderName = (highestBidder != null) ? highestBidder.getName() : "None";
         for (Observer o : observers) {
             o.update(id, currentPrice, bidderName);
