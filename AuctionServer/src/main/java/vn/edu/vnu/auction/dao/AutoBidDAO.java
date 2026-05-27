@@ -72,24 +72,22 @@ public class AutoBidDAO {
         return null;
     }
 
-    /** Lấy tất cả auto-bid configurations cho một auction. */
-    public static Map<String, AutoBidConfig> getAllAutoBidConfig() {
-        Map<String, AutoBidConfig> configs = new HashMap<>();
-        String sql = "SELECT auction_id, bidder_id, max_bid, increment FROM auto_bids WHERE auction_id is not null and bidder_id is not null";
+    /** Lấy tất cả auto-bid configs theo auctionId */
+    public static Map<Integer, AutoBidConfig> getAutoBidsByAuction(int auctionId) {
+        Map<Integer, AutoBidConfig> configs = new HashMap<>();
+        String sql = "SELECT bidder_id, max_bid, increment FROM auto_bids WHERE auction_id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, auctionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    int auctionId = rs.getInt("auction_id");
                     int bidderId = rs.getInt("bidder_id");
-                    String key = auctionId + "-" + bidderId;
                     AutoBidConfig config = new AutoBidConfig(rs.getDouble("max_bid"), rs.getDouble("increment"));
-                    configs.put(key, config);
+                    configs.put(bidderId, config);
                 }
             }
-            ps.close();
         } catch (SQLException e) {
-            logger.error("getAllAutoBidConfig ERROR", e);
+            logger.error("getAutoBidsByAuction ERROR", e);
         }
         return configs;
     }

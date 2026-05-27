@@ -8,8 +8,10 @@ import vn.edu.vnu.auction.dao.AuctionDAO;
 import vn.edu.vnu.auction.dao.AutoBidDAO;
 import vn.edu.vnu.auction.dao.UserDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
+import vn.edu.vnu.auction.model.entity.AuctionResult;
 import vn.edu.vnu.auction.model.entity.AuctionStatus;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
+import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidAgent;
 import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidConfig;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Admin;
@@ -388,13 +390,8 @@ public class ClientHandler implements Runnable{
             if(bidderId <= 0){
                 return Response.error("BidderId not found");
             }
-            if(!(loggedInUser instanceof Bidder)){
-                return Response.error("Only Bidder can get won auctions");
-            }
-            Bidder bidder = (Bidder) loggedInUser;
-            //bidder.refreshWonAuctions();
-            //return Response.ok(bidder.getWonAuctions());
-            return Response.ok(null);
+            List<AuctionResult> wonAuctions = AuctionService.getInstance().getWonAuctions(bidderId);
+            return Response.ok(wonAuctions);
         } catch (Exception e){
             logger.warn("GetWonAuctions error", e);
             return Response.error("Failed to get won auctions");
@@ -556,8 +553,6 @@ public class ClientHandler implements Runnable{
                 logger.warn("Auction not found: {}", auctionId);
                 return Response.error("Auction not found");
             }
-
-            // Check if auction has expired
             if (auction.getStatus() == AuctionStatus.FINISHED) {
                 logger.warn("Auction {} has finished, cannot enable auto-bid", auctionId);
                 return Response.error("This auction has ended and cannot enable auto-bid.");
@@ -582,8 +577,9 @@ public class ClientHandler implements Runnable{
             }
 
             logger.info("Calling enableAutoBid for bidder: {}, user object: {}", loggedInUser.getName(), loggedInUser.getClass().getName());
-            logger.info("User object hash: {}", System.identityHashCode(loggedInUser));
-            //((Bidder) loggedInUser).enableAutoBid(auction, new AutoBidConfig(maxBid, increment));
+            AutoBidDAO.saveAutoBid(auctionId, bidderId, maxBid, increment);
+            AutoBidConfig config = new AutoBidConfig(maxBid, increment);
+            AutobidService.getInstance().enableAutoBid((Bidder) loggedInUser, auction, config);
             logger.info("enableAutoBid call completed");
             return Response.ok("Auto-bid enabled", (Object) null);
         } catch (Exception e){
@@ -598,6 +594,7 @@ public class ClientHandler implements Runnable{
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) request.getData();
             int bidderId = (Integer) data.get("bidderId");
+            int auctionId = (Integer) data.get("auctionId");
             loggedInUser = UserService.getInstance().getUserById(bidderId);
             if(loggedInUser == null){
                 return Response.error("Bidder not found");
@@ -605,7 +602,8 @@ public class ClientHandler implements Runnable{
             if(!(loggedInUser instanceof Bidder)){
                 return Response.error("Only bidders can use auto bid");
             }
-            //((Bidder) loggedInUser).disableAutoBid(auctionId);
+            AutoBidDAO.deleteAutoBid(auctionId, bidderId);
+            AutobidService.getInstance().disableAutoBid(auctionId, bidderId);
             logger.info("AutoBid disabled: user={}", loggedInUser.getFullName());
 
             return Response.ok("Auto bid disabled", (Object) null);

@@ -197,7 +197,7 @@ public class RegisterController implements Initializable {
 
         try {
             int userId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
-            currentUserId = userId; // Lưu userId để dùng khi tạo sản phẩm
+            currentUserId = userId;
             registrationMessageLabel.setText("Registration successful!");
             return true;
         } catch (RuntimeException e) {

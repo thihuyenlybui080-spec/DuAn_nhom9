@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -99,10 +100,19 @@ public class AuctionServer {
     }
 
     public static void main(String[] args) {
-        AuctionServer server = new AuctionServer();
+        final AuctionServer server = new AuctionServer();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Shutting down server");
+            try(Connection conn = vn.edu.vnu.auction.database.DatabaseConfig.getConnection();
+                java.sql.Statement stmt = conn.createStatement()) {
+                stmt.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+                logger.info("WAL checkpoint completed");
+            }
+            catch (Exception e) {
+                logger.error("WAL checkpoint failed: {}", e.getMessage());
+            }
+            server.stop();
         }));
         server.start();
     }

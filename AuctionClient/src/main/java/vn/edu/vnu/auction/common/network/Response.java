@@ -5,7 +5,7 @@ import java.io.Serializable;
  * Đại diện cho một phản hồi từ Server trả về Client
  */
 public class Response implements Serializable {
-    private static final long serialVersionUIO = 1L;
+    private static final long serialVersionUID = 1L;
 
     private boolean success;
     private String message;

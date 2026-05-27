@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -105,12 +106,17 @@ public class DatabaseConfig {
      * ================================================================
      */
     private void initializeDatabase() {
-        File dbFile = new File(DB_NAME);
-        if (dbFile.exists()) {
-            logger.info("DatabaseConfig: database file already exists, skipping initialization");
-            return;
+        try (Connection conn = jdbcDataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT name FROM sqlite_master WHERE type='table' AND name='users'")) {
+            if (rs.next()) {
+                logger.info("DatabaseConfig: database already initialized, skipping");
+                return;
+            }
+        } catch (SQLException e) {
+            logger.info("DatabaseConfig: checking tables, will initialize...");
         }
-
         logger.info("DatabaseConfig: database file not found, initializing from auction_system.sql...");
 
         String sql = null;
@@ -146,10 +152,19 @@ public class DatabaseConfig {
         // Chạy từng câu SQL (tách theo dấu ";")
         try (Connection conn = jdbcDataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-            String[] statements = sql.split(";");
+            String[] lines = sql.split("\n");
+            StringBuilder cleanSql = new StringBuilder();
+            for (String line : lines) {
+                String trimmedLine = line.trim();
+                if (!trimmedLine.startsWith("--")) {
+                    cleanSql.append(line).append("\n");
+                }
+            }
+
+            String[] statements = cleanSql.toString().split(";");
             for (String s : statements) {
                 String trimmed = s.trim();
-                if (!trimmed.isEmpty() && !trimmed.startsWith("--")) {
+                if (!trimmed.isEmpty()) {
                     stmt.execute(trimmed);
                 }
             }

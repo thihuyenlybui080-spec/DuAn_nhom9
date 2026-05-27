@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -224,25 +225,18 @@ public class AuctionService {
     public List<Auction> getActiveAuctions() {
         List<User> allUsers = UserDAO.getAllUsers();
         List<Auction> auctions = AuctionDAO.getActiveAuctions(allUsers);
-        Map<String, AutoBidConfig> autoBidConfigConcurrentHashMap = AutoBidDAO.getAllAutoBidConfig();
-
-        // Register auctions in AuctionManager for in-memory access
         for (Auction auction : auctions) {
             auctionManager.putActive(auction);
 
-            // Check if auction has already ended and reschedule or end it
             LocalDateTime now = LocalDateTime.now();
             long endDelay = ChronoUnit.SECONDS.between(now, auction.getItem().getEndTime());
             long startDelay = ChronoUnit.SECONDS.between(now, auction.getItem().getStartTime());
 
             if (endDelay <= 0) {
-                // Auction has already ended, update status
                 logger.info("Auction {} has expired, ending it now", auction.getId());
                 endAuction(auction.getId(), false);
             } else if (startDelay <= 0) {
                 auction.setStatus(AuctionStatus.RUNNING);
-                
-                // Update database status when auction transitions to RUNNING
                 int auctionId = auction.getId();
                 if (auctionId > 0) {
                     AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.RUNNING);
@@ -252,18 +246,48 @@ public class AuctionService {
                 auction.notifyObservers();
                 scheduleEnd(auction, endDelay);
                 logger.info("Rescheduled end timer for auction {} in {}s", auction.getId(), endDelay);
+                restoreAutoBidAgents(auction, allUsers);
             } else {
                 auctionManager.getScheduler().schedule(
                         () -> openAuction(auction), startDelay, TimeUnit.SECONDS);
                 logger.info("Auction {} scheduled to open in {}s", auction.getId(), startDelay);
             }
         }
-
-        // Restore auto-bid configurations from database AFTER all auctions are registered
-        // Note: Auto-bid restoration is now done when bidder logs in, not here to avoid deadlock
         logger.info("Loaded and registered {} active auctions from database", auctions.size());
         return auctions;
     }
+
+    private void restoreAutoBidAgents(Auction auction, List<User> allUsers){
+        try{
+            Map<Integer, AutoBidConfig> configs = AutoBidDAO.getAutoBidsByAuction(auction.getId());
+            for(Map.Entry<Integer, AutoBidConfig> entry : configs.entrySet()){
+                int bidderId = entry.getKey();
+                AutoBidConfig config = entry.getValue();
+                User user = UserDAO.getUserById(bidderId);
+                if(user instanceof Bidder){
+                    AutobidService.getInstance().enableAutoBid((Bidder) user,auction, config);
+                    logger.info("Restored auto-bid: bidder={}, auction={}",
+                            user.getName(), auction.getId());
+                }
+            }
+        }catch (Exception e) {
+            logger.error("Failed to restore auto-bid agents for auction {}: {}",
+                    auction.getId(), e.getMessage());
+        }
+    }
+    public List<AuctionResult> getWonAuctions(int bidderId) {
+        if (bidderId <= 0) {
+            return Collections.emptyList();
+        }
+        List<User> allUsers = UserDAO.getAllUsers();
+        List<Auction> wonAuctionsList = AuctionDAO.getWonAuctionsByBidder(bidderId, allUsers);
+        List<AuctionResult> results = new ArrayList<>();
+        for(Auction auction : wonAuctionsList){
+            results.add(new AuctionResult(auction));
+        }
+        return results;
+    }
+
 
     /**
      * Lấy auction: ưu tiên in-memory, fallback DB.
@@ -271,15 +295,11 @@ public class AuctionService {
     public Auction getAuction(int auctionId) {
         Auction auction = AuctionDAO.getAuctionById(auctionId);
         if (auction != null) {
-            // Check if there's an in-memory instance in AuctionManager
             Auction inMemoryAuction = auctionManager.getActive(auctionId);
             if (inMemoryAuction != null) {
-                // Use the in-memory instance to preserve observer registrations
                 auction = inMemoryAuction;
             } else {
-                // If no in-memory instance, put this one in the manager
                 auctionManager.putActive(auction);
-                // Note: Auto-bid restoration is now done when bidder logs in, not here
             }
         }
         return auction;

@@ -213,7 +213,10 @@ public class AuctionClientService {
         data.put("bidderId", bidderId);
         data.put("maxBid", maxBix);
         data.put("increment", increment);
-        sendRequest(new Request(Request.ACTION_ENABLE_AUTO_BID, data));
+        Response response = sendRequest(new Request(Request.ACTION_ENABLE_AUTO_BID,data ));
+        if(!response.isSuccess()){
+            throw new RuntimeException(response.getMessage());
+        }
     }
 
     /**
@@ -225,7 +228,10 @@ public class AuctionClientService {
         Map<String, Object> data = new HashMap<>();
         data.put("auctionId", auctionId);
         data.put("bidderId", bidderId);
-        sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, data));
+        Response response = sendRequest(new Request(Request.ACTION_DISABLE_AUTO_BID, data));
+        if(!response.isSuccess()){
+            throw new RuntimeException(response.getMessage());
+        }
     }
 
     /**

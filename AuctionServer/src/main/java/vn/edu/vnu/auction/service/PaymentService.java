@@ -9,6 +9,7 @@ import vn.edu.vnu.auction.util.AuctionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -73,34 +74,32 @@ public class PaymentService {
      * @return true nếu thanh toán thành công hoặc đã thanh toán trước đó
      */
     public boolean processPayment(Bidder bidder, int auctionId) {
-        //TODO: reimplement
-//        Optional<AuctionResult> resultOpt = findWonAuction(bidder, auctionId);
-//        if (resultOpt.isEmpty()) {
-//            logger.warn("processPayment: {} is not winner of {}", bidder.getName(), auctionId);
-//            return false;
-//        }
-//
-//        AuctionResult result = resultOpt.get();
-//        if (result.getStatus() == AuctionStatus.PAID) {
-//            logger.info("Auction {} already paid by {}", auctionId, bidder.getName());
-//            return true;
-//        }
-//        if (result.getStatus() != AuctionStatus.FINISHED) {
-//            logger.warn("Auction {} cannot be paid (status={})", auctionId, result.getStatus());
-//            return false;
-//        }
-//
-//        logger.info("{} paying {} for item {}", bidder.getName(), result.getFinalPrice(),
-//                result.getItem().getItemName());
-//        AuctionHistoryManager.getInstance().updateStatus(auctionId, AuctionStatus.PAID);
-//        bidder.refreshWonAuctions();
+        List<AuctionResult> resultOpt = findWonAuction(auctionId);
+        if (resultOpt.isEmpty()) {
+            logger.warn("processPayment: {} is not winner of {}", bidder.getName(), auctionId);
+            return false;
+        }
+
+        AuctionResult result = resultOpt.get(auctionId);
+        if (result.getStatus() == AuctionStatus.PAID) {
+            logger.info("Auction {} already paid by {}", auctionId, bidder.getName());
+            return true;
+        }
+        if (result.getStatus() != AuctionStatus.FINISHED) {
+            logger.warn("Auction {} cannot be paid (status={})", auctionId, result.getStatus());
+            return false;
+        }
+
+        logger.info("{} paying {} for item {}", bidder.getName(), result.getFinalPrice(),
+                result.getItem().getItemName());
+        AuctionHistoryManager.getInstance().updateStatus(auctionId, AuctionStatus.PAID);
+
         return true;
     }
 
-//    private Optional<AuctionResult> findWonAuction(Bidder bidder, String auctionId) {
-//        bidder.refreshWonAuctions();
-//        return bidder.getWonAuction(auctionId);
-//    }
+    private List<AuctionResult> findWonAuction( int auctionId) {
+        return AuctionService.getInstance().getWonAuctions(auctionId);
+    }
 
     public static synchronized void resetForTesting() {
         instance = null;

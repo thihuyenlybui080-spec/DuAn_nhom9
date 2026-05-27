@@ -80,4 +80,8 @@ public class AutoBidAgent implements Observer, Serializable {
             currentAuction.removeObserver(this);
         }
     }
+
+    public Bidder getBidder() {
+        return bidder;
+    }
 }
