@@ -666,12 +666,14 @@ public class ClientHandler implements Runnable{
      * @param response phản hồi từ server
      * synchronized để tránh hai thread gửi cùng một lúc làm nhầm dữ liệu
      */
-    private synchronized void sendResponse(Response response){
+    private  void sendResponse(Response response){
         try{
-            logger.info("Sending response: {}", response);
-            outputStream.writeObject(response);
-            outputStream.flush();
-            outputStream.reset();
+            synchronized (outputStream) {
+                logger.info("Sending response: {}", response);
+                outputStream.writeObject(response);
+                outputStream.flush();
+                outputStream.reset();
+            }
 
             if (clientSocket.isClosed()) {
                 logger.warn("Response sent but socket is closed - client may have disconnected");

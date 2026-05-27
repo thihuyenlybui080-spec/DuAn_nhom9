@@ -48,8 +48,8 @@ public class Auction implements Subject, Serializable {
     /** CopyOnWriteArrayList để observer list không cần lock riêng khi iterate. */
     private transient final List<Observer> observers = new CopyOnWriteArrayList<>();
 
-    /** Bid list chỉ được ghi bên trong lock nên dùng ArrayList bình thường. */
-    private final List<BidTransaction> bids = new ArrayList<>();
+    /** Bid list chỉ được ghi bên trong lock nhưng serialize ghi ngoài lock nên dùng CopyOnWriteArrayList . */
+    private final List<BidTransaction> bids = new CopyOnWriteArrayList<>();
 
     private transient volatile ScheduledFuture<?> currentTimer;
 
