@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS items (
     id              INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
     item_name       TEXT(200)    NOT NULL,
     description     TEXT,
-    item_type       TEXT         NOT NULL CHECK (item_type IN ('ART','ELECTRONICS','VEHICLE')),
+    item_type       TEXT         NOT NULL CHECK (item_type IN ('ART','ELECTRONICS','VEHICLE','OTHER')),
     starting_price  REAL         NOT NULL,
     current_price   REAL         NOT NULL,
     start_time      DATETIME     NOT NULL,

@@ -138,6 +138,7 @@ public class ItemDAO {
         switch (itemType) {
             case "ELECTRONICS": item = new Electronics(id, itemName, createdBy, desc, startPrice, startTime, endTime); break;
             case "VEHICLE":     item = new Vehicle(id, itemName, createdBy, desc, startPrice, startTime, endTime);     break;
+            case "OTHER":       item = new Other(id, itemName, createdBy, desc, startPrice, startTime, endTime);       break;
             default:            item = new Art(id, itemName, createdBy, desc, startPrice, startTime, endTime);
         }
         return item;

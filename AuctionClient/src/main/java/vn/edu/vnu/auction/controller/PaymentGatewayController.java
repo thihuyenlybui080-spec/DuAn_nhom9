@@ -238,6 +238,7 @@ public class PaymentGatewayController {
                 " -fx-font-weight: bold; -fx-cursor: hand;";
 
         btn.setStyle(selected ? active : normal);
+        btn.setSelected(selected);
         btn.selectedProperty().addListener((obs, wasSelected, isNowSelected) ->
                 btn.setStyle(isNowSelected ? active : normal)
         );
@@ -302,11 +303,15 @@ public class PaymentGatewayController {
             KeyFrame step4 = new KeyFrame(Duration.millis(2800), event -> {
                 try{
                     AuctionClientService.getInstance().payAuction(result.getAuctionId());
+                    if(onSuccess != null) onSuccess.run();
+                    stage.close();
                 }catch (Exception ex){
                     ex.printStackTrace();
+                    progressBar.setVisible(false);
+                    lblStatus.setText("❌ Payment failed: " + ex.getMessage());
+                    lblStatus.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-font-weight: bold;");
+                    btnPay.setDisable(false);
                 }
-                if(onSuccess != null) onSuccess.run();
-                stage.close();
             });
             timeline.getKeyFrames().addAll(step1, step2, step3, step4);
             timeline.play();

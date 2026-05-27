@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +70,17 @@ public class AuctionDAO {
             while (rs.next()) {
                 try {
                     Auction a = mapAuction(rs, allUsers);
-                    if (a != null) list.add(a);
+                    if (a != null) {
+                        // Check if auction has ended but status not updated
+                        if (a.getItem().getEndTime() != null 
+                                && a.getItem().getEndTime().isBefore(LocalDateTime.now())
+                                && (a.getStatus() == AuctionStatus.RUNNING || a.getStatus() == AuctionStatus.OPEN)) {
+                            a.setStatus(AuctionStatus.FINISHED);
+                            // Update status in database
+                            updateAuctionStatus(a.getId(), AuctionStatus.FINISHED);
+                        }
+                        list.add(a);
+                    }
                 } catch (Exception e) {
                     logger.error("[AuctionDAO] Error mapping auction at row: {}", e.getMessage());
                     e.printStackTrace();
@@ -204,7 +215,8 @@ public class AuctionDAO {
             ps.setInt(1, auctionId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapAuction(rs, null);
+                    List<User> allUsers = UserDAO.getAllUsers();
+                    return mapAuction(rs, allUsers);
                 }
             }
         } catch (SQLException e) {
