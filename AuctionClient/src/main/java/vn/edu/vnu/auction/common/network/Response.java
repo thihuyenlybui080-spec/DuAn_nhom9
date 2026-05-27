@@ -37,7 +37,6 @@ public class Response implements Serializable {
     public static Response ok(String message, Object data){
         return new Response(true, message, data, null);
     }
-
     /**
      * Tạo phản hồi thành công kèm dữ liệu và requestId
      * @param data dữ liệu phản hồi
@@ -60,6 +59,17 @@ public class Response implements Serializable {
     }
 
     /**
+     * Tạo một phản hồi thất bại kèm thông báo lỗi và requestId.
+     * @param message thông báo lỗi
+     * @param requestId ID của request tương ứng
+     * @return trả về phản hồi thất bại
+     */
+    public static final Response error(String message, String requestId){
+        return new Response(false, message, null, requestId);
+
+    }
+
+    /**
      * Tạo một phản hồi thất bại kèm thông báo lỗi.
      * @param message thông báo lỗi
      * @return trả về phản hồi thất bại
@@ -68,14 +78,7 @@ public class Response implements Serializable {
         return new Response(false, message, null, null);
     }
 
-    /**
-     * Tạo một phản hồi thất bại kèm thông báo lỗi.
-     * @param message thông báo lỗi
-     * @return trả về phản hồi thất bại
-     */
-    public static final Response error(String message, String requestId){
-        return new Response(false, message, null, requestId);
-    }
+
 
     public boolean isSuccess() {
         return success;

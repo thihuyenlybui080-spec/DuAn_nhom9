@@ -498,6 +498,7 @@ public class BidderDashboardController implements Initializable {
 
     private void loadBiddingHistory() {
         paneHistory.getChildren().clear();
+        paneHistory.setFillWidth(true);
 
         if (bidder == null) {
             Label error = new Label("Bidder information not available");
@@ -514,25 +515,26 @@ public class BidderDashboardController implements Initializable {
             HBox headerRow = new HBox(15);
             headerRow.setAlignment(Pos.CENTER_LEFT);
             headerRow.setPadding(new Insets(10, 0, 10, 0));
-            headerRow.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 2 0;");
+            headerRow.setStyle("-fx-background-color: #3d1c21; -fx-border-color: #c0c43f; -fx-border-width: 0 0 2 0;");
+            headerRow.setMaxWidth(Double.MAX_VALUE);
 
             Label lblItemHeader = new Label("ITEM");
-            lblItemHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblItemHeader.setFont(Font.font("System", FontWeight.BOLD, 12));
             lblItemHeader.setStyle("-fx-text-fill: #c0c43f;");
             lblItemHeader.setPrefWidth(200);
 
             Label lblAuctionIdHeader = new Label("AUCTION ID");
-            lblAuctionIdHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblAuctionIdHeader.setFont(Font.font("System", FontWeight.BOLD, 12));
             lblAuctionIdHeader.setStyle("-fx-text-fill: #c0c43f;");
             lblAuctionIdHeader.setPrefWidth(100);
 
             Label lblAmountHeader = new Label("AMOUNT");
-            lblAmountHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblAmountHeader.setFont(Font.font("System", FontWeight.BOLD, 12));
             lblAmountHeader.setStyle("-fx-text-fill: #c0c43f;");
             lblAmountHeader.setPrefWidth(150);
 
             Label lblTimeHeader = new Label("TIME");
-            lblTimeHeader.setFont(Font.font("System", FontWeight.BOLD, 10));
+            lblTimeHeader.setFont(Font.font("System", FontWeight.BOLD, 12));
             lblTimeHeader.setStyle("-fx-text-fill: #c0c43f;");
             lblTimeHeader.setPrefWidth(150);
 
@@ -551,10 +553,10 @@ public class BidderDashboardController implements Initializable {
 
             for (BidTransaction bid : history) {
                 HBox row = new HBox(15);
-                HBox.setHgrow(paneHistory, Priority.ALWAYS);
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.setPadding(new Insets(10, 0, 10, 0));
                 row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
+                row.setMaxWidth(Double.MAX_VALUE);
 
                 Label lblItem = new Label(bid.getItem() != null ? bid.getItem().getItemName() : "Unknown Item");
                 lblItem.setFont(Font.font("System", FontWeight.BOLD, 13));
@@ -593,6 +595,7 @@ public class BidderDashboardController implements Initializable {
 
     private void loadWonItems() {
         paneWon.getChildren().clear();
+        paneWon.setFillWidth(true);
 
         if (bidder == null) {
             Label error = new Label("Bidder information not available");
@@ -602,20 +605,59 @@ public class BidderDashboardController implements Initializable {
         }
 
         try {
-            List<AuctionResult> wonAuctions = new ArrayList<>();
+            List<AuctionResult> wonAuctions = AuctionClientService.getInstance().getWonAuctions(bidder.getId());
 
-            if (wonAuctions.isEmpty()) {
+            if (wonAuctions == null || wonAuctions.isEmpty()) {
                 Label empty = new Label("No won items yet.");
                 empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
                 paneWon.getChildren().add(empty);
                 return;
             }
 
+            // Header row
+            HBox header = new HBox(15);
+            header.setAlignment(Pos.CENTER_LEFT);
+            header.setPadding(new Insets(10, 0, 10, 0));
+            header.setStyle("-fx-background-color: #3d1c21; -fx-border-color: #c0c43f; -fx-border-width: 0 0 2 0;");
+            header.setMaxWidth(Double.MAX_VALUE);
+
+            Label hdrItem = new Label("Item");
+            hdrItem.setFont(Font.font("System", FontWeight.BOLD, 12));
+            hdrItem.setStyle("-fx-text-fill: #c0c43f;");
+            hdrItem.setPrefWidth(200);
+
+            Label hdrAuctionId = new Label("ID");
+            hdrAuctionId.setFont(Font.font("System", FontWeight.BOLD, 12));
+            hdrAuctionId.setStyle("-fx-text-fill: #c0c43f;");
+            hdrAuctionId.setPrefWidth(100);
+
+            Label hdrPrice = new Label("Price");
+            hdrPrice.setFont(Font.font("System", FontWeight.BOLD, 12));
+            hdrPrice.setStyle("-fx-text-fill: #c0c43f;");
+            hdrPrice.setPrefWidth(150);
+
+            Label hdrStatus = new Label("Status");
+            hdrStatus.setFont(Font.font("System", FontWeight.BOLD, 12));
+            hdrStatus.setStyle("-fx-text-fill: #c0c43f;");
+            hdrStatus.setPrefWidth(100);
+
+            Label hdrTime = new Label("Time");
+            hdrTime.setFont(Font.font("System", FontWeight.BOLD, 12));
+            hdrTime.setStyle("-fx-text-fill: #c0c43f;");
+            hdrTime.setPrefWidth(150);
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            header.getChildren().addAll(hdrItem, hdrAuctionId, spacer, hdrPrice, hdrStatus, hdrTime);
+            paneWon.getChildren().add(header);
+
             for (AuctionResult result : wonAuctions) {
                 HBox row = new HBox(15);
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.setPadding(new Insets(10, 0, 10, 0));
                 row.setStyle("-fx-border-color: transparent transparent #c0c43f transparent; -fx-border-width: 0 0 1 0;");
+                row.setMaxWidth(Double.MAX_VALUE);
 
                 // Item name
                 Label lblItem = new Label(result.getItem() != null ? result.getItem().getItemName() : "Unknown Item");
@@ -636,12 +678,14 @@ public class BidderDashboardController implements Initializable {
                 // Status
                 Label lblStatus = new Label(result.getStatus() != null ? result.getStatus().toString() : "—");
                 lblStatus.setStyle("-fx-font-size: 11px; -fx-text-fill: #4ade80; -fx-font-weight: bold;");
+                lblStatus.setPrefWidth(100);
 
                 // End time
                 Label lblTime = new Label(result.getEndTime() != null ? result.getEndTime().format(TIME_FORMAT) : "—");
                 lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
+                lblTime.setPrefWidth(150);
 
-                Region spacer = new Region();
+                spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
                 row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblPrice, lblStatus, lblTime);
@@ -666,16 +710,16 @@ public class BidderDashboardController implements Initializable {
                 return;
             }
 
-            List<AuctionResult> unpaid = wonList.stream()
-                    .filter(result -> result.getStatus() == FINISHED)
+            List<AuctionResult> payable = wonList.stream()
+                    .filter(result -> result.getStatus() == FINISHED || result.getStatus() == PAID)
                     .collect(Collectors.toList());
-            if(unpaid.isEmpty()){
-                Label empty = new Label("No pending payments");
+            if(payable.isEmpty()){
+                Label empty = new Label("No payments");
                 empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
                 panePayment.getChildren().add(empty);
                 return;
             }
-            for (AuctionResult result : unpaid){
+            for (AuctionResult result : payable){
                 panePayment.getChildren().add(buildPaymentCard(result));
             }
         } catch (Exception e) {
@@ -702,42 +746,47 @@ public class BidderDashboardController implements Initializable {
                         + formatPrice(result.getFinalPrice()) + " ₫");
         lblPrice.setStyle("-fx-text-fill: #fff; -fx-font-size: 13px;");
 
-        Label lblDeadline = new Label("⚠ Pay within 24 hours or order will be cancelled");
-        lblDeadline.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 11px;");
-
-        Button btnPay = new Button("💳 Pay Now");
-        btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
-                + "-fx-font-weight: bold; -fx-background-radius: 6;"
-                + "-fx-cursor: hand; -fx-font-size: 13px;");
-        btnPay.setOnAction(event -> onPayClicked(result, card, btnPay));
+        Label lblDeadline;
+        Button btnPay;
+        
+        if (result.getStatus() == PAID) {
+            lblDeadline = new Label("✅ Payment completed");
+            lblDeadline.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
+            
+            btnPay = new Button("✅ Paid");
+            btnPay.setDisable(true);
+            btnPay.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
+                    + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                    + "-fx-font-size: 13px;");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
+                    + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
+                    + "-fx-border-radius: 8; -fx-border-width: 1;");
+        } else {
+            lblDeadline = new Label("⚠ Pay within 24 hours or order will be cancelled");
+            lblDeadline.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 11px;");
+            
+            btnPay = new Button("💳 Pay Now");
+            btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
+                    + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                    + "-fx-cursor: hand; -fx-font-size: 13px;");
+            btnPay.setOnAction(event -> onPayClicked(result, card, btnPay));
+        }
         card.getChildren().addAll(lblItem,lblPrice, lblDeadline, btnPay);
         return  card;
     }
 
     private void onPayClicked(AuctionResult result, VBox card, Button btn){
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirm Payment");
-        confirm.setHeaderText(null);
-        confirm.setContentText("Pay " + formatPrice(result.getFinalPrice())
-                + " ₫ for \"" + result.getItem().getItemName() + "\"?");
-        confirm.showAndWait().ifPresent(reponse -> {
-                    try {
-                        AuctionClientService.getInstance().payAuction(result.getAuctionId());
-
-                        btn.setText("✅ Paid");
-                        btn.setDisable(true);
-                        btn.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
-                                + "-fx-font-weight: bold; -fx-background-radius: 6;"
-                                + "-fx-font-size: 13px;");
-                        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
-                                + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
-                                + "-fx-border-radius: 8; -fx-border-width: 1;");
-                    } catch (RuntimeException e){
-                        new Alert(Alert.AlertType.ERROR,
-                                "Payment failed: " + e.getMessage()).showAndWait();
-                    }
-                }
-        );
+        PaymentGatewayController.Show(result, () -> {
+            btn.setText("✅ Paid");
+            btn.setDisable(true);
+            btn.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
+                    + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                    + "-fx-font-size: 13px;");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
+                    + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
+                    + "-fx-border-radius: 8; -fx-border-width: 1;");
+            loadPaymentPane();
+        });
     }
 
     private void setActiveNav(Button active){

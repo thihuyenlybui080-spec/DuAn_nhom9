@@ -74,13 +74,25 @@ public class PaymentService {
      * @return true nếu thanh toán thành công hoặc đã thanh toán trước đó
      */
     public boolean processPayment(Bidder bidder, int auctionId) {
-        List<AuctionResult> resultOpt = findWonAuction(auctionId);
-        if (resultOpt.isEmpty()) {
+        AuctionResult result = AuctionHistoryManager.getInstance().getResult(auctionId);
+        
+        // If not in memory, try to load from database
+        if (result == null) {
+            logger.info("Auction {} not found in memory, loading from database", auctionId);
+            vn.edu.vnu.auction.model.entity.Auction auction = AuctionDAO.getAuctionById(auctionId);
+            if (auction == null) {
+                logger.warn("processPayment: Auction {} not found in database", auctionId);
+                return false;
+            }
+            result = new AuctionResult(auction);
+            AuctionHistoryManager.getInstance().saveResult(result);
+        }
+
+        if (result.getWinner() == null || result.getWinner().getId() != bidder.getId()) {
             logger.warn("processPayment: {} is not winner of {}", bidder.getName(), auctionId);
             return false;
         }
 
-        AuctionResult result = resultOpt.get(auctionId);
         if (result.getStatus() == AuctionStatus.PAID) {
             logger.info("Auction {} already paid by {}", auctionId, bidder.getName());
             return true;
@@ -93,12 +105,11 @@ public class PaymentService {
         logger.info("{} paying {} for item {}", bidder.getName(), result.getFinalPrice(),
                 result.getItem().getItemName());
         AuctionHistoryManager.getInstance().updateStatus(auctionId, AuctionStatus.PAID);
+        if (auctionId > 0) {
+            AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.PAID);
+        }
 
         return true;
-    }
-
-    private List<AuctionResult> findWonAuction( int auctionId) {
-        return AuctionService.getInstance().getWonAuctions(auctionId);
     }
 
     public static synchronized void resetForTesting() {

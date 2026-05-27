@@ -192,6 +192,12 @@ public class BiddingController implements Initializable, Observer {
                         if (extended.getItem() != null && extended.getItem().getEndTime() != null) {
                             this.auction.getItem().setEndTime(extended.getItem().getEndTime());
                         }
+                        // Ensure status is RUNNING when time is extended
+                        if (extended.getStatus() != null && extended.getStatus() == AuctionStatus.RUNNING) {
+                            this.auction.setStatus(AuctionStatus.RUNNING);
+                            updateStatusBadge();
+                            updateBidButton();
+                        }
                         lblCountdown.setStyle(
                                 "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ff9800;");
                         lblBidError.setText("⏱ Anti-snipe: +60s added!");
@@ -621,19 +627,22 @@ public class BiddingController implements Initializable, Observer {
         lblName.setFont(Font.font("System", FontWeight.BOLD, 11));
         lblName.setStyle("-fx-text-fill: #fff;");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Region spacer1 = new Region();
+        HBox.setHgrow(spacer1, Priority.ALWAYS);
 
         Label lblPrice = new Label(formatPrice(tx.getAmount()) + " ₫");
         lblPrice.setStyle(
                 "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
+
+        Region spacer2 = new Region();
+        HBox.setHgrow(spacer2, Priority.ALWAYS);
 
         Label lblTime = new Label(tx.getTimestamp() != null
                 ? tx.getTimestamp().format(TIME_FORMAT) : "—");
         lblTime.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
         lblTime.setPrefWidth(150);
 
-        row.getChildren().addAll(lblName, spacer, lblPrice, lblTime);
+        row.getChildren().addAll(lblName, spacer1, lblPrice, spacer2, lblTime);
         return row;
 
     }
@@ -646,6 +655,32 @@ public class BiddingController implements Initializable, Observer {
 
     private void tick() {
         updateCountdown();
+        // Always refresh from server to ensure UI is synced
+        try {
+            Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
+            if (updatedAuction != null) {
+                boolean needsUpdate = false;
+                if (updatedAuction.getStatus() != this.auction.getStatus()) {
+                    logger.info("Server status: {}, Local status: {}", updatedAuction.getStatus(), this.auction.getStatus());
+                    this.auction.setStatus(updatedAuction.getStatus());
+                    updateStatusBadge();
+                    updateBidButton();
+                    needsUpdate = true;
+                }
+                // Also sync end time if it's different
+                if (updatedAuction.getItem() != null && updatedAuction.getItem().getEndTime() != null
+                    && !updatedAuction.getItem().getEndTime().equals(this.auction.getItem().getEndTime())) {
+                    this.auction.getItem().setEndTime(updatedAuction.getItem().getEndTime());
+                    logger.info("Synced auction end time to {}", updatedAuction.getItem().getEndTime());
+                    needsUpdate = true;
+                }
+                if (needsUpdate) {
+                    updateCountdown();
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail - don't spam logs on every tick
+        }
     }
 
     private void updateCountdown() {
@@ -663,14 +698,46 @@ public class BiddingController implements Initializable, Observer {
             totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getStartTime()).getSeconds();
             lblCountdownLabel.setText("Starts in");
             if(totalSecs <= 0){
+                // Refresh auction data from server when start time is reached
+                try {
+                    Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
+                    if (updatedAuction != null) {
+                        this.auction.setStatus(updatedAuction.getStatus());
+                        updateStatusBadge();
+                        updateBidButton();
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to refresh auction status: {}", e.getMessage());
+                }
                 return;
             }
         } else if(auction.getItem().getEndTime() != null){
             totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
             lblCountdownLabel.setText("Time Left");
             if (totalSecs <= 0) {
+                // Refresh auction data from server when end time is reached
+                try {
+                    logger.info("End time reached, refreshing auction {} status from server (current: {})", auction.getId(), auction.getStatus());
+                    Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
+                    if (updatedAuction != null) {
+                        logger.info("Server returned auction with status: {}", updatedAuction.getStatus());
+                        this.auction.setStatus(updatedAuction.getStatus());
+                        updateStatusBadge();
+                        updateBidButton();
+                        // Only stop scheduler if server confirms auction is FINISHED
+                        if (updatedAuction.getStatus() == AuctionStatus.FINISHED) {
+                            lblCountdown.setText("ENDED");
+                            stopScheduler();
+                            return;
+                        }
+                    } else {
+                        logger.warn("Server returned null auction for ID {}", auction.getId());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to refresh auction status: {}", e.getMessage());
+                }
                 lblCountdown.setText("ENDED");
-                stopScheduler();
+                // Don't stop scheduler yet - let periodic refresh continue to sync status
                 return;
             }
         } else {

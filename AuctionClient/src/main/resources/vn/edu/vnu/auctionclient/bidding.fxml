@@ -179,6 +179,7 @@
                                           <Font name="System Bold" size="10.0" />
                                        </font>
                                     </Label>
+                                    <Region HBox.hgrow="ALWAYS" />
                                     <Label prefWidth="150" text="TIME" textFill="#c0c43f">
                                        <font>
                                           <Font name="System Bold" size="10.0" />
