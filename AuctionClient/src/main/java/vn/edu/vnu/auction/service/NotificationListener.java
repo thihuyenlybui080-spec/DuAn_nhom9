@@ -53,15 +53,14 @@ public class NotificationListener {
      * Chuyển hướng nhận notification và tìm handler tương ứng
      * @param notification thông báo từ NotificationMessage
      */
-    public void dispatch(NotificationMessage notification){
+    public void dispatch(NotificationMessage notification) {
         Consumer<NotificationMessage> handler = handlers.get(notification.getAuctionId());
-        if(handler != null){
+        if (handler != null) {
             handler.accept(notification);
         } else {
             logger.info("No handler for auction: {}", notification.getAuctionId());
         }
     }
-
 
 
 }

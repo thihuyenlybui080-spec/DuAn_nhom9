@@ -2,10 +2,10 @@ package vn.edu.vnu.auction.service;
 
 import vn.edu.vnu.auction.common.exception.AuctionClosedException;
 import vn.edu.vnu.auction.common.exception.InvalidBidException;
-import vn.edu.vnu.auction.dao.AuctionDAO;
 import vn.edu.vnu.auction.dao.BidDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
+import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBid;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 import vn.edu.vnu.auction.util.AuctionManager;
 import org.slf4j.Logger;
@@ -64,13 +64,11 @@ public class BidService {
             throw new InvalidBidException("Auction has not started yet. Please wait for the auction to begin.");
         }
 
-        // Save previous state for rollback
 
         double previousPrice = auction.getCurrentPrice();
         var previousBidder = auction.getHighestBidder();
         int previousBidCount = auction.getBids().size();
 
-        // Process bid without notifying observers yet
         BidTransaction bidTx = new BidTransaction(bidder, auction.getItem(), amount);
         auction.placeBid(bidTx, false);
 
@@ -78,25 +76,22 @@ public class BidService {
         applyAntiSnipe(auction);
         boolean dbSuccess = persistBid(auctionId, bidder, amount);
         if (!dbSuccess) {
-            // Rollback in-memory state if database fail
             logger.error("placeBid: Database persist failed for auctionId={}, bidder={}, amount={}", auctionId, bidder.getName(), amount);
             auction.setCurrentPrice(previousPrice);
             auction.setHighestBidder(previousBidder);
-            // Remove the last bid that was added
             if (auction.getBids().size() > previousBidCount) {
                 auction.getBids().remove(auction.getBids().size() - 1);
             }
             throw new InvalidBidException("Failed to persist bid to database. Please try again.");
         }
 
-        // Only notify observers after successful database persist
         auction.notifyObservers();
         logger.info("Bid placed successfully: auction={} bidder={} amount={}", auctionId, bidder.getName(), amount);
         return true;
     }
 
     /**
-     * Đặt giá tự động từ {@link vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidAgent}.
+     * Đặt giá tự động từ {@link AutoBid}.
      */
     public boolean processAutoBid(Bidder bidder, Auction auction, double amount) {
         try {

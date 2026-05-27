@@ -66,6 +66,7 @@ public class Response implements Serializable {
      */
     public static final Response error(String message, String requestId){
         return new Response(false, message, null, requestId);
+
     }
 
     /**
@@ -74,8 +75,10 @@ public class Response implements Serializable {
      * @return trả về phản hồi thất bại
      */
     public static final Response error(String message){
-        return new Response(false, message, null,null);
+        return new Response(false, message, null, null);
     }
+
+
 
     public boolean isSuccess() {
         return success;

@@ -4,14 +4,12 @@ import vn.edu.vnu.auction.common.exception.AuctionClosedException;
 import vn.edu.vnu.auction.common.exception.DuplicateUsernameException;
 import vn.edu.vnu.auction.common.exception.InvalidBidException;
 import vn.edu.vnu.auction.common.network.NotificationMessage;
-import vn.edu.vnu.auction.dao.AuctionDAO;
 import vn.edu.vnu.auction.dao.AutoBidDAO;
 import vn.edu.vnu.auction.dao.UserDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.AuctionResult;
 import vn.edu.vnu.auction.model.entity.AuctionStatus;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
-import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidAgent;
 import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidConfig;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Admin;
@@ -32,6 +30,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 /**
@@ -56,6 +56,7 @@ public class ClientHandler implements Runnable{
     private User loggedInUser;
 
     private Map<String, Function<Request, Response>> handlers = new HashMap<>();
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
      *Tạo một socket kết nối vơi client
@@ -301,7 +302,6 @@ public class ClientHandler implements Runnable{
                         .orElse(auction.getCurrentPrice());
                 auction.setCurrentPrice(highestBidAmount);
             }
-
             ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
                     NotificationMessage.TYPE_BID_UPDATED,
                     auctionId,
@@ -557,7 +557,7 @@ public class ClientHandler implements Runnable{
                 logger.warn("Auction {} has finished, cannot enable auto-bid", auctionId);
                 return Response.error("This auction has ended and cannot enable auto-bid.");
             }
-            if (auction.getItem().getEndTime() != null && auction.getItem().getEndTime().isBefore(java.time.LocalDateTime.now())) {
+            if (auction.getItem().getEndTime() != null && auction.getItem().getEndTime().isBefore(LocalDateTime.now())) {
                 logger.warn("Auction {} has expired (endTime passed), cannot enable auto-bid", auctionId);
                 return Response.error("This auction has expired and cannot enable auto-bid.");
             }
@@ -577,7 +577,6 @@ public class ClientHandler implements Runnable{
             }
 
             logger.info("Calling enableAutoBid for bidder: {}, user object: {}", loggedInUser.getName(), loggedInUser.getClass().getName());
-            AutoBidDAO.saveAutoBid(auctionId, bidderId, maxBid, increment);
             AutoBidConfig config = new AutoBidConfig(maxBid, increment);
             AutobidService.getInstance().enableAutoBid((Bidder) loggedInUser, auction, config);
             logger.info("enableAutoBid call completed");
@@ -602,7 +601,6 @@ public class ClientHandler implements Runnable{
             if(!(loggedInUser instanceof Bidder)){
                 return Response.error("Only bidders can use auto bid");
             }
-            AutoBidDAO.deleteAutoBid(auctionId, bidderId);
             AutobidService.getInstance().disableAutoBid(auctionId, bidderId);
             logger.info("AutoBid disabled: user={}", loggedInUser.getFullName());
 
@@ -625,7 +623,11 @@ public class ClientHandler implements Runnable{
             }
 
             AutoBidConfig config = AutoBidDAO.getAutoBidConfig(auctionId, bidderId);
-            boolean isActive = config != null;
+            boolean isActive = false;
+
+            if (config != null) {
+                isActive = AutobidService.getInstance().isAutoBidActive(auctionId, bidderId);
+            }
 
             Map<String, Object> result = new HashMap<>();
             result.put("active", isActive);
