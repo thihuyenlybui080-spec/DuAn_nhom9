@@ -79,6 +79,10 @@
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <violationSeverity>warning</violationSeverity>
+                    <sourceDirectories>
+                        <sourceDirectory>${project.basedir}/AuctionClient/src/main/java</sourceDirectory>
+                        <sourceDirectory>${project.basedir}/AuctionServer/src/main/java</sourceDirectory>
+                    </sourceDirectories>
                 </configuration>
                 
                 <executions>
