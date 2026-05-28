@@ -35,6 +35,7 @@ public class Request implements Serializable {
     public static final String ACTION_DELETE_ITEM = "DELETE_ITEM";
     public static final String ACTION_GET_WON_AUCTIONS = "GET_WON_AUCTIONS";
     public static final String ACTION_PAY_AUCTION = "PAY_AUCTION";
+    public static final String ACTION_CREATE_PAYMENT_LINK = "CREATE_PAYMENT_LINK";
 
 
     /** tên hành động client muốn thực hiện */

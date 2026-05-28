@@ -361,6 +361,21 @@ public class AuctionClientService {
     }
 
     /**
+     * Tạo Stripe payment link cho phiên đấu giá đã thắng.
+     * Server trả về URL → client mở trình duyệt để thanh toán.
+     *
+     * @param auctionId id phiên đấu giá
+     * @return URL thanh toán Stripe
+     */
+    public String createPaymentLink(int auctionId) {
+        Response response = sendRequest(new Request(Request.ACTION_CREATE_PAYMENT_LINK, auctionId));
+        if (response.isSuccess()) {
+            return (String) response.getData();
+        }
+        throw new RuntimeException(response.getMessage());
+    }
+
+    /**
      * Gửi Request lên Server và đăng kí đợi response trong 10 giây
      *đăng kí, chờ nhận, hủy đăng kí
      * @param request yêu cầu cần gửi

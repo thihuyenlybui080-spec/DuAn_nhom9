@@ -7,6 +7,7 @@ module vn.edu.vnu.auctionclient {
     requires org.kordamp.bootstrapfx.core;
     requires org.slf4j;
     requires org.yaml.snakeyaml;
+    requires java.desktop;
 
     opens vn.edu.vnu.auction to javafx.fxml;
     opens vn.edu.vnu.auction.controller to javafx.fxml;
