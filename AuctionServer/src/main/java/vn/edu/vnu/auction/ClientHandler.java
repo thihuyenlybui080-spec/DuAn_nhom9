@@ -5,6 +5,7 @@ import vn.edu.vnu.auction.common.exception.DuplicateUsernameException;
 import vn.edu.vnu.auction.common.exception.InvalidBidException;
 import vn.edu.vnu.auction.common.network.NotificationMessage;
 import vn.edu.vnu.auction.dao.AutoBidDAO;
+import vn.edu.vnu.auction.dao.LoginHistoryDAO;
 import vn.edu.vnu.auction.dao.UserDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.AuctionResult;
@@ -153,25 +154,31 @@ public class ClientHandler implements Runnable{
             String password = credentials.get("password");
 
             if (userName == null || password == null) {
+                LoginHistoryDAO.saveLoginHistory(-1, userName, "FAILED");
                 return Response.error("Username and password are required.");
             }
 
             User user = UserDAO.getUserByCredentials(userName, password);
 
             if(user == null){
+                LoginHistoryDAO.saveLoginHistory(-1, userName, "FAILED");
                 return Response.error("Invalid username or password");
             }
 
             if(!user.isActive()){
+                LoginHistoryDAO.saveLoginHistory(user.getId(), userName, "FAILED");
                 return Response.error("This account has been locked");
             }
 
             this.loggedInUser = user;
             logger.info("User logged in: {}", userName);
+            LoginHistoryDAO.saveLoginHistory(user.getId(), userName, "SUCCESS");
 
             return Response.ok("Login successful.", user);
         } catch (Exception e){
             logger.warn("Login error: {}", e.getMessage());
+            LoginHistoryDAO.saveLoginHistory(-1, request.getData() != null ? 
+                ((Map<String, String>) request.getData()).get("username") : "unknown", "FAILED");
             return Response.error("Login failed: " + e.getMessage());
         }
     }
