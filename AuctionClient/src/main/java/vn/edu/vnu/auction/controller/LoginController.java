@@ -23,8 +23,6 @@ import vn.edu.vnu.auction.model.entity.user.Bidder;
 
 public class LoginController implements Initializable {
     @FXML
-    private Button loginButton;
-    @FXML
     private Button cancelButton;
     @FXML
     private Label messageLabel;
@@ -32,8 +30,6 @@ public class LoginController implements Initializable {
     private TextField usernameTF;
     @FXML
     private TextField passwordTF;
-    @FXML
-    private Button btnRegister;
     @FXML
     private StackPane rootStackPane;
 

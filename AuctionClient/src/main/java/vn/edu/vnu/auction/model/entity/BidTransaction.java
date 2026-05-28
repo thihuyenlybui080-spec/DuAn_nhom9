@@ -30,16 +30,8 @@ public class BidTransaction implements Serializable {
     public LocalDateTime getTimestamp(){
         return timestamp;
     }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public int getAuctionId() {
         return auctionId;
     }
 
-    public void setAuctionId(int auctionId) {
-        this.auctionId = auctionId;
-    }
 }

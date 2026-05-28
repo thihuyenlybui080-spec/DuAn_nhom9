@@ -44,8 +44,6 @@ import static vn.edu.vnu.auction.controller.MainController.LOGIN_FXML;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_TITLE;
 
 public class BiddingController implements Initializable, Observer {
-    private static final DateTimeFormatter DT_FORMAT =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private static final NumberFormat VND_FORMAT =

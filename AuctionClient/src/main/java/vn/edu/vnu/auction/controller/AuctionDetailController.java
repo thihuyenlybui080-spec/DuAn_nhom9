@@ -69,9 +69,6 @@ public class AuctionDetailController implements Initializable {
     @FXML private ImageView imvProductImage;
 
 
-    static final String BIDDER_DASHBOARD_FXML = "bidder_dashboard.fxml";
-    static final String BIDDER_DASHBOARD_TITLE = "bidder";
-
     private Auction auction;
     private User currentUser;
     private ScheduledExecutorService scheduler;

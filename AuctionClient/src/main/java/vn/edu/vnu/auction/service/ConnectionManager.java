@@ -24,7 +24,6 @@ public class ConnectionManager {
     private String serverHost = "localhost";
     private int serverPort = 8080;
 
-    private static final int CONNECT_TIMEOUT_MS = 5000;
     private static ConnectionManager instance;
     public static ConnectionManager getInstance(){
         if(instance == null){

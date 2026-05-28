@@ -5,20 +5,13 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import vn.edu.vnu.auction.service.AuctionClientService;
 import vn.edu.vnu.auction.service.SceneManager;
-import vn.edu.vnu.auction.model.entity.user.Bidder;
-import vn.edu.vnu.auction.model.entity.user.Seller;
-
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -26,17 +19,11 @@ import static vn.edu.vnu.auction.controller.MainController.LOGIN_FXML;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_TITLE;
 
 public class RegisterController implements Initializable {
-    private final String AUCTION_REGISTER_IMAGE_PATH = "mini.png";
-
 
     private static final String ROLE_BIDDER = "Bidder";
     private static final String ROLE_SELLER = "Seller";
 
     private static final int PASSWORD_MIN_LENGTH = 6;
-    @FXML
-    private Button signIn2Button;
-    @FXML
-    private ImageView libraImageView;
     @FXML
     private Button closeButton;
     @FXML
@@ -61,8 +48,6 @@ public class RegisterController implements Initializable {
     private RadioButton maleRButton, femaleRButton, otherRButton;
     @FXML
     private TextField phoneNumberTF;
-    @FXML
-    private ImageView auctionImageView;
     @FXML
     private StackPane rootStackPane;
 
