@@ -127,6 +127,7 @@ public class ClientHandler implements Runnable{
         handlers.put(Request.ACTION_DELETE_ITEM, this :: handleDeleteItem);
         handlers.put(Request.ACTION_GET_WON_AUCTIONS, this :: handelGetWonAuctions);
         handlers.put(Request.ACTION_PAY_AUCTION, this :: handlePayAuction);
+        handlers.put(Request.ACTION_CREATE_PAYMENT_LINK, this::handleCreatePaymentLink);
     }
 
     /**
@@ -664,6 +665,25 @@ public class ClientHandler implements Runnable{
         } catch (Exception e){
             logger.error("GetBidderHistory error", e);
             return Response.error("Failed to get bidder history: " + e.getMessage());
+        }
+    }
+    /**
+     * Tạo Stripe payment link cho auction đã thắng
+     */
+    private Response handleCreatePaymentLink(Request request) {
+        try {
+            int auctionId = (Integer) request.getData();
+            if (!(loggedInUser instanceof Bidder)) {
+                return Response.error("Only Bidder can create payment link");
+            }
+            String url = PaymentService.getInstance().createPaymentLink((Bidder) loggedInUser, auctionId);
+            if (url == null) {
+                return Response.error("Cannot create payment link. Check auction status.");
+            }
+            return Response.ok("Payment link created", (Object) url);
+        } catch (Exception e) {
+            logger.warn("CreatePaymentLink error", e);
+            return Response.error("Failed to create payment link: " + e.getMessage());
         }
     }
 

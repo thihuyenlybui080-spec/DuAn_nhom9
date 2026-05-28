@@ -287,6 +287,17 @@ public class PaymentGatewayController {
             KeyFrame step1 = new KeyFrame(Duration.millis(600), event -> {
                 progressBar.setProgress(0.35);
                 lblStatus.setText("Verifying order information...");
+                // Mở Stripe Checkout trong trình duyệt
+                try {
+                    String paymentUrl = AuctionClientService.getInstance()
+                            .createPaymentLink(result.getAuctionId());
+                    if (paymentUrl != null) {
+                        java.awt.Desktop.getDesktop()
+                                .browse(new java.net.URI(paymentUrl));
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             });
 
             KeyFrame step2 = new KeyFrame(Duration.millis(1400), ev -> {
