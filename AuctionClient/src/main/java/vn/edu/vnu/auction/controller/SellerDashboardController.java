@@ -488,13 +488,18 @@ public class SellerDashboardController implements Initializable {
                     loadMyItems();
                     loadMyAuctions();
 
+                    Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                     if (relatedAuction != null) {
+                        ToastNotification.show(stage, "Success", "Item deleted and auction cancelled successfully!", ToastNotification.Type.SUCCESS);
                         lblStatusBar.setText("Item deleted and auction cancelled: " + item.getItemName());
                     } else {
+                        ToastNotification.show(stage, "Success", "Item deleted successfully!", ToastNotification.Type.SUCCESS);
                         lblStatusBar.setText("Item deleted: " + item.getItemName());
                     }
 
                 } catch (IllegalArgumentException e) {
+                    Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                    ToastNotification.show(stage, "Error", e.getMessage(), ToastNotification.Type.ERROR);
                     showErrorAlert("Secure error", e.getMessage());
                 } catch (IllegalStateException e) {
                     showErrorAlert("Cannot delete", e.getMessage());
@@ -549,19 +554,27 @@ public class SellerDashboardController implements Initializable {
                 "Cancel auction for \"" + auction.getItem().getItemName() + "\"? This will also delete the related item.");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                AuctionClientService.getInstance().cancelAuction(auction.getId());
-                Item relatedItem = auction.getItem();
-                if (relatedItem != null) {
-                    try {
-                        AuctionClientService.getInstance().deleteItem(relatedItem.getId());
-                        myItems.removeIf(item -> item.getId() == relatedItem.getId());
-                    } catch (Exception e) {
-                        System.err.println("Failed to delete related item: " + e.getMessage());
+                try {
+                    AuctionClientService.getInstance().cancelAuction(auction.getId());
+                    Item relatedItem = auction.getItem();
+                    if (relatedItem != null) {
+                        try {
+                            AuctionClientService.getInstance().deleteItem(relatedItem.getId());
+                            myItems.removeIf(item -> item.getId() == relatedItem.getId());
+                        } catch (Exception e) {
+                            System.err.println("Failed to delete related item: " + e.getMessage());
+                        }
                     }
+                    loadMyAuctions();
+                    loadMyItems();
+                    lblStatusBar.setText("Auction cancelled and item deleted.");
+                    
+                    Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                    ToastNotification.show(stage, "Success", "Auction cancelled and item deleted successfully!", ToastNotification.Type.SUCCESS);
+                } catch (Exception e) {
+                    Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                    ToastNotification.show(stage, "Error", "Failed to cancel auction: " + e.getMessage(), ToastNotification.Type.ERROR);
                 }
-                loadMyAuctions();
-                loadMyItems();
-                lblStatusBar.setText("Auction cancelled and item deleted.");
             }
         });
     }

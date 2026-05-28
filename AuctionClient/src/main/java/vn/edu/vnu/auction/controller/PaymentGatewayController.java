@@ -379,6 +379,9 @@ public class PaymentGatewayController {
             bar.setProgress(1.0);
             lbl.setText("✅ Payment successful!");
             lbl.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px; -fx-font-weight: bold;");
+            
+            ToastNotification.show(stage, "Success", "Payment successful! Your order is confirmed.", ToastNotification.Type.SUCCESS);
+            
             stage.close();
             if (onSuccess != null) onSuccess.run();
         } catch (Exception ex) {
@@ -387,6 +390,9 @@ public class PaymentGatewayController {
             lbl.setVisible(true);
             lbl.setText("❌ Payment failed: " + ex.getMessage());
             lbl.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-font-weight: bold;");
+            
+            ToastNotification.show(stage, "Error", "Payment failed: " + ex.getMessage(), ToastNotification.Type.ERROR);
+            
             btnPay.setDisable(false);
         }
     }

@@ -77,11 +77,12 @@ public class LoginController implements Initializable {
                 String role = user.getRole() != null ? user.getRole().trim().toUpperCase() : "";
                 RegisterController.setCurrentUserId(userId);
 
+                Stage stage = (Stage) rootStackPane.getScene().getWindow();
+                ToastNotification.show(stage, "Success", "Login successful! Welcome, " + user.getName(), ToastNotification.Type.SUCCESS);
                 messageLabel.setText("Login successful! Welcome, " + user.getName());
 
                 PauseTransition pause = new PauseTransition(Duration.seconds(1));
                 pause.setOnFinished(e -> {
-                    Stage stage = (Stage) rootStackPane.getScene().getWindow();
                     switch (role) {
                         case "ADMIN" -> {
                             AdminDashboardController ctrl = sceneManager.switchSceneAndGetController(
@@ -103,10 +104,14 @@ public class LoginController implements Initializable {
                 pause.play();
 
             } else {
+                Stage stage = (Stage) rootStackPane.getScene().getWindow();
+                ToastNotification.show(stage, "Error", "Incorrect username or password!", ToastNotification.Type.ERROR);
                 messageLabel.setText("Incorrect username or password!");
             }
 
         } catch (Exception e) {
+            Stage stage = (Stage) rootStackPane.getScene().getWindow();
+            ToastNotification.show(stage, "Error", e.getMessage(), ToastNotification.Type.ERROR);
             messageLabel.setText(e.getMessage());
             e.printStackTrace();
         }

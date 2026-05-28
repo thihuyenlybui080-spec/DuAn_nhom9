@@ -266,21 +266,26 @@ public class AdminDashboardController implements Initializable {
             boolean wasActive = user.isActive();
             try {
                 AuctionClientService.getInstance().toggleUserLock(user);
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 if (!wasActive) {
                     btn.setText("🔒 Lock");
                     btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #c0c43f;"
                             + "-fx-border-color: #c0c43f; -fx-border-radius: 4;"
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Unlocked: " + user.getFullName());
+                    ToastNotification.show(stage, "Success", "User unlocked successfully: " + user.getFullName(), ToastNotification.Type.SUCCESS);
                 } else {
                     btn.setText("🔓 Unlock");
                     btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
                             + "-fx-border-color: #fff; -fx-border-radius: 4;"
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Locked: " + user.getFullName());
+                    ToastNotification.show(stage, "Success", "User locked successfully: " + user.getFullName(), ToastNotification.Type.SUCCESS);
                 }
                 applyUserFilter();
             }catch (RuntimeException e) {
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                ToastNotification.show(stage, "Error", "Action failed: " + e.getMessage(), ToastNotification.Type.ERROR);
                 new Alert(Alert.AlertType.ERROR, "Action failed: " + e.getMessage())
                         .showAndWait();
             }
@@ -430,11 +435,15 @@ public class AdminDashboardController implements Initializable {
                 AuctionClientService.getInstance().forceEndAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Force End: " + auction.getItem().getItemName());
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                ToastNotification.show(stage, "Success", "Auction force ended successfully: " + auction.getItem().getItemName(), ToastNotification.Type.SUCCESS);
             }
             else{
                 AuctionClientService.getInstance().cancelAuction(auction.getId());
                 loadAuctions();
                 lblStatusBar.setText("Cancel: " + auction.getItem().getItemName());
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                ToastNotification.show(stage, "Success", "Auction cancelled successfully: " + auction.getItem().getItemName(), ToastNotification.Type.SUCCESS);
             }
             loadAuctions();
         });

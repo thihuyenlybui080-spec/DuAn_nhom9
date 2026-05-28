@@ -114,6 +114,7 @@ public class BiddingController implements Initializable, Observer {
     private boolean autoBidEnable = false;
     private ScheduledExecutorService scheduler;
     private List<BidTransaction> localBids = new ArrayList<>();
+    private boolean timeWarningShown = false;
 
     private final SceneManager sceneManager = new SceneManager(getClass());
     private final static Logger logger = LoggerFactory.getLogger(BiddingController.class);
@@ -188,6 +189,15 @@ public class BiddingController implements Initializable, Observer {
                         updateBidButton();
                         updateStatusBadge();
                         lblCountdown.setText("ENDED");
+                        
+                        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                        // Check if current bidder is the winner
+                        if (ended.getHighestBidder() != null && ended.getHighestBidder().getId() == bidder.getId()) {
+                            ToastNotification.show(stage, "Congratulations!", "You won the auction for " + auction.getItem().getItemName() + "!", ToastNotification.Type.SUCCESS);
+                        } else {
+                            ToastNotification.show(stage, "Auction Ended", "The auction has ended. Winner: " + 
+                                (ended.getHighestBidder() != null ? ended.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
+                        }
                     });
                     break;
                 case NotificationMessage.TYPE_TIME_EXTENDED:
@@ -203,8 +213,8 @@ public class BiddingController implements Initializable, Observer {
                         }
                         lblCountdown.setStyle(
                                 "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ff9800;");
-                        lblBidError.setText("⏱ Anti-snipe: +60s added!");
                         lblBidError.setStyle("-fx-text-fill: #ff9800; -fx-font-size: 11px;");
+                        lblBidError.setText("⏱ Anti-snipe: +60s added!");
                         lblBidError.setVisible(true);
                         lblBidError.setManaged(true);
                     });
@@ -212,13 +222,16 @@ public class BiddingController implements Initializable, Observer {
                 case NotificationMessage.TYPE_AUTO_BID_AUCTION_ENDED:
                     Platform.runLater(() -> {
                         String message = (String) notification.getData();
+                        lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
                         lblBidError.setText("🤖 " + message);
-                        lblBidError.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-font-weight: bold;");
                         lblBidError.setVisible(true);
                         lblBidError.setManaged(true);
                         updateBidButton();
                         updateStatusBadge();
                         lblCountdown.setText("ENDED");
+                        
+                        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                        ToastNotification.show(stage, "Auto-Bid Failed", message, ToastNotification.Type.ERROR);
                     });
                     break;
             }
@@ -382,6 +395,8 @@ public class BiddingController implements Initializable, Observer {
         String raw = txtBidAmount.getText().trim().replaceAll("[^0-9]", "");
 
         if(raw.isEmpty()){
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Error", "Please enter a bid amount", ToastNotification.Type.ERROR);
             showBidError("Please enter a bid amount");
             return;
         }
@@ -391,11 +406,15 @@ public class BiddingController implements Initializable, Observer {
             amount = Double.parseDouble(raw);
         }
         catch (NumberFormatException e) {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Error", "Invalid amount.", ToastNotification.Type.ERROR);
             showBidError("Invalid amount.");
             return;
         }
 
         if (amount <= auction.getCurrentPrice()) {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Warning", "Bid must be greater than current price (" + formatPrice(auction.getCurrentPrice()) + " ₫)", ToastNotification.Type.WARNING);
             showBidError("Bid must be greater than current price (" + formatPrice(auction.getCurrentPrice()) + " ₫)");
             return;
         }
@@ -419,7 +438,12 @@ public class BiddingController implements Initializable, Observer {
             refreshBidHistory();
             showBidError("✅ Bid placed successfully: " + formatPrice(amount) + " ₫");
             lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
+            
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Success", "Bid placed successfully: " + formatPrice(amount) + " ₫", ToastNotification.Type.SUCCESS);
         } catch (RuntimeException e) {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Error", e.getMessage(), ToastNotification.Type.ERROR);
             showBidError(e.getMessage());
         }
     }
@@ -452,11 +476,15 @@ public class BiddingController implements Initializable, Observer {
         if (auction.getStatus() == AuctionStatus.FINISHED) {
             lblAutoBidStatus.setText("This auction has ended and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Warning", "This auction has ended and cannot enable auto-bid.", ToastNotification.Type.WARNING);
             return;
         }
         if (auction.getItem().getEndTime() != null && auction.getItem().getEndTime().isBefore(LocalDateTime.now())) {
             lblAutoBidStatus.setText("This auction has expired and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Warning", "This auction has expired and cannot enable auto-bid.", ToastNotification.Type.WARNING);
             return;
         }
 
@@ -717,6 +745,7 @@ public class BiddingController implements Initializable, Observer {
             lblCountdownLabel.setText("Time Left");
             lblCountdown.setStyle(
                     "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #722f37;");
+            timeWarningShown = false;
             stopScheduler();
             return;
         }
@@ -742,6 +771,13 @@ public class BiddingController implements Initializable, Observer {
         } else if(auction.getItem().getEndTime() != null){
             totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
             lblCountdownLabel.setText("Time Left");
+            
+            if (totalSecs <= 60 && totalSecs > 0 && !timeWarningShown) {
+                timeWarningShown = true;
+                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                ToastNotification.show(stage, "Warning", "Auction ending in less than 1 minute!", ToastNotification.Type.WARNING);
+            }
+            
             if (totalSecs <= 0) {
                 // Refresh auction data from server when end time is reached
                 try {
@@ -755,6 +791,15 @@ public class BiddingController implements Initializable, Observer {
                         // Only stop scheduler if server confirms auction is FINISHED
                         if (updatedAuction.getStatus() == AuctionStatus.FINISHED) {
                             lblCountdown.setText("ENDED");
+                            
+                            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                            if (updatedAuction.getHighestBidder() != null && updatedAuction.getHighestBidder().getId() == bidder.getId()) {
+                                ToastNotification.show(stage, "Congratulations!", "You won the auction for " + auction.getItem().getItemName() + "!", ToastNotification.Type.SUCCESS);
+                            } else {
+                                ToastNotification.show(stage, "Auction Ended", "The auction has ended. Winner: " + 
+                                    (updatedAuction.getHighestBidder() != null ? updatedAuction.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
+                            }
+                            
                             stopScheduler();
                             return;
                         }
@@ -844,6 +889,7 @@ public class BiddingController implements Initializable, Observer {
     // ── UI helpers ────────────────────────────────────────────────────────────
 
     private void showBidError(String message) {
+        lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
         lblBidError.setText(message);
         lblBidError.setVisible(true);
         lblBidError.setManaged(true);

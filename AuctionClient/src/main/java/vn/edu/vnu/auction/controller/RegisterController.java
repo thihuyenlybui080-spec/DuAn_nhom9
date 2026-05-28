@@ -1,5 +1,6 @@
 package vn.edu.vnu.auction.controller;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -10,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import vn.edu.vnu.auction.service.AuctionClientService;
 import vn.edu.vnu.auction.service.SceneManager;
 import java.net.URL;
@@ -132,7 +134,12 @@ public class RegisterController implements Initializable {
         boolean isSuccess = registerUser();
         if (isSuccess) {
             registrationMessageLabel.setText("Registration successful");
-            sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
+            
+            PauseTransition pause = new PauseTransition(Duration.seconds(2));
+            pause.setOnFinished(e -> {
+                sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
+            });
+            pause.play();
         }
     }
 
@@ -184,13 +191,20 @@ public class RegisterController implements Initializable {
             int userId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
             currentUserId = userId;
             registrationMessageLabel.setText("Registration successful!");
+            
+            Stage stage = (Stage) rootStackPane.getScene().getWindow();
+            ToastNotification.show(stage, "Success", "Registration successful! You can now login.", ToastNotification.Type.SUCCESS);
             return true;
         } catch (RuntimeException e) {
             String message = e.getMessage() != null ? e.getMessage() : "Registration failed";
             if (message.toLowerCase().contains("duplicate") || message.toLowerCase().contains("already exists")) {
                 registrationMessageLabel.setText("Username already exists, please choose another!");
+                Stage stage = (Stage) rootStackPane.getScene().getWindow();
+                ToastNotification.show(stage, "Error", "Username already exists, please choose another!", ToastNotification.Type.ERROR);
             } else {
                 registrationMessageLabel.setText(message);
+                Stage stage = (Stage) rootStackPane.getScene().getWindow();
+                ToastNotification.show(stage, "Error", message, ToastNotification.Type.ERROR);
             }
             return false;
         }
