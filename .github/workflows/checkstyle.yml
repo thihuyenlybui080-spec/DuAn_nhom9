@@ -29,7 +29,6 @@ jobs:
         cache: maven
         
     - name: Execute Checkstyle
-      working-directory: ./AuctionSystem_final
       run: mvn checkstyle:check
       
     - name: Checkstyle Reviewer Bot
