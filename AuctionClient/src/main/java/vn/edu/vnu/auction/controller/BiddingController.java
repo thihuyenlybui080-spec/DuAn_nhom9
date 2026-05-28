@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.chart.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -105,6 +106,11 @@ public class BiddingController implements Initializable, Observer {
     @FXML private BorderPane rootBorderPane;
     @FXML private ImageView imvProductImage;
 
+    @FXML private AreaChart<String, Number> priceChart;
+    @FXML private CategoryAxis xAxis;
+    @FXML private NumberAxis yAxis;
+    private XYChart.Series<String, Number> priceSeries;
+
     private Auction auction;
     private Bidder bidder;
     private boolean autoBidEnable = false;
@@ -192,7 +198,6 @@ public class BiddingController implements Initializable, Observer {
                         if (extended.getItem() != null && extended.getItem().getEndTime() != null) {
                             this.auction.getItem().setEndTime(extended.getItem().getEndTime());
                         }
-                        // Ensure status is RUNNING when time is extended
                         if (extended.getStatus() != null && extended.getStatus() == AuctionStatus.RUNNING) {
                             this.auction.setStatus(AuctionStatus.RUNNING);
                             updateStatusBadge();
@@ -275,6 +280,19 @@ public class BiddingController implements Initializable, Observer {
         }
         updatePriceArea();
         refreshBidHistory();
+        priceSeries = new XYChart.Series<>();
+        priceSeries.setName("Bid Price");
+        priceChart.getData().add(priceSeries);
+
+        List<BidTransaction> chartBids = new ArrayList<>(localBids);
+        Collections.reverse(chartBids);
+        for(BidTransaction bid : chartBids){
+            String time = bid.getTimestamp() != null
+                    ? bid.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                    : "--";
+            priceSeries.getData().add(
+                    new XYChart.Data<>(time, bid.getAmount()));
+        }
         updateBidButton();
     }
 
@@ -594,6 +612,18 @@ public class BiddingController implements Initializable, Observer {
         lblAutoBidHint.setManaged(true);
     }
     private void refreshBidHistory() {
+        if(priceSeries != null && !localBids.isEmpty()){
+            priceSeries.getData().clear();
+            List<BidTransaction> chartBids = new ArrayList<>(localBids);
+            Collections.reverse(chartBids);
+            for(BidTransaction bid : chartBids){
+                String time = bid.getTimestamp() != null
+                        ? bid.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                        : "--";
+                priceSeries.getData().add(
+                        new XYChart.Data<>(time, bid.getAmount()));
+            }
+        }
         bidHistoryContainer.getChildren().clear();
 
         if (localBids.isEmpty()) {

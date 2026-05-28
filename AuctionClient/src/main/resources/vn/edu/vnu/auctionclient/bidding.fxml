@@ -19,6 +19,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.chart.AreaChart?>
 <BorderPane fx:id="rootBorderPane" maxHeight="600.0" maxWidth="900.0" prefHeight="600.0" prefWidth="763.0" style="-fx-background-color: #0a0405;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.edu.vnu.auction.controller.BiddingController">
    <left>
       <VBox prefHeight="458.0" prefWidth="200.0" spacing="5.0" style="-fx-background-color: linear-gradient(to bottom right, #000000, #4E1A21, #000000); -fx-border-color: rgba(114,47,55,0.3); -fx-border-width: 0 1 0 0;" BorderPane.alignment="CENTER">
@@ -148,14 +149,14 @@
                <children>
                   <VBox prefHeight="570.0" prefWidth="414.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <LineChart fx:id="priceChart" animated="false" prefHeight="327.0" prefWidth="234.0" style="-fx-background-color: transparent; -fx-background: transparent;" title="Bid Price History">
+                        <AreaChart fx:id="priceChart" animated="false" prefHeight="327.0" prefWidth="234.0" style="-fx-background-color: transparent; -fx-background: transparent;" title="Bid Price History">
                            <xAxis>
-                              <CategoryAxis label="Time" />
+                              <CategoryAxis fx:id="xAxis" label="Time" />
                            </xAxis>
                            <yAxis>
-                              <NumberAxis label="Price (đ)" />
+                              <NumberAxis fx:id="yAxis" label="Price (đ)" />
                            </yAxis>
-                        </LineChart>
+                        </AreaChart>
                         <VBox prefHeight="318.0" prefWidth="177.0" spacing="10.0" style="-fx-background-color: #1a0a0c; -fx-background-radius: 15; -fx-border-color: #3d1c21; -fx-border-radius: 15;" VBox.vgrow="ALWAYS">
                            <padding>
                               <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />

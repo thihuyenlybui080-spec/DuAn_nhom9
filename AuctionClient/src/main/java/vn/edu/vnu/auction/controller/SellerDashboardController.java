@@ -642,6 +642,9 @@ public class SellerDashboardController implements Initializable {
         loadMyItems();
         lblStatusBar.setText("✅ Auction created: " + itemName);
         showFormError("✅ Auction created successfully for " + itemName);
+
+        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+        ToastNotification.show(stage, "Success", "Item and Auction created successfully!", ToastNotification.Type.SUCCESS);
         lblFormError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px;");
 
     }
