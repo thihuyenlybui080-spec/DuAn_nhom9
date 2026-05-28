@@ -24,7 +24,7 @@ public class ToastNotification {
             VBox box = new VBox(4);
             box.setPadding(new Insets(12, 16, 12, 16));
             box.setMinWidth(280);
-            box.setMinWidth(100);
+            box.setMaxWidth(280);
             box.setStyle(getStyle(type));
 
             HBox titleRow = new HBox(6);

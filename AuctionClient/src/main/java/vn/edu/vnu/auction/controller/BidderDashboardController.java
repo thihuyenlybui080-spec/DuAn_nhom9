@@ -439,7 +439,8 @@ public class BidderDashboardController implements Initializable {
 
     private void onBidClicked(Auction auction) {
         if (auction.getStatus() == FINISHED) {
-            new Alert(Alert.AlertType.INFORMATION, "This auction has ended.").showAndWait();
+            Stage stage = (Stage) auctionContainer.getScene().getWindow();
+            ToastNotification.show(stage, "Error", "This auction has ended.", ToastNotification.Type.ERROR);
             return;
         }
         try {
@@ -451,7 +452,7 @@ public class BidderDashboardController implements Initializable {
             ctrl.setData(
                     auction,
                     bidder,
-                    "bidder_dashboard.fxml",  // ← màn quay lại
+                    "bidder_dashboard.fxml",
                     "Bidder Dashboard"
             );
 
