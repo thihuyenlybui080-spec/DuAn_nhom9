@@ -26,9 +26,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -88,6 +87,9 @@ public class BidderDashboardController implements Initializable {
     private String currentCategory = "All";
     private String currentStatus = "All Status";
     private ScheduledExecutorService scheduler;
+
+    private ScheduledExecutorService countdownScheduler;
+    private final Map<Integer, Label> countdownLabel = new ConcurrentHashMap<>();
 
     private final SceneManager sceneManager = new SceneManager(getClass());
 
@@ -249,6 +251,7 @@ public class BidderDashboardController implements Initializable {
 
     private void renderAuctions(List<Auction> list) {
         auctionContainer.getChildren().clear();
+        countdownLabel.clear();
 
         if(list.isEmpty()){
             auctionContainer.getChildren().add(buildEmptyState());
@@ -282,13 +285,32 @@ public class BidderDashboardController implements Initializable {
                     updateSubtitle();
                     lblUpdate.setText("Updated " + LocalDateTime.now().format(TIME_FORMAT));
                 }),
-                30, 30, TimeUnit.SECONDS
+                10, 10, TimeUnit.SECONDS
+        );
+
+        countdownScheduler = Executors.newSingleThreadScheduledExecutor();
+        countdownScheduler.scheduleAtFixedRate(
+                () -> Platform.runLater(() -> {
+                    if(allAutions == null) return;
+                    for(Auction auction: allAutions){
+                        Label lbl = countdownLabel.get(auction.getId());
+                        if(lbl != null){
+                            lbl.setText("⏱ " + formatTimeRemaining(auction));
+                            lbl.setStyle(getTimeStyle(auction));
+                        }
+
+                    }
+                }),
+                1, 1, TimeUnit.SECONDS
         );
     }
 
     private void stopAutoRefresh(){
         if(scheduler != null && !scheduler.isShutdown()){
             scheduler.shutdownNow();
+        }
+        if(countdownScheduler != null && !countdownScheduler.isShutdown()){
+            countdownScheduler.shutdownNow();
         }
     }
 
@@ -310,7 +332,8 @@ public class BidderDashboardController implements Initializable {
         Label badge = buildStatusBadge(auction.getStatus());
         row1.getChildren().addAll(nameLabel, badge);
 
-        Label sellerLabel = new Label("Seller: " + auction.getSeller().getName());
+        String sellerName = (auction.getSeller() != null) ? auction.getSeller().getName() : "Unknown";
+        Label sellerLabel = new Label("Seller: " + sellerName);
         sellerLabel.setStyle("-fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
 
         HBox row2 = new HBox(8);
@@ -329,6 +352,7 @@ public class BidderDashboardController implements Initializable {
 
         Label timeLabel = new Label("⏱ " + formatTimeRemaining(auction));
         timeLabel.setStyle(getTimeStyle(auction));
+        countdownLabel.put(auction.getId(), timeLabel);
 
         info.getChildren().addAll(row1, sellerLabel, row2, timeLabel);
 
@@ -511,7 +535,6 @@ public class BidderDashboardController implements Initializable {
             List<BidTransaction> history =
                     AuctionClientService.getInstance().getBidderHistory(bidder.getId());
 
-            // Add column headers
             HBox headerRow = new HBox(15);
             headerRow.setAlignment(Pos.CENTER_LEFT);
             headerRow.setPadding(new Insets(10, 0, 10, 0));

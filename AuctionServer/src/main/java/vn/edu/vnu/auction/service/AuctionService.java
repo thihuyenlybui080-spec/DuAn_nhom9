@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Dịch vụ vòng đời phiên đấu giá: tạo, mở, kết thúc, hủy và truy vấn từ DB.
@@ -298,25 +299,27 @@ public class AuctionService {
 
 
     /**
-     * Lấy auction: ưu tiên in-memory, fallback DB.
+     * Lấy auction theo id của auction: ưu tiên in-memory, fallback DB.
      */
     public Auction getAuction(int auctionId) {
-        Auction auction = AuctionDAO.getAuctionById(auctionId);
-        if (auction != null) {
-            Auction inMemoryAuction = auctionManager.getActive(auctionId);
-            if (inMemoryAuction != null) {
-                auction = inMemoryAuction;
-            } else {
-                auctionManager.putActive(auction);
-            }
+        Auction inMemoryAuction = auctionManager.getActive(auctionId);
+        if(inMemoryAuction != null){
+            return inMemoryAuction;
         }
-        return auction;
-    }
+        return AuctionDAO.getAuctionById(auctionId);
+        }
+
 
     /** Lấy tất cả auction từ DB (admin). */
     public List<Auction> getAllAuctions() {
         List<User> allUsers = UserDAO.getAllUsers();
-        return AuctionDAO.getAllAuctions(allUsers);
+        List<Auction> dbList = AuctionDAO.getAllAuctions(allUsers);
+
+        return dbList.stream().map(a -> {
+            Auction inMemory = AuctionManager.getInstance().getActive(a.getId());
+            return inMemory != null ? inMemory : a;
+        }).collect(Collectors.toList());
+
     }
 
     /** Lấy auction theo seller từ DB. */

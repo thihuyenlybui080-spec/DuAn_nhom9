@@ -72,14 +72,6 @@ public class AuctionDAO {
                 try {
                     Auction a = mapAuction(rs, allUsers);
                     if (a != null) {
-                        // Check if auction has ended but status not updated
-                        if (a.getItem().getEndTime() != null 
-                                && a.getItem().getEndTime().isBefore(LocalDateTime.now())
-                                && (a.getStatus() == AuctionStatus.RUNNING || a.getStatus() == AuctionStatus.OPEN)) {
-                            a.setStatus(AuctionStatus.FINISHED);
-                            // Update status in database
-                            updateAuctionStatus(a.getId(), AuctionStatus.FINISHED);
-                        }
                         list.add(a);
                     }
                 } catch (Exception e) {
@@ -196,7 +188,6 @@ public class AuctionDAO {
             auction.setStatus(AuctionStatus.OPEN);
         }
 
-        // Load bids from database
         int auctionDbId = rs.getInt("auction_id");
         List<BidTransaction> bids =
                 BidDAO.getBidsByAuction(auctionDbId);
@@ -224,6 +215,19 @@ public class AuctionDAO {
             System.err.println("[AuctionDAO] getAuctionById: " + e.getMessage());
         }
         return null;
+    }
+
+    public static void updateAuctionEndTime(int auctionId, LocalDateTime newEndTime){
+        String sql = "UPDATE auctions SET end_time = ? WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newEndTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            ps.setInt(2, auctionId);
+            ps.executeUpdate();
+            logger.info("[AuctionDAO] Updated end_time for auction {} to {}", auctionId, newEndTime);
+        } catch (SQLException e) {
+            logger.error("[AuctionDAO] updateAuctionEndTime: {}", e.getMessage());
+        }
     }
 
     /** Lấy các auction đã thắng bởi bidder (status = FINISHED hoặc PAID). */

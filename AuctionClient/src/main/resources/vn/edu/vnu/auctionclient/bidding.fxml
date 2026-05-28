@@ -2,6 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
@@ -143,8 +146,16 @@
                   <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
                </padding>
                <children>
-                  <VBox prefHeight="290.0" prefWidth="405.0" HBox.hgrow="ALWAYS">
+                  <VBox prefHeight="570.0" prefWidth="414.0" HBox.hgrow="ALWAYS">
                      <children>
+                        <LineChart fx:id="priceChart" animated="false" prefHeight="327.0" prefWidth="234.0" style="-fx-background-color: transparent; -fx-background: transparent;" title="Bid Price History">
+                           <xAxis>
+                              <CategoryAxis label="Time" />
+                           </xAxis>
+                           <yAxis>
+                              <NumberAxis label="Price (đ)" />
+                           </yAxis>
+                        </LineChart>
                         <VBox prefHeight="318.0" prefWidth="177.0" spacing="10.0" style="-fx-background-color: #1a0a0c; -fx-background-radius: 15; -fx-border-color: #3d1c21; -fx-border-radius: 15;" VBox.vgrow="ALWAYS">
                            <padding>
                               <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
@@ -196,7 +207,7 @@
                         </VBox>
                      </children>
                   </VBox>
-                  <VBox prefHeight="301.0" prefWidth="416.0" spacing="15.0" HBox.hgrow="ALWAYS">
+                  <VBox prefHeight="570.0" prefWidth="214.0" spacing="15.0" HBox.hgrow="ALWAYS">
                      <children>
                         <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" VBox.vgrow="ALWAYS">
                            <children>
@@ -218,9 +229,9 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <HBox prefHeight="25.0" prefWidth="131.0" VBox.vgrow="ALWAYS">
+                              <HBox prefHeight="54.0" prefWidth="224.0" VBox.vgrow="ALWAYS">
                                  <children>
-                                    <Label fx:id="lblCurrentPrice" prefHeight="84.0" prefWidth="220.0" text="0000" textFill="#d7d74c" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="lblCurrentPrice" prefHeight="54.0" prefWidth="202.0" text="0000" textFill="#d7d74c" HBox.hgrow="ALWAYS">
                                        <font>
                                           <Font name="System Bold" size="37.0" />
                                        </font>

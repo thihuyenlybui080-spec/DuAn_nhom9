@@ -2,6 +2,7 @@ package vn.edu.vnu.auction.service;
 
 import vn.edu.vnu.auction.common.exception.AuctionClosedException;
 import vn.edu.vnu.auction.common.exception.InvalidBidException;
+import vn.edu.vnu.auction.dao.AuctionDAO;
 import vn.edu.vnu.auction.dao.BidDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
@@ -111,6 +112,7 @@ public class BidService {
         if (extended) {
             long newEndDelay = auction.getSecondsRemaining();
             auctionService.scheduleEnd(auction, newEndDelay);
+            AuctionDAO.updateAuctionEndTime(auction.getId(), auction.getItem().getEndTime());
             logger.info("Anti-snipe extended auction {} by {}s, rescheduled end in {}s", auction.getId(), ANTI_SNIPE_EXTENSION_SECONDS, newEndDelay);
         }
     }
