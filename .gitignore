@@ -4,3 +4,4 @@ out/
 target/
 *.db
 AuctionServer/auction_system.db
+AuctionServer/auction_system.db

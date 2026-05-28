@@ -56,7 +56,6 @@ public class ClientHandler implements Runnable{
     private User loggedInUser;
 
     private Map<String, Function<Request, Response>> handlers = new HashMap<>();
-    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
      *Tạo một socket kết nối vơi client
