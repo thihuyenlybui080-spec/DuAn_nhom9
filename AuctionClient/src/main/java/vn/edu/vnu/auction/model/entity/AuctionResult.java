@@ -29,17 +29,11 @@ public class AuctionResult implements Serializable {
         this.bidHistory = new ArrayList<>(auction.getBids());
     }
 
-    public void setStatus(AuctionStatus newStatus){
-        status=newStatus;
-    }
-
     //getter
     public int getAuctionId() { return auctionId; }
     public Item getItem() { return item; }
-    public User getWinner() { return winner; }
     public double getFinalPrice() { return finalPrice; }
     public LocalDateTime getEndTime() { return endTime; }
-    public static List<BidTransaction> getBidHistory() { return bidHistory; }
     public AuctionStatus getStatus() {return status;}
 
     @Override

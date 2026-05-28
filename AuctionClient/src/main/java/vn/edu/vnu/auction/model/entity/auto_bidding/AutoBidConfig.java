@@ -19,9 +19,6 @@ public class AutoBidConfig implements Serializable {
         this.increment    = increment;
     }
 
-    public double getMaxBid()              { return maxBid; }
-    public double getIncrement()           { return increment; }
-
     @Override
     public String toString() {
         return "AutoBidConfig{maxBid=" + maxBid + ", increment=" + increment + "}";
