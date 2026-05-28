@@ -77,7 +77,8 @@
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
-                    <failsOnError>false</failsOnError>
+                    <failsOnError>true</failsOnError>
+                    <violationSeverity>warning</violationSeverity>
                 </configuration>
                 
                 <executions>
