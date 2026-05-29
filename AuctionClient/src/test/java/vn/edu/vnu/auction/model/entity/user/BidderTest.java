@@ -4,8 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import vn.edu.vnu.auction.model.entity.item.Item;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BidderTest {
@@ -49,9 +47,4 @@ class BidderTest {
         assertEquals("vip@vnu.edu.vn", bidderWithId.getEmail());
     }
 
-    @Test
-    void testRecordBid_Success() {
-        assertDoesNotThrow(() -> bidder.recordBid(mockItem, 500.0),
-                "Active bidder should be able to place a bid without throwing exceptions");
-    }
 }

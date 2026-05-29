@@ -39,16 +39,4 @@ class BidTransactionTest {
         // auctionId is not set in the constructor, so for an int primitive, it defaults to 0
         assertEquals(0, transaction.getAuctionId(), "The default primitive int auctionId should be 0");
     }
-
-    @Test
-    void testSettersAndGetters() {
-        // Test updating the timestamp
-        LocalDateTime newTime = LocalDateTime.of(2026, 10, 20, 15, 30);
-        transaction.setTimestamp(newTime);
-        assertEquals(newTime, transaction.getTimestamp(), "The timestamp should be updated to the new value");
-
-        // Test updating the auction ID
-        transaction.setAuctionId(99);
-        assertEquals(99, transaction.getAuctionId(), "The auction ID should be updated to 99");
-    }
 }

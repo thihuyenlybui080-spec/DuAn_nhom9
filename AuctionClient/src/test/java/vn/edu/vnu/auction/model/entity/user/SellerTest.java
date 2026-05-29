@@ -48,18 +48,16 @@ class SellerTest {
         assertEquals("proSeller", sellerWithId.getName());
         assertEquals("pro@vnu.edu.vn", sellerWithId.getEmail());
     }
-
     @Test
-    void testSetAndGetOwnedItems() {
-        // Create mock objects for Item using Mockito
+    void testSetAndGetOwnedItems() throws Exception {
         Item mockItem1 = Mockito.mock(Item.class);
         Item mockItem2 = Mockito.mock(Item.class);
-
-        // Create a list containing the mock items
         List<Item> mockItemList = Arrays.asList(mockItem1, mockItem2);
 
-        // Set the list to the seller
-        seller.setOwnedItems(mockItemList);
+        // Dùng Reflection nhét dữ liệu vào thay cho hàm Setter không tồn tại
+        java.lang.reflect.Field itemsField = Seller.class.getDeclaredField("ownedItems");
+        itemsField.setAccessible(true);
+        itemsField.set(seller, mockItemList);
 
         // Retrieve the list and verify its contents
         List<Item> retrievedItems = seller.getOwnedItems();

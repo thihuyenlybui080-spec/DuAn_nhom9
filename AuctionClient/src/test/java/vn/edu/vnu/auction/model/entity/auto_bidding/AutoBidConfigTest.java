@@ -1,6 +1,7 @@
 package vn.edu.vnu.auction.model.entity.auto_bidding;
 
 import org.junit.jupiter.api.Test;
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,13 +9,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class AutoBidConfigTest {
 
     @Test
-    void testConstructorAndGetters_Success() {
-        // Step 1: Create a valid configuration
+    void testConstructor_Success() throws Exception {
+        // Bước 1: Tạo cấu hình hợp lệ
         AutoBidConfig config = new AutoBidConfig(1000.0, 50.0);
 
-        // Step 2: Verify the getters return exactly what we passed in
-        assertEquals(1000.0, config.getMaxBid(), "The max bid should be 1000.0");
-        assertEquals(50.0, config.getIncrement(), "The increment should be 50.0");
+        // Bước 2: Dùng Reflection "phá khóa" biến private vì không có Getter
+        Field maxBidField = AutoBidConfig.class.getDeclaredField("maxBid");
+        maxBidField.setAccessible(true);
+        double actualMaxBid = (double) maxBidField.get(config);
+
+        Field incrementField = AutoBidConfig.class.getDeclaredField("increment");
+        incrementField.setAccessible(true);
+        double actualIncrement = (double) incrementField.get(config);
+
+        // Bước 3: Kiểm chứng dữ liệu đã lấy ra
+        assertEquals(1000.0, actualMaxBid, "The max bid should be 1000.0");
+        assertEquals(50.0, actualIncrement, "The increment should be 50.0");
     }
 
     @Test
