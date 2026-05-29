@@ -5,12 +5,11 @@ import vn.edu.vnu.auction.common.exception.AuthenticationException;
 import vn.edu.vnu.auction.model.entity.Entity;
 
 public abstract class User extends Entity {
+    private static final long serialVersionUID = 1L;
     protected String userName;
     private String email;
     protected String password;
     private String fullName;
-
-    // Khởi tạo mặc định ACTIVE ngay từ đầu
     private UserStatusRecord statusRecord = UserStatusRecord.defaultActive();
 
     public User( String userName, String password, String email, String fullName){

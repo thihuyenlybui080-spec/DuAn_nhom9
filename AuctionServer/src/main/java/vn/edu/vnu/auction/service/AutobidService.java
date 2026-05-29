@@ -64,6 +64,17 @@ public class AutobidService implements Observer {
         Bidder currentHighest = auction.getHighestBidder();
         for (AutoBid autoBid : queue) {
             if (!autoBid.isActive()) continue;
+            if(!autoBid.getBidder().isActive()){
+                autoBid.deactivate();
+                logger.info("AutoBid deactivated: bidder {} is locked",
+                        autoBid.getBidder().getName());
+                ClientRegistry.getInstance().notifyAll(auctionId, new NotificationMessage(
+                        NotificationMessage.TYPE_USER_LOCKED,
+                        auctionId,
+                        autoBid.getBidder().getId()
+                ));
+                continue;
+            }
             if (currentHighest != null && autoBid.getBidder().getId() == currentHighest.getId()) {
                 logger.debug("Skipping auto-bid for bidder {} - already highest bidder", autoBid.getBidder().getName());
                 continue;

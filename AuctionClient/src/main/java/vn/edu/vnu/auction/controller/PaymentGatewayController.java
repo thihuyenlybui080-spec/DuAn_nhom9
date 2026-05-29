@@ -27,8 +27,6 @@ public class PaymentGatewayController {
     private static final String COLOR_DARK    = "#1a0d0f";
     private static final String COLOR_CARD    = "#3d1c21";
     private static final String COLOR_TEXT    = "#ffffff";
-
-    // null = no method selected yet
     private static String selectedMethod = null;
 
     public static void Show(AuctionResult result, Runnable onSuccess) {
@@ -121,8 +119,6 @@ public class PaymentGatewayController {
         header.getChildren().addAll(icon, titleBox, btnClose);
         return header;
     }
-
-    // ─── Order Info ─────────────────────────────────────────────────────────────
     private static VBox buildOrderInfo(AuctionResult result) {
         VBox box = new VBox(12);
         box.setPadding(new Insets(20, 20, 10, 20));

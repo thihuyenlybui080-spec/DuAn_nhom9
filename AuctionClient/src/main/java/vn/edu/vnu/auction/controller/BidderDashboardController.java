@@ -593,12 +593,10 @@ public class BidderDashboardController implements Initializable {
                 lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
                 lblAuctionId.setPrefWidth(100);
 
-                // Amount
                 Label lblAmount = new Label(formatPrice(bid.getAmount()) + " ₫");
                 lblAmount.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
                 lblAmount.setPrefWidth(150);
 
-                // Time
                 Label lblTime = new Label(bid.getTimestamp() != null ? bid.getTimestamp().format(TIME_FORMAT) : "—");
                 lblTime.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
                 lblTime.setPrefWidth(150);

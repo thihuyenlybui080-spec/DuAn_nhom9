@@ -8,8 +8,6 @@ public abstract class Entity implements Serializable {
 
     protected Entity() {
     }
-
-    // Constructor cho test hoặc load dữ liệu
     protected Entity(int id) {
         this.id = id;
     }

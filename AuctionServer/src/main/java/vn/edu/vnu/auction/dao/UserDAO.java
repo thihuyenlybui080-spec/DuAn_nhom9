@@ -22,7 +22,6 @@ public class UserDAO {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 User user = mapUser(rs);
-                // If user is a seller, load their items
                 if (user instanceof Seller) {
                     ((Seller) user).setOwnedItems(itemsMap.get(user.getId()));
                 }

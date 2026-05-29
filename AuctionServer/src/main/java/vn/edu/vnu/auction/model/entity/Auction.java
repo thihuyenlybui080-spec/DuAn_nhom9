@@ -16,7 +16,6 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -115,6 +114,11 @@ public class Auction implements Subject, Serializable {
             if (status == AuctionStatus.FINISHED ||status == AuctionStatus.CANCELED) {
                 throw new AuctionClosedException("Auction is already closed!");
             }
+            Bidder bidder = bid.getBidder();
+            if (bidder == null || !bidder.isActive()) {
+                throw new InvalidBidException("Bidder account is locked or inactive!");
+            }
+
             if (bid.getAmount() <= currentPrice) {
                 throw new InvalidBidException("Bid amount must be greater than current price!");
             }
@@ -130,7 +134,27 @@ public class Auction implements Subject, Serializable {
         }
     }
 
-
+    public void cancelBidsFrom(Bidder bidder){
+        lock.lock();
+        try{
+            bids.removeIf(bid -> bid.getBidder() == bidder);
+            if(highestBidder != null && highestBidder.getId() == bidder.getId()){
+                BidTransaction newHighest = bids.stream()
+                    .max(Comparator.comparingDouble(BidTransaction::getAmount))
+                    .orElse(null);
+                if(newHighest != null){
+                    currentPrice = newHighest.getAmount();
+                    highestBidder = newHighest.getBidder();
+                } else {
+                    currentPrice = item.getStartingPrice();
+                    highestBidder = null;
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+        logger.info("Canceled all bids from bidder {} in auction {}", bidder.getName(), id);
+    }
 
     public void finishAuction(AuctionStatus finalStatus) {
         lock.lock();

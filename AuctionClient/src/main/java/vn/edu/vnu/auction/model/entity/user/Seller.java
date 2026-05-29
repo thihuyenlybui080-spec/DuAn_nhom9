@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class Seller extends User {
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(Seller.class);
     private List<Item> ownedItems;
 
@@ -17,11 +18,6 @@ public class Seller extends User {
     public Seller(int id, String name, String password, String email, String fullName){
         super(id, name, password, email, fullName);
     }
-
-    public void setOwnedItems(List<Item> items) {
-        this.ownedItems = items;
-    }
-
     public List<Item> getOwnedItems() {
         return ownedItems;
     }

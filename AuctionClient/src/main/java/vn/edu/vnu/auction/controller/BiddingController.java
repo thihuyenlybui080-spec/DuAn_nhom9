@@ -234,6 +234,24 @@ public class BiddingController implements Initializable, Observer {
                         ToastNotification.show(stage, "Auto-Bid Failed", message, ToastNotification.Type.ERROR);
                     });
                     break;
+                case NotificationMessage.TYPE_USER_LOCKED:
+                    Platform.runLater(() -> {
+                        Integer lockedBidderId = (Integer) notification.getData();
+                        if (lockedBidderId != null && lockedBidderId.equals(bidder.getId())) {
+                            bidder.setActive(false);
+                            if (autoBidEnable) {
+                                onDisableAutoBid();
+                            }
+                            
+                            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                            ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid has been disabled.", ToastNotification.Type.ERROR);
+                            lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
+                            lblBidError.setText("🔒 Your account has been locked. Auto-bid disabled.");
+                            lblBidError.setVisible(true);
+                            lblBidError.setManaged(true);
+                        }
+                    });
+                    break;
             }
             }
          );
@@ -554,9 +572,14 @@ public class BiddingController implements Initializable, Observer {
             } catch (Exception e) {
                 logger.error("Failed to enable auto-bid: {}", e.getMessage());
                 Platform.runLater(() -> {
-                    lblAutoBidStatus.setText("❌ Failed: " + e.getMessage());
+                    String errorMsg = e.getMessage();
+                    lblAutoBidStatus.setText("❌ Failed: " + errorMsg);
                     lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
                     btnEnableAutoBid.setDisable(false);
+                    if (errorMsg != null && errorMsg.toLowerCase().contains("lock")) {
+                        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                        ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid cannot be enabled.", ToastNotification.Type.ERROR);
+                    }
                 });
             }
         }).start();
@@ -594,7 +617,6 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = true;
                     chkAutoBid.setSelected(true);
-                    // Clear form fields - don't populate with saved values
                     txtMaxBid.clear();
                     txtIncrement.clear();
                 } else {
@@ -605,7 +627,6 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = false;
                     chkAutoBid.setSelected(false);
-                    // Clear form fields when no active auto-bid
                     txtMaxBid.clear();
                     txtIncrement.clear();
                 }
@@ -779,7 +800,6 @@ public class BiddingController implements Initializable, Observer {
             }
             
             if (totalSecs <= 0) {
-                // Refresh auction data from server when end time is reached
                 try {
                     logger.info("End time reached, refreshing auction {} status from server (current: {})", auction.getId(), auction.getStatus());
                     Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
@@ -788,7 +808,6 @@ public class BiddingController implements Initializable, Observer {
                         this.auction.setStatus(updatedAuction.getStatus());
                         updateStatusBadge();
                         updateBidButton();
-                        // Only stop scheduler if server confirms auction is FINISHED
                         if (updatedAuction.getStatus() == AuctionStatus.FINISHED) {
                             lblCountdown.setText("ENDED");
                             
@@ -810,7 +829,6 @@ public class BiddingController implements Initializable, Observer {
                     logger.error("Failed to refresh auction status: {}", e.getMessage());
                 }
                 lblCountdown.setText("ENDED");
-                // Don't stop scheduler yet - let periodic refresh continue to sync status
                 return;
             }
         } else {

@@ -33,7 +33,6 @@ public class AuctionResult implements Serializable {
         status=newStatus;
     }
 
-    //getter
     public int getAuctionId() { return auctionId; }
     public Item getItem() { return item; }
     public User getWinner() { return winner; }

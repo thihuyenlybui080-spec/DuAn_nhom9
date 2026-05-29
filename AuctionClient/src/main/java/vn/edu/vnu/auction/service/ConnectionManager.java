@@ -49,7 +49,6 @@ public class ConnectionManager {
         boolean isExternalFile = false;
 
         try {
-            // First, try to load from external file (working directory)
             File externalFile = new File("application.yaml");
             if (externalFile.exists() && externalFile.isFile()) {
                 input = new FileInputStream(externalFile);

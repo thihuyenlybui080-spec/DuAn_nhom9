@@ -5,12 +5,11 @@ import vn.edu.vnu.auction.common.exception.AuthenticationException;
 import vn.edu.vnu.auction.model.entity.Entity;
 
 public abstract class User extends Entity {
+    private static final long serialVersionUID = 1L;
     protected String userName;
     private String email;
     protected String password;
     private String fullName;
-
-    // Khởi tạo mặc định ACTIVE ngay từ đầu
     private UserStatusRecord statusRecord = UserStatusRecord.defaultActive();
 
     public User( String userName, String password, String email, String fullName){
@@ -33,9 +32,6 @@ public abstract class User extends Entity {
         this.statusRecord = newRecord;
         onStatusChanged(newRecord.getStatus());
     }
-
-    //hành vi sau khi thay đổi status
-    //để abstract thì admin bắt buộc pk Override mà không có hành vi gì
     public void onStatusChanged(UserStatus newStatus){};
 
 
@@ -55,7 +51,14 @@ public abstract class User extends Entity {
     public UserStatusRecord getStatusRecord() {return statusRecord;}
     public UserStatus getStatus() {return statusRecord.getStatus();}
     public boolean isActive() {return statusRecord.getStatus().isActive();}
-
+    public void setActive(boolean active) {
+        if (active) {
+            this.statusRecord = UserStatusRecord.defaultActive();
+        } else {
+            this.statusRecord = new UserStatusRecord(UserStatus.BANNED, null);
+        }
+        onStatusChanged(statusRecord.getStatus());
+    }
     public String getName(){
         return userName;
     }

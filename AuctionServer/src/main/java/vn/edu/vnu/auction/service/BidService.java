@@ -5,6 +5,7 @@ import vn.edu.vnu.auction.common.exception.InvalidBidException;
 import vn.edu.vnu.auction.dao.AuctionDAO;
 import vn.edu.vnu.auction.dao.BidDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
+import vn.edu.vnu.auction.model.entity.AuctionStatus;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
 import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBid;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
@@ -60,12 +61,10 @@ public class BidService {
             return false;
         }
 
-        if (auction.getStatus() != vn.edu.vnu.auction.model.entity.AuctionStatus.RUNNING) {
+        if (auction.getStatus() != AuctionStatus.RUNNING) {
             logger.warn("placeBid: auction {} not started yet (status={})", auctionId, auction.getStatus());
             throw new InvalidBidException("Auction has not started yet. Please wait for the auction to begin.");
         }
-
-
         double previousPrice = auction.getCurrentPrice();
         var previousBidder = auction.getHighestBidder();
         int previousBidCount = auction.getBids().size();
