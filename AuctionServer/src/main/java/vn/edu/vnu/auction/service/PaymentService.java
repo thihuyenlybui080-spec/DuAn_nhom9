@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
+import static vn.edu.vnu.auction.model.entity.AuctionStatus.*;
+
 /**
  * Dịch vụ thanh toán: deadline sau khi thắng đấu giá và xác nhận thanh toán.
  */
@@ -139,10 +141,10 @@ public class PaymentService {
 
         auctionManager.getScheduler().schedule(() -> {
             AuctionResult current = historyManager.getResult(auctionId);
-            if (current != null && current.getStatus() == AuctionStatus.FINISHED) {
-                historyManager.updateStatus(auctionId, AuctionStatus.CANCELED);
+            if (current != null && current.getStatus() == FINISHED) {
+                historyManager.updateStatus(auctionId, CANCELED);
                 if (auctionId > 0) {
-                    AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
+                    AuctionDAO.updateAuctionStatus(auctionId, CANCELED);
                 }
                 logger.warn("Payment deadline expired for auction {}", auctionId);
             }
@@ -188,9 +190,9 @@ public class PaymentService {
 
         logger.info("{} paying {} for item {}", bidder.getName(), result.getFinalPrice(),
                 result.getItem().getItemName());
-        AuctionHistoryManager.getInstance().updateStatus(auctionId, AuctionStatus.PAID);
+        AuctionHistoryManager.getInstance().updateStatus(auctionId, PAID);
         if (auctionId > 0) {
-            AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.PAID);
+            AuctionDAO.updateAuctionStatus(auctionId, PAID);
         }
 
         return true;

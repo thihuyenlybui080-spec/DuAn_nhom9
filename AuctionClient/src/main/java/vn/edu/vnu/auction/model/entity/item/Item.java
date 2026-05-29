@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import vn.edu.vnu.auction.model.entity.Entity;
 
 import java.time.LocalDateTime;
+
 public abstract class Item extends Entity {
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
     private String itemName;
@@ -14,7 +15,8 @@ public abstract class Item extends Entity {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String imagePath;
-    public Item(String itemName, int createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+
+    public Item(String itemName, int createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super();
         this.createdBy = createdBy;
         this.itemName = itemName;
@@ -24,7 +26,7 @@ public abstract class Item extends Entity {
         this.endTime = endTime;
     }
 
-    public Item(int id, String itemName, int createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+    public Item(int id, String itemName, int createdBy, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super(id);
         this.createdBy = createdBy;
         this.itemName = itemName;
@@ -37,35 +39,46 @@ public abstract class Item extends Entity {
     public String getItemName() {
         return itemName;
     }
+
     public void setItemName(String itemName) {
         this.itemName = itemName;
     }
+
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
+
     public double getStartingPrice() {
         return startingPrice;
     }
+
     public void setStartingPrice(double startingPrice) {
         this.startingPrice = startingPrice;
     }
+
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
+
     public LocalDateTime getStartTime() {
         return startTime;
     }
+
     public LocalDateTime getEndTime() {
         return endTime;
     }
+
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
+
     public abstract String getCategory();
-    public void printInfo(){
+
+    public void printInfo() {
         logger.info("{}: {} - StartingPrice: {}", itemName, description, startingPrice);
     }
 
