@@ -19,7 +19,6 @@ import java.util.Properties;
  * ================================================================
  *  CẤU HÌNH KẾT NỐI DATABASE
  * ================================================================
- *
  *  Đọc cấu hình từ file config.propertie đặt cùng thư mục với .jar
  *  Nếu không có file ngoài thì đọc file mặc định bên trong jar.
  * tạo một bể chứa kết nối, chứa sẵn 20 kết nối, mỗi khi gọi => bốc một kết nối có sẵn
@@ -34,12 +33,11 @@ import java.util.Properties;
 public class DatabaseConfig {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
 
-    private static DatabaseConfig instance;
+    private static volatile DatabaseConfig instance;
     private static final Object lock = new Object();
 
     private final String DB_NAME;
-    private final String DB_URL;
-    private DataSource jdbcDataSource;
+    private final DataSource jdbcDataSource;
 
     private DatabaseConfig() {
         Properties props = new Properties();
@@ -68,14 +66,22 @@ public class DatabaseConfig {
 
         DB_NAME = props.getProperty("db.name", "auction_system.db").trim();
 
-        /**
-         * ghép các biến thành một đường link kết nối chuẩn JDBC cho SQLite
-         * SQLite sử dụng file-based database
+        /*
+          ghép các biến thành một đường link kết nối chuẩn JDBC cho SQLite
+          SQLite sử dụng file-based database
          */
-        DB_URL = "jdbc:sqlite:" + DB_NAME;
+        String DB_URL = "jdbc:sqlite:" + DB_NAME;
 
         logger.info("DatabaseConfig -> SQLite database: {}", DB_NAME);
 
+        HikariConfig config = getHikariConfig(DB_URL);
+
+        jdbcDataSource = new HikariDataSource(config);
+        logger.info("DatabaseConfig: HikariCP connection pool initialized");
+        initializeDatabase();
+    }
+
+    private static HikariConfig getHikariConfig(String DB_URL) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DB_URL);
         config.setDriverClassName("org.sqlite.JDBC");
@@ -88,11 +94,7 @@ public class DatabaseConfig {
         config.addDataSourceProperty("journal_mode", "WAL");
         config.addDataSourceProperty("synchronous", "NORMAL");
         config.addDataSourceProperty("busy_timeout", "30000");
-
-        jdbcDataSource = new HikariDataSource(config);
-        logger.info("DatabaseConfig: HikariCP connection pool initialized");
-        // Tự động khởi tạo database nếu file .db chưa tồn tại
-        initializeDatabase();
+        return config;
     }
 
     /**
@@ -120,8 +122,6 @@ public class DatabaseConfig {
         logger.info("DatabaseConfig: database file not found, initializing from auction_system.sql...");
 
         String sql = null;
-
-        // Ưu tiên 1: đọc auction_system.sql bên ngoài jar
         File externalSql = new File("auction_system.sql");
         if (externalSql.exists()) {
             try (InputStream in = new FileInputStream(externalSql)) {
@@ -188,9 +188,5 @@ public class DatabaseConfig {
 
     public static Connection getConnection() throws SQLException {
         return getInstance().jdbcDataSource.getConnection();
-    }
-
-    public static String getServerInfo() {
-        return "SQLite: " + getInstance().DB_NAME;
     }
 }

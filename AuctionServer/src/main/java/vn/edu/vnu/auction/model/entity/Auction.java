@@ -11,6 +11,7 @@ import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 import vn.edu.vnu.auction.model.entity.user.Seller;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -22,7 +23,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Đại diện cho một phiên đấu giá trong hệ thống.
+ * <p>
+ * Lớp này quản lý trạng thái đấu giá bao gồm đặt giá, thời gian, và thông báo observer.
+ * Nó implement interface Subject để thông báo cho observer về cập nhật giá.
+ * Các thao tác thread-safe được đảm bảo bằng ReentrantLock.
+ * </p>
+ */
 public class Auction implements Subject, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(Auction.class);
 
@@ -58,7 +68,6 @@ public class Auction implements Subject, Serializable {
 
     // ===== CONSTRUCTOR =====
     public Auction(Item item) {
-        this.id = -1;
         this.item = item;
         this.currentPrice = item.getStartingPrice();
     }
@@ -85,7 +94,9 @@ public class Auction implements Subject, Serializable {
                     return;
                 }
             }
-            observers.add(observer);
+            if (observers != null) {
+                observers.add(observer);
+            }
         }
     }
 
@@ -179,18 +190,6 @@ public class Auction implements Subject, Serializable {
         notifyObservers();
         logger.info("=== AUCTION ENDED: {} ===", finalStatus);
         logger.info("Winner: {}", highestBidder != null ? highestBidder.getName() : "None");
-    }
-
-
-    // ===== TIMER / EXTENSION =====
-    public void extendEndTime(long additionalSeconds) {
-        lock.lock();
-        try {
-            item.setEndTime(item.getEndTime().plusSeconds(additionalSeconds));
-        } finally {
-            lock.unlock();
-        }
-        logger.info("Extended auction {} by {} seconds", id, additionalSeconds);
     }
 
     public void setTimer(ScheduledFuture<?> timer) {

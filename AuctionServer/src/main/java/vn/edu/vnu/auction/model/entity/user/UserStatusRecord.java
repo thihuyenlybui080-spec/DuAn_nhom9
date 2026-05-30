@@ -1,21 +1,13 @@
 package vn.edu.vnu.auction.model.entity.user;
 
+import java.io.Serial;
 import java.io.Serializable;
 
-public class UserStatusRecord implements Serializable {
+public record UserStatusRecord(UserStatus status, Admin changedBy) implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
-    private final UserStatus status;
-    private final Admin changedBy;
-
-    public UserStatusRecord(UserStatus status, Admin changedBy) {
-        this.status= status;
-        this.changedBy = changedBy;
-    }
 
     public static UserStatusRecord defaultActive() {
-        return new UserStatusRecord(UserStatus.ACTIVE,null);
+        return new UserStatusRecord(UserStatus.ACTIVE, null);
     }
-
-    public UserStatus getStatus(){ return status; }
-    public Admin getChangedBy() { return changedBy; }
 }

@@ -44,6 +44,13 @@ import java.util.concurrent.TimeUnit;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_FXML;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_TITLE;
 
+/**
+ * Controller cho màn hình đấu giá (Bidding).
+ * <p>
+ * Lớp này quản lý giao diện người dùng cho màn hình đấu giá, bao gồm hiển thị thông tin phiên đấu giá,
+ * xử lý đặt giá thầu, quản lý tính năng auto-bid, và cập nhật thời gian thực.
+ * </p>
+ */
 public class BiddingController implements Initializable, Observer {
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -119,11 +126,25 @@ public class BiddingController implements Initializable, Observer {
     private final SceneManager sceneManager = new SceneManager(getClass());
     private final static Logger logger = LoggerFactory.getLogger(BiddingController.class);
 
+    /**
+     * Khởi tạo controller sau khi FXML được tải.
+     *
+     * @param url vị trí của FXML
+     * @param resourceBundle tài nguyên bundle
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
 
     }
 
+    /**
+     * Thiết lập dữ liệu cho màn hình đấu giá.
+     *
+     * @param auction phiên đấu giá đang xem
+     * @param bidder người tham gia đấu giá hiện tại
+     * @param fromFXML file FXML để quay lại khi nhấn nút back
+     * @param fromTitle tiêu đề của màn hình quay lại
+     */
     public void setData(Auction auction, Bidder bidder, String fromFXML, String fromTitle){
         this.auction = auction;
         this.bidder = bidder;
@@ -170,7 +191,6 @@ public class BiddingController implements Initializable, Observer {
                                 List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
                                 localBids.clear();
                                 localBids.addAll(bids);
-                                // Sort bids by timestamp descending (newest first)
                                 localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
                             } catch (Exception e) {
                                 System.err.println("Failed to reload bids: " + e.getMessage());
@@ -407,6 +427,9 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng nhấn nút đặt giá thầu.
+     */
     @FXML
     private void onPlaceBid(){
         hideBidError();
@@ -466,6 +489,9 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng bật/tắt checkbox auto-bid.
+     */
     @FXML
     private void onToggleAutoBid(){
         boolean on = chkAutoBid.isSelected();
@@ -489,6 +515,9 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng nhấn nút kích hoạt auto-bid.
+     */
     @FXML
     private void onEnableAutoBid(){
         if (auction.getStatus() == AuctionStatus.FINISHED) {
@@ -634,6 +663,9 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng nhấn nút vô hiệu hóa auto-bid.
+     */
     @FXML
     private void onDisableAutoBid() {
         AuctionClientService.getInstance().disableAutoBid(auction.getId(), bidder.getId());
@@ -864,6 +896,11 @@ public class BiddingController implements Initializable, Observer {
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
+    /**
+     * Xử lý sự kiện khi người dùng nhấn nút quay lại.
+     *
+     * @param event sự kiện action
+     */
     @FXML
     private void onBack(ActionEvent event) {
         stopScheduler();
@@ -883,6 +920,11 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng điều hướng đến màn hình danh sách đấu giá.
+     *
+     * @param event sự kiện action
+     */
     @FXML
     private void onNavAuctions(ActionEvent event) {
         stopScheduler();
@@ -893,12 +935,22 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng đăng xuất.
+     *
+     * @param event sự kiện action
+     */
     @FXML
     private void onSignOut(ActionEvent event) {
         stopScheduler();
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng điều hướng đến màn hình đấu giá của mình.
+     *
+     * @param event sự kiện action
+     */
     @FXML
     private void onNavMyAuctions(ActionEvent event){
         sceneManager.switchScene(event, "bidding.fxml", "Bidding");

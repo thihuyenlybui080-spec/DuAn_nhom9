@@ -31,8 +31,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 /**
@@ -145,6 +143,12 @@ public class ClientHandler implements Runnable{
         return response;
     }
 
+    /**
+     * Xử lý yêu cầu đăng nhập người dùng.
+     *
+     * @param request yêu cầu đăng nhập chứa tên người dùng và mật khẩu
+     * @return phản hồi với dữ liệu người dùng khi thành công, thông báo lỗi khi thất bại
+     */
     private Response handleLogin(Request request) {
         try {
 
@@ -239,6 +243,12 @@ public class ClientHandler implements Runnable{
     }
 
 
+    /**
+     * Xử lý yêu cầu lấy phiên đấu giá cụ thể theo ID.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá
+     * @return phản hồi với dữ liệu phiên đấu giá hoặc thông báo lỗi
+     */
     private Response handleGetAuctionById(Request request){
         try{
             int auctionId = (Integer) request.getData();
@@ -333,12 +343,24 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu xóa sản phẩm.
+     *
+     * @param request yêu cầu chứa ID sản phẩm
+     * @return phản hồi chỉ định thành công hoặc thất bại
+     */
     private Response handleDeleteItem(Request request){
         int itemId = (Integer) request.getData();
         ItemService.getInstance().deleteItem(itemId);
         return Response.ok("Item deleted successfully.", (Object) null);
     }
 
+    /**
+     * Xử lý yêu cầu tạo phiên đấu giá và sản phẩm mới.
+     *
+     * @param request yêu cầu chứa chi tiết sản phẩm
+     * @return phản hồi với phiên đấu giá đã tạo hoặc thông báo lỗi
+     */
     private Response handleCreateAuctionAndItem(Request request){
         try{
             Item item= (Item) request.getData();
@@ -361,6 +383,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu lấy tất cả giá đặt cho một phiên đấu giá cụ thể.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá
+     * @return phản hồi với danh sách giá đặt hoặc thông báo lỗi
+     */
     private Response handleGetBidsByAuction(Request request){
         try{
             int auctionId = (Integer) request.getData();
@@ -450,6 +478,12 @@ public class ClientHandler implements Runnable{
         return Response.ok("Left auction: " + auctionId, (Object) null);
     }
 
+    /**
+     * Xử lý yêu cầu lấy tất cả phiên đấu giá cho một người bán cụ thể.
+     *
+     * @param request yêu cầu chứa ID người bán
+     * @return phản hồi với danh sách phiên đấu giá hoặc thông báo lỗi
+     */
     private Response handleGetAuctionsBySeller(Request request){
         try {
             int sellerId = (Integer) request.getData();
@@ -464,6 +498,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu hủy phiên đấu giá.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá
+     * @return phản hồi với phiên đấu giá đã cập nhật hoặc thông báo lỗi
+     */
     private Response handleCancelAuction(Request request){
         try{
             int auctionId = (Integer) request.getData();
@@ -488,6 +528,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu buộc kết thúc phiên đấu giá.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá
+     * @return phản hồi với phiên đấu giá đã kết thúc hoặc thông báo lỗi
+     */
     private Response handleForceEndAuction(Request request){
         try{
             int auctionId = (Integer) request.getData();
@@ -504,6 +550,12 @@ public class ClientHandler implements Runnable{
 
 
 
+    /**
+     * Xử lý yêu cầu lấy tất cả sản phẩm cho một người bán cụ thể.
+     *
+     * @param request yêu cầu chứa ID người bán
+     * @return phản hồi với danh sách sản phẩm hoặc thông báo lỗi
+     */
     private Response handleGetItemsBySeller(Request request){
         try {
             int sellerId = (Integer) request.getData();
@@ -518,6 +570,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu lấy tất cả người dùng trong hệ thống.
+     *
+     * @param request yêu cầu (không cần dữ liệu)
+     * @return phản hồi với danh sách người dùng hoặc thông báo lỗi
+     */
     private Response handleGetAllUsers(Request request){
         try{
             List<User> users = UserService.getInstance().getAllUsers();
@@ -528,6 +586,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu khóa hoặc mở khóa tài khoản người dùng.
+     *
+     * @param request yêu cầu chứa người dùng cần chuyển đổi
+     * @return phản hồi với người dùng đã cập nhật hoặc thông báo lỗi
+     */
     private Response handleToggleUserLock(Request request){
         try{
             User user = (User) request.getData();
@@ -545,6 +609,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu bật tự động đặt giá cho phiên đấu giá.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá, ID người đặt giá, giá tối đa, và mức tăng
+     * @return phản hồi chỉ định thành công hoặc thất bại
+     */
     private Response handleEnableAutoBid(Request request){
         try{
             Map<String, Object> data = (Map<String, Object>) request.getData();
@@ -595,6 +665,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu tắt tự động đặt giá cho phiên đấu giá.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá và ID người đặt giá
+     * @return phản hồi chỉ định thành công hoặc thất bại
+     */
     private Response handleDisableAutoBid(Request request){
         try{
             @SuppressWarnings("unchecked")
@@ -618,6 +694,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu kiểm tra trạng thái tự động đặt giá cho phiên đấu giá.
+     *
+     * @param request yêu cầu chứa ID phiên đấu giá và ID người đặt giá
+     * @return phản hồi với trạng thái và cấu hình tự động đặt giá
+     */
     private Response handleCheckAutoBid(Request request){
         try{
             @SuppressWarnings("unchecked")
@@ -639,8 +721,8 @@ public class ClientHandler implements Runnable{
             Map<String, Object> result = new HashMap<>();
             result.put("active", isActive);
             if (isActive) {
-                result.put("maxBid", config.getMaxBid());
-                result.put("increment", config.getIncrement());
+                result.put("maxBid", config.maxBid());
+                result.put("increment", config.increment());
             }
 
             return Response.ok("Auto-bid status checked", result);
@@ -650,6 +732,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Xử lý yêu cầu lấy lịch sử đặt giá cho một người đặt giá cụ thể.
+     *
+     * @param request yêu cầu chứa ID người đặt giá
+     * @return phản hồi với lịch sử đặt giá hoặc thông báo lỗi
+     */
     private Response handleGetBidderHistory(Request request){
         try{
             int bidderId = (Integer) request.getData();
@@ -713,6 +801,10 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    /**
+     * Dọn dẹp tài nguyên khi client ngắt kết nối.
+     * Đóng luồng đầu vào/ra và socket.
+     */
     private void cleanup(){
         try{
             if(inputStream != null) inputStream.close();

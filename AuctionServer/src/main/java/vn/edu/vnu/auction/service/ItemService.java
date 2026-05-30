@@ -1,11 +1,8 @@
 package vn.edu.vnu.auction.service;
-
-import vn.edu.vnu.auction.dao.AuctionDAO;
 import vn.edu.vnu.auction.dao.ItemDAO;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.List;
 

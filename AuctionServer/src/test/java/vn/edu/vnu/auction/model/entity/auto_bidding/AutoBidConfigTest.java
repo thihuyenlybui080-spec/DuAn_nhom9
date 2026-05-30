@@ -11,8 +11,8 @@ class AutoBidConfigTest {
         AutoBidConfig config = new AutoBidConfig(1000.0, 50.0);
 
         // Step 2: Verify the getters return exactly what we passed in
-        assertEquals(1000.0, config.getMaxBid(), "The max bid should be 1000.0");
-        assertEquals(50.0, config.getIncrement(), "The increment should be 50.0");
+        assertEquals(1000.0, config.maxBid(), "The max bid should be 1000.0");
+        assertEquals(50.0, config.increment(), "The increment should be 50.0");
     }
 
     @Test

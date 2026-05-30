@@ -54,13 +54,29 @@ public class Request implements Serializable {
         this.data = data;
         this.requestId = UUID.randomUUID().toString();
     }
+    /**
+     * Lấy loại hành động của yêu cầu này.
+     *
+     * @return chuỗi hành động
+     */
     public String getAction() {
         return action;
     }
 
+    /**
+     * Lấy dữ liệu liên quan đến yêu cầu này.
+     *
+     * @return đối tượng dữ liệu yêu cầu
+     */
     public Object getData() {
         return data;
     }
+
+    /**
+     * Lấy ID yêu cầu duy nhất.
+     *
+     * @return ID yêu cầu dưới dạng chuỗi UUID
+     */
     public String getRequestId() {
         return requestId;
     }

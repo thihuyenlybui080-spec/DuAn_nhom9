@@ -80,7 +80,7 @@ public class BidService {
             auction.setCurrentPrice(previousPrice);
             auction.setHighestBidder(previousBidder);
             if (auction.getBids().size() > previousBidCount) {
-                auction.getBids().remove(auction.getBids().size() - 1);
+                auction.getBids().removeLast();
             }
             throw new InvalidBidException("Failed to persist bid to database. Please try again.");
         }
@@ -117,8 +117,7 @@ public class BidService {
     }
 
     public List<BidTransaction> getBidsByAuction(int auctionId){
-        List<BidTransaction> bidTransactionList = BidDAO.getBidsByAuction(auctionId);
-        return  bidTransactionList;
+        return BidDAO.getBidsByAuction(auctionId);
 
     }
     private boolean persistBid(int auctionId, Bidder bidder, double amount) {

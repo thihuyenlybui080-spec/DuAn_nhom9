@@ -168,7 +168,7 @@ class AutobidServiceTest {
             autobidService.enableAutoBid(mockBidder, mockAuction, config);
 
             // Call queue processing function
-            autobidService.processQueue(300, "Another Guy");
+            autobidService.processQueue(300);
 
             // Verify AutoBid was deactivated due to hitting the ceiling
             assertFalse(autobidService.isAutoBidActive(300, 3), "Auto-bid must be deactivated due to exceeding the maximum bid.");
@@ -246,7 +246,7 @@ class AutobidServiceTest {
             autobidService.enableAutoBid(mockBidder, mockAuction, config);
 
             // Execute processing queue
-            autobidService.processQueue(500, "Another Guy");
+            autobidService.processQueue(500);
 
             // Verify ClientRegistry was called to broadcast the update
             Mockito.verify(mockRegistry, Mockito.times(1)).notifyAll(Mockito.eq(500), Mockito.any());
@@ -286,7 +286,7 @@ class AutobidServiceTest {
             autobidService.enableAutoBid(mockBidder, mockAuction, config);
 
             // This should safely catch the exception and not throw it outwards
-            assertDoesNotThrow(() -> autobidService.processQueue(600, "Another Guy"),
+            assertDoesNotThrow(() -> autobidService.processQueue(600),
                     "Exceptions within the queue processing must be caught and logged safely.");
         }
     }
@@ -303,7 +303,7 @@ class AutobidServiceTest {
             Mockito.when(mockAuctionManager.getActive(999)).thenReturn(null);
 
             // Attempt to process a non-existent queue or a null auction
-            assertDoesNotThrow(() -> autobidService.processQueue(999, "NoOne"),
+            assertDoesNotThrow(() -> autobidService.processQueue(999),
                     "Processing an empty queue or null auction must safely return without errors.");
         }
     }

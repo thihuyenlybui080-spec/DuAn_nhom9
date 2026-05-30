@@ -39,6 +39,13 @@ import static vn.edu.vnu.auction.controller.MainController.LOGIN_FXML;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_TITLE;
 import static vn.edu.vnu.auction.model.entity.AuctionStatus.*;
 
+/**
+ * Controller cho màn hình dashboard của người tham gia đấu giá (Bidder Dashboard).
+ * <p>
+ * Lớp này quản lý giao diện người dùng cho màn hình dashboard, bao gồm hiển thị danh sách phiên đấu giá,
+ * lịch sử đấu giá, các mục đã thắng, và thanh toán. Cung cấp các chức năng lọc, tìm kiếm và điều hướng.
+ * </p>
+ */
 public class BidderDashboardController implements Initializable {
     @FXML private Button btnNavAuctions;
     @FXML private Button btnNavHistory;
@@ -95,6 +102,12 @@ public class BidderDashboardController implements Initializable {
 
     private final SceneManager sceneManager = new SceneManager(getClass());
 
+    /**
+     * Khởi tạo controller sau khi FXML được tải.
+     *
+     * @param url vị trí của FXML
+     * @param resourceBundle tài nguyên bundle
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
         cmbStatus.getSelectionModel().selectFirst();
@@ -109,11 +122,19 @@ public class BidderDashboardController implements Initializable {
         });
     }
 
+    /**
+     * Thiết lập người tham gia đấu giá hiện tại cho dashboard.
+     *
+     * @param bidder người tham gia đấu giá
+     */
     public void setCurrent(Bidder bidder){
         this.bidder = bidder;
         lblUserName.setText(bidder.getName());
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng điều hướng đến tab phiên đấu giá.
+     */
     @FXML
     public void onNavAuctions(){
         setActiveNav(btnNavAuctions);
@@ -126,6 +147,9 @@ public class BidderDashboardController implements Initializable {
         updateSubtitle();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng điều hướng đến tab lịch sử đấu giá.
+     */
     @FXML
     private void onNavHistory(){
         setActiveNav(btnNavHistory);
@@ -140,6 +164,9 @@ public class BidderDashboardController implements Initializable {
         loadBiddingHistory();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng điều hướng đến tab các mục đã thắng.
+     */
     @FXML
     private void onNavWon(){
         setActiveNav(btnNavWon);
@@ -153,6 +180,9 @@ public class BidderDashboardController implements Initializable {
         lblCount.setText("");
         loadWonItems();
     }
+    /**
+     * Xử lý sự kiện khi người dùng điều hướng đến tab thanh toán.
+     */
     @FXML
     private void onNavPayment(){
         setActiveNav(btnNavPayment);
@@ -166,12 +196,20 @@ public class BidderDashboardController implements Initializable {
         lblCount.setText("");
         loadPaymentPane();
     }
+    /**
+     * Xử lý sự kiện khi người dùng đăng xuất.
+     *
+     * @param event sự kiện action
+     */
     @FXML
     private void onSignOut(ActionEvent event){
         stopAutoRefresh();
         sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng chọn bộ lọc danh mục "Tất cả".
+     */
     @FXML
     private void onCategoryAll(){
         currentCategory = "All";
@@ -179,6 +217,9 @@ public class BidderDashboardController implements Initializable {
         applyFilter();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng chọn bộ lọc danh mục "Xe cộ".
+     */
     @FXML
     private void onCategoryVehicles(){
         currentCategory = "Vehicle";
@@ -186,6 +227,9 @@ public class BidderDashboardController implements Initializable {
         applyFilter();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng chọn bộ lọc danh mục "Điện tử".
+     */
     @FXML
     private void onCategoryElectronics(){
         currentCategory = "Electronics";
@@ -193,6 +237,9 @@ public class BidderDashboardController implements Initializable {
         applyFilter();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng chọn bộ lọc danh mục "Nghệ thuật".
+     */
     @FXML
     private void onCategoryArt(){
         currentCategory = "Art";
@@ -200,17 +247,26 @@ public class BidderDashboardController implements Initializable {
         applyFilter();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng thay đổi bộ lọc trạng thái.
+     */
     @FXML
     private void onStatusChanged(){
         currentStatus = cmbStatus.getValue();
         applyFilter();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng thực hiện tìm kiếm.
+     */
     @FXML
     private void onSearch(){
         applyFilter();
     }
 
+    /**
+     * Xử lý sự kiện khi người dùng chọn bộ lọc danh mục "Khác".
+     */
     @FXML
     private void onCategoryOther(){
         currentCategory = "Other";

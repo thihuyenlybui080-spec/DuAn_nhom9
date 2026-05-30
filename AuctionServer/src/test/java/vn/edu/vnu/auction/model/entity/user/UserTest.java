@@ -98,7 +98,7 @@ class UserTest {
 
         // Step 2: Create a mock UserStatusRecord that holds the banned status
         UserStatusRecord mockRecord = Mockito.mock(UserStatusRecord.class);
-        Mockito.when(mockRecord.getStatus()).thenReturn(mockStatus);
+        Mockito.when(mockRecord.status()).thenReturn(mockStatus);
 
         // Step 3: Apply the banned record to our user
         user.updateStatus(mockRecord);

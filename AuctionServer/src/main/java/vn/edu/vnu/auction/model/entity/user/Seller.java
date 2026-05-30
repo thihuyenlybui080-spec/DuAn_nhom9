@@ -1,12 +1,11 @@
 package vn.edu.vnu.auction.model.entity.user;
-
 import vn.edu.vnu.auction.model.entity.item.Item;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.util.List;
 
 public class Seller extends User {
+    @Serial
     private static final long serialVersionUID = 1L;
     private List<Item> ownedItems;
 

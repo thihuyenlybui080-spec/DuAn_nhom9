@@ -1,11 +1,7 @@
 package vn.edu.vnu.auction.service;
-
-import vn.edu.vnu.auction.dao.AuctionDAO;
-import vn.edu.vnu.auction.dao.AutoBidDAO;
 import vn.edu.vnu.auction.dao.UserDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.AuctionStatus;
-import vn.edu.vnu.auction.model.entity.user.Admin;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 import vn.edu.vnu.auction.model.entity.user.Seller;
 import vn.edu.vnu.auction.model.entity.user.User;
@@ -51,28 +47,12 @@ public class UserService {
         return UserDAO.getAllUsers();
     }
 
-     public User toggleUserLock(User user){
+     public void toggleUserLock(User user){
         if (user.isActive()) {
             user.updateStatus(new UserStatusRecord(UserStatus.BANNED, null));
             UserDAO.updateUserStatus(user.getId(), UserStatus.BANNED);
-            if (user instanceof Bidder bidder) {
-                handleBidderRestricted(bidder, UserStatus.BANNED);
-                auctionService.getActiveAuctions().forEach(auction -> {
-                    boolean hasParticipated = auction.getBids().stream()
-                            .anyMatch(bid -> bid.getBidder().getId() == bidder.getId());
-                    boolean hasAutoBid = AutobidService.getInstance().isAutoBidActive(auction.getId(), bidder.getId());
-                    
-                    if (hasParticipated || hasAutoBid) {
-                        ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
-                                NotificationMessage.TYPE_USER_LOCKED,
-                                auction.getId(),
-                                bidder.getId()
-                        ));
-                    }
-                });
-            } else if (user instanceof Seller seller) {
-                handleSellerRestricted(seller, UserStatus.BANNED);
-            }
+
+            handleUserRestricted(user);
             logger.info("User {} locked (BANNED)", user.getName());
         }
         else {
@@ -80,23 +60,46 @@ public class UserService {
             UserDAO.updateUserStatus(user.getId(), UserStatus.ACTIVE);
             logger.info("User {} unlocked (ACTIVE)", user.getName());
         }
-        return user;
      }
 
-    private void handleBidderRestricted(Bidder bidder, UserStatus status) {
+     private void handleUserRestricted(User user){
+         if (user instanceof Bidder bidder) {
+             handleBidderRestricted(bidder);
+             notifyAutionsForLockedBidder(bidder);
+         } else if (user instanceof Seller seller) {
+             handleSellerRestricted(seller);
+         }
+     }
+
+     private void notifyAutionsForLockedBidder(Bidder bidder){
+         auctionService.getActiveAuctions().forEach(auction -> {
+             boolean hasParticipated = auction.getBids().stream()
+                     .anyMatch(bid -> bid.getBidder().getId() == bidder.getId());
+             boolean hasAutoBid = AutobidService.getInstance().isAutoBidActive(auction.getId(), bidder.getId());
+
+             if (hasParticipated || hasAutoBid) {
+                 ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
+                         NotificationMessage.TYPE_USER_LOCKED,
+                         auction.getId(),
+                         bidder.getId()
+                 ));
+             }
+         });
+     }
+
+    private void handleBidderRestricted(Bidder bidder) {
         auctionService.getActiveAuctions().forEach(auction -> {
             auction.cancelBidsFrom(bidder);
             AutobidService.getInstance().disableAutoBid(auction.getId(), bidder.getId());
         });
-        logger.info("Bidder {} set to {}: all active bids canceled and auto-bids disabled", bidder.getName(), status);
+        logger.info("Bidder {} set to {}: all active bids canceled and auto-bids disabled", bidder.getName(), UserStatus.BANNED);
     }
 
     public User getUserById(int userId){
-        User user = UserDAO.getUserById(userId);
-        return user;
+        return UserDAO.getUserById(userId);
     }
 
-    private void handleSellerRestricted(Seller seller, UserStatus status) {
+    private void handleSellerRestricted(Seller seller) {
         List<Auction> sellerAuctions = auctionService.getActiveAuctions().stream()
                 .filter(a -> belongsToSeller(a, seller))
                 .toList();
@@ -112,7 +115,7 @@ public class UserService {
                         seller.getName());
             }
         }
-        logger.info("Seller {} set to {}: auctions processed", seller.getName(), status);
+        logger.info("Seller {} set to {}: auctions processed", seller.getName(), UserStatus.BANNED);
     }
 
     private boolean belongsToSeller(Auction auction, Seller seller) {

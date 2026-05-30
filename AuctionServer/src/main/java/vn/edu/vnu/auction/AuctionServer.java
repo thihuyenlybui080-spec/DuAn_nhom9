@@ -94,11 +94,23 @@ public class AuctionServer {
         }
     }
 
+    /**
+     * Tắt thread pool và dọn dẹp tài nguyên.
+     */
     private void shutdown(){
         threadPool.shutdown();
         logger.info("AuctionServer stopped");
     }
 
+    /**
+     * Điểm nhập chính cho ứng dụng AuctionServer.
+     * <p>
+     * Khởi tạo server, thiết lập shutdown hook để kết thúc một cách an toàn,
+     * và bắt đầu lắng nghe kết nối từ client.
+     * </p>
+     *
+     * @param args đối số dòng lệnh (không sử dụng)
+     */
     public static void main(String[] args) {
         final AuctionServer server = new AuctionServer();
 
