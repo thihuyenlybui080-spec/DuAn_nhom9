@@ -1,5 +1,7 @@
 package vn.edu.vnu.auction.controller;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +17,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import vn.edu.vnu.auction.model.entity.BidTransaction;
 import vn.edu.vnu.auction.service.AuctionClientService;
 import vn.edu.vnu.auction.service.SceneManager;
@@ -27,6 +30,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -99,6 +103,7 @@ public class BidderDashboardController implements Initializable {
 
     private ScheduledExecutorService countdownScheduler;
     private final Map<Integer, Label> countdownLabel = new ConcurrentHashMap<>();
+    private final Map<Integer, Timeline> paymentCountdownTimelines = new ConcurrentHashMap<>();
 
     private final SceneManager sceneManager = new SceneManager(getClass());
 
@@ -370,6 +375,9 @@ public class BidderDashboardController implements Initializable {
         if(countdownScheduler != null && !countdownScheduler.isShutdown()){
             countdownScheduler.shutdownNow();
         }
+        // Stop all payment countdown timelines
+        paymentCountdownTimelines.values().forEach(timeline -> timeline.stop());
+        paymentCountdownTimelines.clear();
     }
 
     private HBox buildCard(Auction auction){
@@ -791,7 +799,7 @@ public class BidderDashboardController implements Initializable {
             }
 
             List<AuctionResult> payable = wonList.stream()
-                    .filter(result -> result.getStatus() == FINISHED || result.getStatus() == PAID)
+                    .filter(result -> result.getStatus() == FINISHED || result.getStatus() == PAID || result.getStatus() == CANCELED)
                     .collect(Collectors.toList());
             if(payable.isEmpty()){
                 Label empty = new Label("No payments");
@@ -828,11 +836,11 @@ public class BidderDashboardController implements Initializable {
 
         Label lblDeadline;
         Button btnPay;
-        
+
         if (result.getStatus() == PAID) {
             lblDeadline = new Label("✅ Payment completed");
             lblDeadline.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
-            
+
             btnPay = new Button("✅ Paid");
             btnPay.setDisable(true);
             btnPay.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
@@ -841,15 +849,71 @@ public class BidderDashboardController implements Initializable {
             card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
                     + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
                     + "-fx-border-radius: 8; -fx-border-width: 1;");
+        } else if (result.getStatus() == CANCELED) {
+            lblDeadline = new Label("⏰ Payment deadline expired");
+            lblDeadline.setStyle("-fx-text-fill: #9ca3af; -fx-font-size: 11px;");
+
+            btnPay = new Button("❌ Cancelled");
+            btnPay.setDisable(true);
+            btnPay.setStyle("-fx-background-color: #6b7280; -fx-text-fill: #d1d5db;"
+                    + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                    + "-fx-font-size: 13px;");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, #374151, #1f2937);"
+                    + "-fx-background-radius: 8; -fx-border-color: #6b7280;"
+                    + "-fx-border-radius: 8; -fx-border-width: 1;");
+            lblItem.setStyle("-fx-text-fill: #9ca3af;");
+            lblPrice.setStyle("-fx-text-fill: #d1d5db; -fx-font-size: 13px;");
         } else {
-            lblDeadline = new Label("⚠ Pay within 24 hours or order will be cancelled");
+            // FINISHED status - show countdown
+            LocalDateTime paymentDeadline = result.getEndTime().plusHours(24);
+            lblDeadline = new Label();
             lblDeadline.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 11px;");
-            
+
             btnPay = new Button("💳 Pay Now");
             btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
                     + "-fx-font-weight: bold; -fx-background-radius: 6;"
                     + "-fx-cursor: hand; -fx-font-size: 13px;");
             btnPay.setOnAction(event -> onPayClicked(result, card, btnPay));
+
+            // Create countdown timeline
+            Timeline countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+                long remainingSeconds = ChronoUnit.SECONDS.between(LocalDateTime.now(), paymentDeadline);
+                if (remainingSeconds <= 0) {
+                    lblDeadline.setText("⏰ Payment deadline expired");
+                    lblDeadline.setStyle("-fx-text-fill: #9ca3af; -fx-font-size: 11px;");
+                    btnPay.setText("❌ Cancelled");
+                    btnPay.setDisable(true);
+                    btnPay.setStyle("-fx-background-color: #6b7280; -fx-text-fill: #d1d5db;"
+                            + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                            + "-fx-font-size: 13px;");
+                    card.setStyle("-fx-background-color: linear-gradient(to bottom right, #374151, #1f2937);"
+                            + "-fx-background-radius: 8; -fx-border-color: #6b7280;"
+                            + "-fx-border-radius: 8; -fx-border-width: 1;");
+                    lblItem.setStyle("-fx-text-fill: #9ca3af;");
+                    lblPrice.setStyle("-fx-text-fill: #d1d5db; -fx-font-size: 13px;");
+                    paymentCountdownTimelines.get(result.getAuctionId()).stop();
+                } else {
+                    long hours = remainingSeconds / 3600;
+                    long minutes = (remainingSeconds % 3600) / 60;
+                    long seconds = remainingSeconds % 60;
+                    lblDeadline.setText(String.format("⏱ Time remaining: %02d:%02d:%02d", hours, minutes, seconds));
+                }
+            }));
+            countdownTimeline.setCycleCount(Timeline.INDEFINITE);
+            countdownTimeline.play();
+            paymentCountdownTimelines.put(result.getAuctionId(), countdownTimeline);
+
+            // Initial countdown display
+            long remainingSeconds = ChronoUnit.SECONDS.between(LocalDateTime.now(), paymentDeadline);
+            if (remainingSeconds <= 0) {
+                lblDeadline.setText("⏰ Payment deadline expired");
+                lblDeadline.setStyle("-fx-text-fill: #9ca3af; -fx-font-size: 11px;");
+            } else {
+                long hours = remainingSeconds / 3600;
+                long minutes = (remainingSeconds % 3600) / 60;
+                long seconds = remainingSeconds % 60;
+                lblDeadline.setText(String.format("⏱ Time remaining: %02d:%02d:%02d", hours, minutes, seconds));
+            }
         }
         card.getChildren().addAll(lblItem,lblPrice, lblDeadline, btnPay);
         return  card;

@@ -230,10 +230,10 @@ public class AuctionDAO {
         }
     }
 
-    /** Lấy các auction đã thắng bởi bidder (status = FINISHED hoặc PAID). */
+    /** Lấy các auction đã thắng bởi bidder (status = FINISHED, PAID hoặc CANCELED). */
     public static List<Auction> getWonAuctionsByBidder(int bidderId, List<User> allUsers) {
         List<Auction> list = new ArrayList<>();
-        String sql = AUCTION_SELECT + "WHERE a.highest_bidder_id = ? AND a.status IN ('FINISHED', 'PAID') ORDER BY a.id DESC";
+        String sql = AUCTION_SELECT + "WHERE a.highest_bidder_id = ? AND a.status IN ('FINISHED', 'PAID', 'CANCELED') ORDER BY a.id DESC";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bidderId);
@@ -245,6 +245,23 @@ public class AuctionDAO {
             }
         } catch (SQLException e) {
             System.err.println("[AuctionDAO] getWonAuctionsByBidder: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /** Lấy các auction có status = FINISHED để khôi phục payment deadline khi server restart. */
+    public static List<Auction> getFinishedAuctions(List<User> allUsers) {
+        List<Auction> list = new ArrayList<>();
+        String sql = AUCTION_SELECT + "WHERE a.status = 'FINISHED' ORDER BY a.id DESC";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Auction a = mapAuction(rs, allUsers);
+                if (a != null) list.add(a);
+            }
+        } catch (SQLException e) {
+            logger.error("[AuctionDAO] getFinishedAuctions SQL error: {}", e.getMessage());
         }
         return list;
     }
