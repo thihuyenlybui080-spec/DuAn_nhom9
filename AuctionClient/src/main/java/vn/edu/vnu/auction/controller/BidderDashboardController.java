@@ -735,7 +735,7 @@ public class BidderDashboardController implements Initializable {
             }
 
             List<AuctionResult> payable = wonList.stream()
-                    .filter(result -> result.getStatus() == FINISHED || result.getStatus() == PAID)
+                    .filter(result -> result.getStatus() == FINISHED || result.getStatus() == PAID || result.getStatus() == CANCELED)
                     .collect(Collectors.toList());
             if(payable.isEmpty()){
                 Label empty = new Label("No payments");
@@ -772,11 +772,11 @@ public class BidderDashboardController implements Initializable {
 
         Label lblDeadline;
         Button btnPay;
-        
+
         if (result.getStatus() == PAID) {
             lblDeadline = new Label("✅ Payment completed");
             lblDeadline.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
-            
+
             btnPay = new Button("✅ Paid");
             btnPay.setDisable(true);
             btnPay.setStyle("-fx-background-color: #2d8a4e; -fx-text-fill: #fff;"
@@ -785,10 +785,24 @@ public class BidderDashboardController implements Initializable {
             card.setStyle("-fx-background-color: linear-gradient(to bottom right, #1a3a1a, #0d1f0d);"
                     + "-fx-background-radius: 8; -fx-border-color: #2d8a4e;"
                     + "-fx-border-radius: 8; -fx-border-width: 1;");
+        } else if (result.getStatus() == CANCELED) {
+            lblDeadline = new Label("⏰ Payment deadline expired");
+            lblDeadline.setStyle("-fx-text-fill: #9ca3af; -fx-font-size: 11px;");
+
+            btnPay = new Button("❌ Cancelled");
+            btnPay.setDisable(true);
+            btnPay.setStyle("-fx-background-color: #6b7280; -fx-text-fill: #d1d5db;"
+                    + "-fx-font-weight: bold; -fx-background-radius: 6;"
+                    + "-fx-font-size: 13px;");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, #374151, #1f2937);"
+                    + "-fx-background-radius: 8; -fx-border-color: #6b7280;"
+                    + "-fx-border-radius: 8; -fx-border-width: 1;");
+            lblItem.setStyle("-fx-text-fill: #9ca3af;");
+            lblPrice.setStyle("-fx-text-fill: #d1d5db; -fx-font-size: 13px;");
         } else {
             lblDeadline = new Label("⚠ Pay within 24 hours or order will be cancelled");
             lblDeadline.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 11px;");
-            
+
             btnPay = new Button("💳 Pay Now");
             btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
                     + "-fx-font-weight: bold; -fx-background-radius: 6;"

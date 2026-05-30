@@ -331,6 +331,59 @@ public class AuctionService {
         return AuctionDAO.getAuctionsBySeller(sellerId, allUsers);
     }
 
+    /**
+     * Khôi phục payment deadline cho các auction FINISHED khi server restart.
+     * Nếu đã hết hạn 24h từ end_time, hủy auction ngay lập tức.
+     */
+    public void restorePaymentDeadlines() {
+        List<User> allUsers = UserDAO.getAllUsers();
+        List<Auction> finishedAuctions = AuctionDAO.getFinishedAuctions(allUsers);
+        
+        for (Auction auction : finishedAuctions) {
+            int auctionId = auction.getId();
+            LocalDateTime endTime = auction.getItem().getEndTime();
+            LocalDateTime now = LocalDateTime.now();
+            
+            // Tính thời gian đã trôi qua từ khi auction kết thúc
+            long elapsedSeconds = ChronoUnit.SECONDS.between(endTime, now);
+            long paymentDeadlineSeconds = 24 * 60 * 60; // 24 giờ
+            
+            if (elapsedSeconds >= paymentDeadlineSeconds) {
+                // Đã hết hạn thanh toán, hủy auction ngay
+                logger.info("Payment deadline expired for auction {} (elapsed: {}s), canceling now",
+                    auctionId, elapsedSeconds);
+                // Load auction result into memory first
+                AuctionResult result = new AuctionResult(auction);
+                AuctionHistoryManager.getInstance().saveResult(result);
+                AuctionHistoryManager.getInstance().updateStatus(auctionId, AuctionStatus.CANCELED);
+                AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
+            } else {
+                // Còn thời gian, schedule lại payment deadline
+                long remainingSeconds = paymentDeadlineSeconds - elapsedSeconds;
+                logger.info("Restoring payment deadline for auction {} (remaining: {}s)", 
+                    auctionId, remainingSeconds);
+                
+                auctionManager.getScheduler().schedule(() -> {
+                    AuctionResult current = AuctionHistoryManager.getInstance().getResult(auctionId);
+                    if (current == null) {
+                        // Load from database if not in memory
+                        Auction auctionFromDb = AuctionDAO.getAuctionById(auctionId);
+                        if (auctionFromDb != null) {
+                            current = new AuctionResult(auctionFromDb);
+                            AuctionHistoryManager.getInstance().saveResult(current);
+                        }
+                    }
+                    if (current != null && current.getStatus() == AuctionStatus.FINISHED) {
+                        AuctionHistoryManager.getInstance().updateStatus(auctionId, AuctionStatus.CANCELED);
+                        AuctionDAO.updateAuctionStatus(auctionId, AuctionStatus.CANCELED);
+                        logger.warn("Payment deadline expired for auction {}", auctionId);
+                    }
+                }, remainingSeconds, TimeUnit.SECONDS);
+            }
+        }
+        logger.info("Restored payment deadlines for {} finished auctions", finishedAuctions.size());
+    }
+
     public static synchronized void resetForTesting() {
         instance = null;
     }

@@ -55,6 +55,7 @@ public class AuctionServer {
             logger.info("Server started on port {}", PORT);
 
             AuctionService.getInstance().getActiveAuctions();
+            AuctionService.getInstance().restorePaymentDeadlines();
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept();
