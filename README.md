@@ -1,264 +1,316 @@
-# DuAn_nhom9
-# AuctionSystem — Hệ thống Đấu giá Trực tuyến
+# 🏷️ Auction System — Hệ Thống Đấu Giá Trực Tuyến
 
-Ứng dụng desktop đấu giá thời gian thực xây dựng bằng **JavaFX 21** và **MySQL**.
-Hỗ trợ ba vai trò người dùng (Admin, Seller, Bidder), đặt giá thủ công, tự động đặt giá (Auto-bid),
-chống snipe (anti-snipe extension), và quản lý toàn bộ vòng đời phiên đấu giá từ OPEN đến PAID.
+Hệ thống đấu giá trực tuyến theo mô hình **Client-Server**, cho phép nhiều người dùng đồng thời tham gia các phiên đấu giá theo thời gian thực. Server xử lý toàn bộ nghiệp vụ và cơ sở dữ liệu; Client cung cấp giao diện đồ họa JavaFX để người dùng tương tác.
 
 ---
 
-## Mô tả bài toán
+## 📑 Mục lục
 
-Hệ thống mô phỏng một sàn đấu giá trực tuyến trong đó:
-
-- **Seller** đăng ký vật phẩm (Art, Electronics, Vehicle) và mở phiên đấu giá với giá khởi điểm và khoảng thời gian tự chọn.
-- **Bidder** xem các phiên đang mở, đặt giá thủ công hoặc bật chế độ tự động (Auto-bid với giá trần và bước tăng), và thanh toán sau khi thắng.
-- **Admin** giám sát toàn bộ phiên, quản lý trạng thái người dùng (Active / Banned / Deleted), và có quyền hủy phiên vi phạm.
-- Mọi hành động quan trọng (tạo phiên, đặt giá, kết thúc, thanh toán) đều được ghi nhận vào MySQL để đảm bảo tính bền vững.
+- [Phạm vi hệ thống](#-phạm-vi-hệ-thống)
+- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
+- [Yêu cầu môi trường](#-yêu-cầu-môi-trường)
+- [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
+- [Vị trí file JAR](#-vị-trí-file-jar)
+- [Hướng dẫn chạy](#-hướng-dẫn-chạy)
+- [Danh sách chức năng](#-danh-sách-chức-năng)
+- [Tài liệu & Demo](#-tài-liệu--demo)
 
 ---
 
-## Công nghệ sử dụng
+## 🎯  Mô tả bài toán & Phạm vi hệ thống
+ 
+### Bài toán đặt ra
+ 
+Trong các hệ thống đấu giá trực tuyến, việc xử lý hàng ngàn yêu cầu đặt giá (Bid) cùng một thời điểm thường dẫn đến các vấn đề nghiêm trọng về **tranh chấp dữ liệu (Race Condition)**. Đặc biệt, hiện tượng **"bắn tỉa giá" (Sniping)** — người tham gia đợi đến giây cuối cùng để đặt giá khiến người khác không kịp phản hồi — làm giảm tính minh bạch và công bằng của phiên đấu giá.
+ 
+### Phạm vi giải quyết
+ 
+Hệ thống được xây dựng để giải quyết trọn vẹn các thách thức trên thông qua **kiến trúc phân tán phân lớp**, gồm hai thành phần độc lập:
+ 
+**Phía Server (Backend)** — đóng vai trò trung tâm điều phối:
+- Lắng nghe đa kết nối đồng thời qua TCP Socket, mỗi client được phục vụ trên một **Virtual Thread** riêng (Java 21).
+- Quản lý toàn bộ vòng đời phiên đấu giá: tạo, mở, kết thúc, huỷ.
+- Đồng bộ trạng thái và **push thông báo real-time** đến tất cả client đang xem phiên khi có biến động giá.
+- Tự động kích hoạt **bộ đếm ngược chống bắn tỉa (Anti-Snipe)**: gia hạn thêm 60 giây khi có bid trong 30 giây cuối, giúp những người tham gia khác không bị bất ngờ.
+- Xử lý chức năng **tự động đặt giá (Auto-Bid)** theo thứ tự ưu tiên FIFO.
+- Tích hợp cổng **thanh toán Stripe** và lưu trữ dữ liệu bền vững qua SQLite.
+**Phía Client (Frontend)** — cung cấp giao diện người dùng chuyên nghiệp:
+- Giao diện đồ hoạ GUI xây dựng bằng **JavaFX**, hỗ trợ 3 vai trò: Admin, Seller, Bidder.
+- Gửi yêu cầu dưới dạng gói tin đối tượng (Java Object Serialization) và nhận phản hồi đồng bộ.
+- Lắng nghe và hiển thị **cập nhật giá tức thời** từ server mà không cần polling.
+### Các đối tượng trong hệ thống
 
-| Thành phần | Công nghệ |
-|---|---|
+| Đối tượng | Chức năng chính |
+|-----------|----------------|
+| **Admin** | Quản lý người dùng, khoá/mở tài khoản, xem lịch sử toàn hệ thống |
+| **Seller** | Đăng vật phẩm (Art / Electronics / Vehicle / Other), tạo phiên đấu giá, theo dõi kết quả |
+| **Bidder** | Xem danh sách phiên, đặt giá thủ công, cấu hình auto-bid, thanh toán khi thắng |
+
+Giao tiếp qua **TCP Socket (port 8080)** với giao thức Request/Response + push Notification dùng Java Object Serialization.
+
+---
+
+## 🛠️ Công nghệ sử dụng
+
+### Server
+| Thành phần | Chi tiết |
+|-----------|---------|
+| Ngôn ngữ | Java 21 (Virtual Threads) |
+| Build tool | Apache Maven |
+| Database | SQLite 3.46 (`sqlite-jdbc`) |
+| Connection pool | HikariCP |
+| Thanh toán | Stripe Java SDK 26.3.0 |
+| Config | SnakeYAML |
+| Test | JUnit Jupiter 5.10.2 + Mockito |
+
+### Client
+| Thành phần | Chi tiết |
+|-----------|---------|
 | Ngôn ngữ | Java 21 |
-| Giao diện | JavaFX 21 (FXML + CSS inline) |
-| Build tool | Maven 3.x (kèm Maven Wrapper `mvnw`) |
-| Database | MySQL 8.x |
-| JDBC Driver | MySQL Connector/J (khai báo trong `pom.xml`) |
-| UI extras | BootstrapFX (styling bổ sung) |
-| Concurrency | `ScheduledExecutorService`, `ReentrantLock`, `ConcurrentHashMap` |
+| UI | JavaFX 25 + FXML |
+| Thư viện UI bổ sung | ControlsFX 11.2.1, FormsFX, BootstrapFX |
+| Config | `application.yaml` (SnakeYAML) |
+| Build tool | Apache Maven |
 
 ---
 
-## Yêu cầu môi trường
+## 💻 Yêu cầu môi trường
 
-- **JDK 21** trở lên (khuyến nghị Eclipse Temurin hoặc Oracle JDK 21)
-- **MySQL 8.x** đang chạy ở localhost (hoặc máy chủ riêng)
-- Maven không bắt buộc phải cài riêng vì project đã đi kèm `mvnw` / `mvnw.cmd`
+- **Java 21** trở lên (bắt buộc — Server dùng Virtual Thread, Client dùng JavaFX 25)
+- **Maven 3.8+** (nếu build từ source)
+- Không cần cài database riêng — SQLite là file nhúng, tự khởi tạo khi chạy lần đầu
+- Không cần cài JavaFX riêng — đã đóng gói vào JAR của Client
 
----
-
-## Cài đặt database
-
-1. Mở MySQL client (Workbench, DBeaver, hoặc CLI).
-2. Chạy toàn bộ script khởi tạo:
-
-```sql
-SOURCE path/to/loginregister.sql;
+Kiểm tra phiên bản Java:
+```bash
+java -version
+# output cần: openjdk 21 ...
 ```
 
-Script tạo database `loginregister` và 5 bảng: `users`, `items`, `auctions`, `bids`, `bid_transactions`.
+---
 
-3. *(Tùy chọn)* Chỉnh sửa thông tin kết nối trong `config.properties` trước khi build:
+## 📁 Cấu trúc thư mục
+
+```
+AuctionServer/
+├── src/
+│   ├── main/
+│   │   ├── java/vn/edu/vnu/auction/
+│   │   │   ├── AuctionServer.java          # Entry point server
+│   │   │   ├── ClientHandler.java          # Xử lý 1 client / thread
+│   │   │   ├── ClientRegistry.java         # Quản lý socket stream của clients
+│   │   │   ├── common/
+│   │   │   │   ├── network/                # Request, Response, NotificationMessage
+│   │   │   │   ├── observer/               # Interface Observer, Subject
+│   │   │   │   └── exception/              # 4 custom exceptions
+│   │   │   ├── model/entity/               # Entity, User, Bidder, Seller, Admin
+│   │   │   │   ├── item/                   # Item, Art, Electronics, Vehicle, Other
+│   │   │   │   ├── factory/                # ItemFactory + 4 concrete factories
+│   │   │   │   └── auto_bidding/           # AutoBid, AutoBidConfig
+│   │   │   ├── service/                    # AuctionService, BidService, AutobidService
+│   │   │   │   │                             UserService, ItemService, PaymentService
+│   │   │   ├── dao/                        # AuctionDAO, BidDAO, UserDAO, ItemDAO
+│   │   │   │   │                             AutoBidDAO, LoginHistoryDAO
+│   │   │   ├── database/                   # DatabaseConfig (HikariCP + SQLite)
+│   │   │   └── util/                       # AuctionManager, AuctionHistoryManager
+│   │   └── resources/
+│   │       ├── config.properties           # Cấu hình port, DB name, Stripe key
+│   │       └── auction_system.sql          # Schema khởi tạo DB
+│   └── test/                               # JUnit tests
+├── auction_system.db                       # File DB SQLite (tự tạo khi chạy lần đầu)
+├── pom.xml
+└── target/
+    └── AuctionServer-1.0.jar               # ← FAT JAR chạy được
+
+AuctionClient/
+├── src/
+│   ├── main/
+│   │   ├── java/vn/edu/vnu/auction/
+│   │   │   ├── Launcher.java               # Entry point (wrapper tránh lỗi module JavaFX)
+│   │   │   ├── AuctionApplication.java     # JavaFX Application — khởi động UI
+│   │   │   ├── controller/                 # LoginController, RegisterController
+│   │   │   │   │                             MainController, BiddingController
+│   │   │   │   │                             BidderDashboardController, SellerDashboardController
+│   │   │   │   │                             AdminDashboardController, AuctionDetailController
+│   │   │   │   │                             PaymentGatewayController, ToastNotification
+│   │   │   ├── service/                    # ConnectionManager, MessageRouter
+│   │   │   │   │                             AuctionClientService, NotificationListener
+│   │   │   │   └──                           SceneManager
+│   │   │   ├── model/                      # Shared model (mirror từ Server)
+│   │   │   │   ├── entity/                 # Auction, Item, User, BidTransaction...
+│   │   │   │   └── factory/                # ItemFactory + 4 factories
+│   │   │   └── util/                       # ImageLoader
+│   │   └── resources/
+│   │       ├── application.yaml            # Cấu hình IP/port server
+│   │       └── vn/edu/vnu/auctionclient/   # File FXML giao diện
+├── pom.xml
+└── target/
+    └── AuctionClient-1.0.jar               # ← FAT JAR chạy được
+```
+
+---
+
+## 📦 Vị trí file JAR
+
+Sau khi build (hoặc giải nén từ bản nộp), các file JAR nằm tại:
+
+```
+AuctionServer/target/AuctionServer-1.0.jar
+AuctionClient/target/AuctionClient-1.0.jar
+```
+
+> **Lưu ý:** Đây là **fat JAR** (uber JAR) — đã đóng gói toàn bộ dependency bên trong.  
+> File `original-AuctionServer-1.0.jar` / `original-AuctionClient-1.0.jar` là JAR gốc không có dependency, **không chạy được độc lập**.
+
+---
+
+## 🚀 Hướng dẫn chạy
+
+> ⚠️ **Phải chạy Server trước, sau đó mới chạy Client.**
+
+### Bước 1 — Cấu hình Server (tuỳ chọn)
+
+Mặc định Server chạy trên port `8080`, DB file là `auction_system.db`.  
+Để thay đổi, tạo file `config.properties` **cùng thư mục với JAR**:
 
 ```properties
-db.host=localhost
-db.port=3306
-db.name=loginregister
-db.user=root
-db.pass=root
+db.name=auction_system.db
+server.port=8080
+stripe.secret.key=sk_test_xxxx
 ```
+
+Nếu không có file này, Server tự dùng giá trị mặc định.
 
 ---
 
-## Cấu trúc thư mục
-
-```
-AuctionSystem_final/
-├── src/main/java/org/example/loginregister/
-│   ├── Launcher.java                   ← Điểm khởi động
-│   ├── HelloApplication.java           ← JavaFX Application
-│   ├── module-info.java
-│   │
-│   ├── client/
-│   │   ├── controller/
-│   │   │   ├── MainController.java          ← Màn hình chào
-│   │   │   ├── LoginController.java         ← Đăng nhập
-│   │   │   ├── RegisterController.java      ← Đăng ký
-│   │   │   ├── AdminDashboardController.java
-│   │   │   ├── SellerDashboardController.java
-│   │   │   ├── BidderDashboardController.java
-│   │   │   ├── BiddingController.java       ← Phòng đấu giá real-time
-│   │   │   └── AuctionDetailController.java
-│   │   ├── service/
-│   │   │   └── SceneManager.java            ← Chuyển màn hình
-│   │   └── util/
-│   │       └── ImageLoader.java
-│   │
-│   ├── server/
-│   │   ├── database/
-│   │   │   ├── DatabaseConfig.java          ← Kết nối MySQL
-│   │   │   └── AuctionDAO.java              ← Toàn bộ SQL queries
-│   │   ├── model/entity/
-│   │   │   ├── Entity.java                  ← Base class (ID tự sinh)
-│   │   │   ├── Auction.java                 ← Logic đấu giá (thread-safe)
-│   │   │   ├── AuctionStatus.java           ← Enum: OPEN→RUNNING→FINISHED→PAID
-│   │   │   ├── AuctionResult.java
-│   │   │   ├── BidTransaction.java
-│   │   │   ├── user/
-│   │   │   │   ├── User.java  ·  Admin.java  ·  Seller.java  ·  Bidder.java
-│   │   │   │   ├── UserStatus.java           ← ACTIVE / BANNED / DELETED
-│   │   │   │   └── UserStatusRecord.java
-│   │   │   ├── item/
-│   │   │   │   ├── Item.java  ·  Art.java  ·  Electronics.java  ·  Vehicle.java
-│   │   │   └── auto_bidding/
-│   │   │       ├── AutoBidConfig.java        ← Giá trần + bước tăng
-│   │   │       └── AutoBidAgent.java         ← Observer tự động đặt giá
-│   │   ├── model/factory/
-│   │   │   ├── ItemFactory.java  ·  ArtFactory.java
-│   │   │   ├── ElectronicsFactory.java  ·  VehicleFactory.java
-│   │   └── util/
-│   │       ├── AuctionManager.java           ← Singleton, điều phối phiên
-│   │       └── AuctionHistoryManager.java    ← Lưu lịch sử kết thúc
-│   │
-│   └── common/
-│       ├── observer/
-│       │   ├── Observer.java  ·  Subject.java
-│       └── exception/
-│           ├── AuctionClosedException.java
-│           ├── AuthenticationException.java
-│           └── InvalidBidException.java
-│
-├── src/main/resources/org/example/loginregister/
-│   ├── *.fxml                          ← Layout giao diện
-│   ├── config.properties               ← Cấu hình database
-│   └── *.png / *.jpg                   ← Tài nguyên hình ảnh
-│
-├── loginregister.sql                   ← Script tạo database
-├── loginregister_sqlserver.sql         ← Phiên bản SQL Server (tham khảo)
-├── pom.xml
-└── mvnw / mvnw.cmd
-```
-
----
-
-## Vị trí file JAR
-
-Sau khi build (`mvn package`), file JAR xuất hiện tại:
-
-```
-AuctionSystem_final/target/AuctionSystem_final-1.0-SNAPSHOT.jar
-```
-
-Đặt file `config.properties` **cùng thư mục** với JAR để ghi đè cấu hình database mà không cần build lại:
-
-```
-thư_mục_chạy/
-├── AuctionSystem_final-1.0-SNAPSHOT.jar
-└── config.properties          ← chỉnh db.host, db.user, db.pass tại đây
-```
-
----
-
-## Hướng dẫn chạy
-
-### Bước 1 — Khởi động MySQL
-
-Đảm bảo MySQL Server đang chạy và đã import `loginregister.sql`.
-
-### Bước 2 — Build project
+### Bước 2 — Chạy Server
 
 ```bash
-# Linux / macOS
-./mvnw clean package -DskipTests
-
-# Windows
-mvnw.cmd clean package -DskipTests
+cd AuctionServer/target
+java -jar AuctionServer-1.0.jar
 ```
 
-Hoặc mở bằng **IntelliJ IDEA** → Import Maven project → Run `Launcher`.
+Khi thấy log:
+```
+Server started on port 8080
+```
+Server đã sẵn sàng. Database sẽ tự khởi tạo lần đầu với 4 tài khoản Admin mặc định.
 
-### Bước 3 — Chạy ứng dụng
+---
 
-**Cách A — Qua IDE (khuyến nghị khi phát triển):**
+### Bước 3 — Cấu hình Client
 
-Mở IntelliJ IDEA, đặt `Launcher` làm main class, nhấn Run.
+Mặc định Client kết nối đến `localhost:8080`.  
+Nếu Server chạy trên máy khác, tạo file `application.yaml` **cùng thư mục với JAR** của Client:
 
-**Cách B — Qua JAR (sau khi build):**
+```yaml
+server:
+  ip: 192.168.x.x   # IP của máy chạy Server
+  port: 8080
+```
+
+---
+
+### Bước 4 — Chạy Client
 
 ```bash
-java --module-path <đường_dẫn_javafx_sdk>/lib \
-     --add-modules javafx.controls,javafx.fxml \
-     -jar target/AuctionSystem_final-1.0-SNAPSHOT.jar
+cd AuctionClient/target
+java -jar AuctionClient-1.0.jar
 ```
 
-> **Lưu ý:** Project đóng gói dưới dạng ứng dụng đơn, không tách Server/Client riêng.
-> Toàn bộ logic (UI + business logic + DB) chạy trong cùng một JVM.
-> Nhiều người dùng có thể chạy nhiều instance, tất cả kết nối chung một MySQL.
-
-### Thứ tự sử dụng gợi ý
-
-1. Chạy ứng dụng → màn hình chào xuất hiện.
-2. Nhấn **Register** → tạo tài khoản Seller hoặc Bidder.
-3. Seller đăng nhập → tạo Item → mở phiên đấu giá.
-4. Bidder đăng nhập → vào phòng đấu giá → đặt giá / bật Auto-bid.
-5. Sau khi phiên kết thúc → Bidder thắng vào tab "Đã thắng" → Thanh toán.
-6. Admin (vào qua nút Admin trên màn hình chào) → quản lý user và phiên.
+Cửa sổ đăng nhập JavaFX sẽ hiện ra.
 
 ---
 
-## Danh sách chức năng đã hoàn thành
+### Tài khoản Admin mặc định
 
-### Xác thực & Người dùng
-- [x] Đăng ký tài khoản với vai trò Bidder hoặc Seller
-- [x] Đăng nhập kiểm tra với database
-- [x] Validate form: độ dài mật khẩu, số điện thoại, xác nhận mật khẩu
-- [x] Admin quản lý trạng thái user (Active / Banned / Deleted)
-- [x] Khi ban Seller: tự động hủy tất cả phiên đang chạy của họ
-- [x] Khi ban Bidder: tự động hủy tất cả bid của họ và cập nhật lại người dẫn đầu
+| Username | Password |
+|----------|----------|
+| `huyenly` | `123456789` |
+| `thuthuy` | `123456789` |
+| `lamduong` | `123456789` |
+| `dongnhat` | `123456789` |
 
-### Vật phẩm & Phiên đấu giá
-- [x] Seller thêm item theo 3 loại: Art, Electronics, Vehicle (Factory Method Pattern)
-- [x] Seller xóa item khi phiên chưa bắt đầu
-- [x] Mở phiên đấu giá với giá khởi điểm, thời gian bắt đầu và kết thúc tùy chọn
-- [x] Lên lịch mở phiên tự động (`ScheduledExecutorService`)
-- [x] Phiên tự động kết thúc đúng giờ
-- [x] Anti-snipe: gia hạn thêm 60 giây nếu có bid trong 30 giây cuối
-- [x] Admin hủy phiên vi phạm
-
-### Đặt giá
-- [x] Đặt giá thủ công (kiểm tra phải cao hơn giá hiện tại)
-- [x] Auto-bid: tự động tăng giá theo bước khi bị vượt, dừng khi đạt giá trần
-- [x] Thread-safe với `ReentrantLock(fair)` — tránh race condition khi nhiều bid đồng thời
-- [x] Observer Pattern: UI và AutoBidAgent nhận thông báo real-time khi có bid mới
-- [x] Hiển thị đếm ngược, danh sách lịch sử bid, người dẫn đầu hiện tại
-
-### Kết quả & Thanh toán
-- [x] Lưu `AuctionResult` sau mỗi phiên kết thúc
-- [x] Bidder xem danh sách phiên đã thắng
-- [x] Giả lập thanh toán: cập nhật trạng thái FINISHED → PAID
-- [x] Deadline thanh toán 24 giờ: quá hạn tự động chuyển sang CANCELED
-
-### Đồng bộ Database
-- [x] Toàn bộ hành động (tạo item, tạo phiên, đặt giá, kết thúc, thanh toán) ghi vào MySQL
-- [x] Đọc dữ liệu từ DB khi khởi động lại (không mất dữ liệu)
-- [x] Cấu hình kết nối linh hoạt qua `config.properties`
+Có thể đăng ký tài khoản Bidder hoặc Seller mới trực tiếp trên giao diện.
 
 ---
 
-## Báo cáo & Demo
+### Build từ source (nếu cần)
 
-| Tài nguyên | Đường dẫn |
-|---|---|
-| 📄 Báo cáo PDF | *(đặt link tại đây)* |
-| 🎥 Video demo | *(đặt link tại đây)* |
+```bash
+# Build Server
+cd AuctionServer
+mvn clean package -DskipTests
 
----
-
-## Design Patterns sử dụng
-
-| Pattern | Vị trí áp dụng |
-|---|---|
-| Singleton | `AuctionManager`, `AuctionHistoryManager` |
-| Observer | `Auction` (Subject) ↔ `AutoBidAgent`, `BiddingController` (Observer) |
-| Factory Method | `ItemFactory` → `ArtFactory`, `ElectronicsFactory`, `VehicleFactory` |
-| Template Method | `User.onStatusChanged()` — hook cho Seller và Bidder override |
+# Build Client
+cd ../AuctionClient
+mvn clean package -DskipTests
+```
 
 ---
 
-## Tác giả
+## ✅ Danh sách chức năng đã hoàn thành
+
+### 🔐 Xác thực & Tài khoản
+-  Đăng ký tài khoản (Bidder / Seller)
+-  Đăng nhập với xác thực username + password
+-  Ghi lịch sử đăng nhập (thành công / thất bại)
+-  Khoá / mở khoá tài khoản (Admin)
+
+### 🏷️ Quản lý vật phẩm & Phiên đấu giá
+-  Seller đăng vật phẩm (4 loại: Art, Electronics, Vehicle, Other)
+-  Tạo phiên đấu giá với thời gian bắt đầu và kết thúc tuỳ chỉnh
+-  Phiên tự động mở (`OPEN → RUNNING`) theo lịch đã đặt
+-  Phiên tự động kết thúc (`RUNNING → FINISHED`) khi hết giờ
+-  Admin xem toàn bộ phiên, huỷ phiên tuỳ ý
+
+### 💰 Đặt giá
+-  Đặt giá thủ công — kiểm tra amount > current_price
+-  Transaction SERIALIZABLE — chống race condition nhiều bidder cùng lúc
+-  Cập nhật giá real-time cho tất cả client đang xem (push notification)
+-  Xem lịch sử các lần đặt giá trong phiên
+
+### 🤖 Auto-Bid
+-  Bidder cấu hình max_bid và increment cho từng phiên
+-  Hệ thống tự động đặt giá theo thứ tự FIFO khi giá bị vượt
+-  Tắt auto-bid khi vượt max_bid hoặc bidder bị khoá
+-  Persist cấu hình auto-bid vào DB để khôi phục khi restart
+
+### ⏱️ Anti-Snipe
+-  Tự động gia hạn thêm 60 giây nếu có bid trong 30 giây cuối
+-  Notify tất cả client về việc gia hạn
+
+### 💳 Thanh toán
+-  Tích hợp Stripe Payment Gateway
+-  Deadline thanh toán 24h sau khi phiên kết thúc
+-  Phiên chuyển `PAID` sau khi thanh toán thành công
+-  Phiên chuyển `CANCEL` nếu không thanh toán trong 24h
+
+### 📊 Dashboard
+-  Bidder: xem phiên đang tham gia, lịch sử thắng, cấu hình auto-bid
+-  Seller: xem phiên do mình tạo, trạng thái và kết quả
+-  Admin: quản lý toàn bộ user, xem login history, thống kê hệ thống
+
+### 🔧 Kỹ thuật
+-  Kiến trúc phân tầng: Network → Service → DAO → Database
+-  Design Pattern: Singleton, Observer, Factory Method
+-  HikariCP connection pool + SQLite WAL mode cho concurrent access
+-  Virtual Thread (Java 21) — mỗi client 1 thread nhẹ
+-  Graceful shutdown với WAL checkpoint
+-  Unit test với JUnit 5 + Mockito
+
+---
+
+## 📄 Tài liệu & Demo
+
+| Loại | Link |
+|------|------|
+| 📄 Báo cáo PDF | https://drive.google.com/file/d/1f6l3Tn1UQ0D2n3OwKW1GD3DTw9lGkRQK/view?usp=sharing |
+| 🎬 Video demo | https://drive.google.com/file/d/1BdCKOhwVJGh3uZmlIO-nS9eIDV27HsxF/view |
+
+---
+
+## 👥 Thành viên nhóm
 
 | Họ tên | MSSV |
 |---|---|
