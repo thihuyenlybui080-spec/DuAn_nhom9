@@ -1,9 +1,9 @@
 # DuAn_nhom9
 # AuctionSystem — Hệ thống Đấu giá Trực tuyến
 
-Ứng dụng desktop đấu giá thời gian thực xây dựng bằng **JavaFX 21** và **MySQL**.
+Ứng dụng desktop đấu giá thời gian thực xây dựng bằng **JavaFX 21** và **SQLite**.
 Hỗ trợ ba vai trò người dùng (Admin, Seller, Bidder), đặt giá thủ công, tự động đặt giá (Auto-bid),
-chống snipe (anti-snipe extension), và quản lý toàn bộ vòng đời phiên đấu giá từ OPEN đến PAID.
+chống bắn tỉa khi đặt giá (anti-snipe extension), và quản lý toàn bộ vòng đời phiên đấu giá từ OPEN đến PAID(OPEN-RUNNING-FINNISHED-PAID/CANCELLED).
 
 ---
 
@@ -11,31 +11,31 @@ chống snipe (anti-snipe extension), và quản lý toàn bộ vòng đời phi
 
 Hệ thống mô phỏng một sàn đấu giá trực tuyến trong đó:
 
-- **Seller** đăng ký vật phẩm (Art, Electronics, Vehicle) và mở phiên đấu giá với giá khởi điểm và khoảng thời gian tự chọn.
+- **Seller** đăng ký vật phẩm (Art, Electronics, Vehicle, Other) và mở phiên đấu giá với giá khởi điểm và khoảng thời gian tự chọn.
 - **Bidder** xem các phiên đang mở, đặt giá thủ công hoặc bật chế độ tự động (Auto-bid với giá trần và bước tăng), và thanh toán sau khi thắng.
 - **Admin** giám sát toàn bộ phiên, quản lý trạng thái người dùng (Active / Banned / Deleted), và có quyền hủy phiên vi phạm.
-- Mọi hành động quan trọng (tạo phiên, đặt giá, kết thúc, thanh toán) đều được ghi nhận vào MySQL để đảm bảo tính bền vững.
+- Mọi hành động quan trọng (tạo phiên, đặt giá, kết thúc, thanh toán) đều được ghi nhận vào SQLite và không được phép sửa đổi để đảm bảo tính bền vững.
 
 ---
 
 ## Công nghệ sử dụng
 
-| Thành phần | Công nghệ |
-|---|---|
-| Ngôn ngữ | Java 21 |
-| Giao diện | JavaFX 21 (FXML + CSS inline) |
-| Build tool | Maven 3.x (kèm Maven Wrapper `mvnw`) |
-| Database | MySQL 8.x |
-| JDBC Driver | MySQL Connector/J (khai báo trong `pom.xml`) |
-| UI extras | BootstrapFX (styling bổ sung) |
-| Concurrency | `ScheduledExecutorService`, `ReentrantLock`, `ConcurrentHashMap` |
+| Thành phần | Công nghệ                                                        |
+|---|------------------------------------------------------------------|
+| Ngôn ngữ | Java 25                                                          |
+| Giao diện | JavaFX 21 (FXML + CSS inline)                                    |
+| Build tool | Maven 3.x (kèm Maven Wrapper `mvnw`)                             |
+| Database | SQLite 3.46.0                                                    |
+| JDBC Driver | SQLite JBDC Driver (khai báo trong `pom.xml`)                    |
+| UI extras | BootstrapFX (styling bổ sung)                                    |
+
 
 ---
 
 ## Yêu cầu môi trường
 
 - **JDK 21** trở lên (khuyến nghị Eclipse Temurin hoặc Oracle JDK 21)
-- **MySQL 8.x** đang chạy ở localhost (hoặc máy chủ riêng)
+- **SQLite 3.46.0** đang chạy ở localhost (hoặc máy chủ riêng)
 - Maven không bắt buộc phải cài riêng vì project đã đi kèm `mvnw` / `mvnw.cmd`
 
 ---
