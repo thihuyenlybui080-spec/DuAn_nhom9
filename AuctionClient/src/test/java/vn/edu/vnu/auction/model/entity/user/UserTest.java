@@ -10,9 +10,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import vn.edu.vnu.auction.common.exception.AuthenticationException;
 
+/**
+ * Lớp kiểm thử (Unit Test) dành cho lớp trừu tượng {@link User}.
+ * <p>
+ * Kiểm tra các tính năng cốt lõi của người dùng như khởi tạo, cập nhật thông tin,
+ * và đặc biệt là logic xác thực đăng nhập (logIn).
+ * </p>
+ */
 class UserTest {
 
-  // Concrete dummy subclass to test the abstract User class
+  /**
+   * Lớp con giả lập (Dummy) để kiểm thử abstract class User.
+   */
   private static class DummyUser extends User {
 
     public DummyUser(String userName, String password, String email, String fullName) {
@@ -33,20 +42,20 @@ class UserTest {
 
   @BeforeEach
   void setUp() {
-    // Initialize the dummy user object before each test
+    // Khởi tạo đối tượng DummyUser trước mỗi bài test
     user = new DummyUser("testUser", "password123", "test@vnu.edu.vn", "Test Full Name");
   }
 
   @Test
   void testConstructorWithoutId() {
-    // Verify default ID and fields are assigned correctly
+    // Kiểm tra ID mặc định và các trường được gán đúng
     assertEquals(-1, user.getId(), "Default ID should be -1 from Entity");
     assertEquals("testUser", user.getName());
     assertEquals("password123", user.getPassword());
     assertEquals("test@vnu.edu.vn", user.getEmail());
     assertEquals("Test Full Name", user.getFullName());
 
-    // Verify the user is active by default
+    // Kiểm tra tài khoản được kích hoạt mặc định
     assertTrue(user.isActive(), "User must be active by default upon creation");
   }
 
@@ -59,7 +68,7 @@ class UserTest {
 
   @Test
   void testSettersAndGetters() {
-    // Test updating user information
+    // Kiểm tra việc cập nhật thông tin người dùng
     user.setName("newName");
     user.setPassword("newPass");
     user.setEmail("new@vnu.edu.vn");
@@ -73,13 +82,14 @@ class UserTest {
 
   @Test
   void testLogIn_Success() {
-    // Should not throw any exception when credentials match and account is active
+    // Đăng nhập thành công sẽ không ném ra ngoại lệ
     assertDoesNotThrow(() -> user.logIn("testUser", "password123"),
         "Login should succeed with correct credentials");
   }
 
   @Test
   void testLogIn_Fail_WrongPassword() {
+    // Đăng nhập sai mật khẩu
     AuthenticationException exception = assertThrows(AuthenticationException.class,
         () -> user.logIn("testUser", "wrongPass"));
 
@@ -88,6 +98,7 @@ class UserTest {
 
   @Test
   void testLogIn_Fail_WrongUsername() {
+    // Đăng nhập sai tên tài khoản
     AuthenticationException exception = assertThrows(AuthenticationException.class,
         () -> user.logIn("wrongUser", "password123"));
 
@@ -96,18 +107,18 @@ class UserTest {
 
   @Test
   void testLogIn_Fail_AccountBanned() {
-    // Step 1: Create a mock UserStatus showing the account is NOT active (Banned)
+    // Bước 1: Mock trạng thái UserStatus bị vô hiệu hóa (Banned)
     UserStatus mockStatus = Mockito.mock(UserStatus.class);
     Mockito.when(mockStatus.isActive()).thenReturn(false);
 
-    // Step 2: Create a mock UserStatusRecord that holds the banned status
+    // Bước 2: Mock UserStatusRecord và trả về status vừa tạo (Sửa lỗi getStatus -> status)
     UserStatusRecord mockRecord = Mockito.mock(UserStatusRecord.class);
-    Mockito.when(mockRecord.getStatus()).thenReturn(mockStatus);
+    Mockito.when(mockRecord.status()).thenReturn(mockStatus);
 
-    // Step 3: Apply the banned record to our user
+    // Bước 3: Áp dụng trạng thái cấm cho người dùng
     user.updateStatus(mockRecord);
 
-    // Step 4: Verify that login throws an exception because the account is banned
+    // Bước 4: Đăng nhập phải bị chặn lại với thông báo Account is banned
     AuthenticationException exception = assertThrows(AuthenticationException.class,
         () -> user.logIn("testUser", "password123"));
 

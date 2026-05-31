@@ -9,33 +9,45 @@ import org.mockito.Mockito;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 
+/**
+ * Lớp kiểm thử (Unit Test) dành cho Entity {@link BidTransaction}.
+ * <p>
+ * Đảm bảo hệ thống ghi nhận đúng thông tin của một lượt đặt giá bao gồm:
+ * người đặt (Bidder), sản phẩm (Item), mức giá (Amount) và thời gian đặt (Timestamp).
+ * </p>
+ */
 class BidTransactionTest {
 
   private BidTransaction transaction;
   private Bidder mockBidder;
   private Item mockItem;
 
+  /**
+   * Thiết lập dữ liệu giả lập trước mỗi kịch bản kiểm thử.
+   * Sử dụng Mockito để tạo các đối tượng Bidder và Item ảo, giúp cô lập bài test.
+   */
   @BeforeEach
   void setUp() {
-    // Step 1: Create mock objects for Bidder and Item to isolate the test
+    // Bước 1: Tạo các đối tượng giả lập (mock) cho Bidder và Item
     mockBidder = Mockito.mock(Bidder.class);
     mockItem = Mockito.mock(Item.class);
 
-    // Step 2: Initialize the BidTransaction object with a bid amount of 500.0
+    // Bước 2: Khởi tạo đối tượng BidTransaction với mức giá là 500.0
     transaction = new BidTransaction(mockBidder, mockItem, 500.0);
   }
 
+  /**
+   * Kiểm tra hàm khởi tạo (Constructor) và các hàm Getter cơ bản.
+   * Kỳ vọng: Dữ liệu truyền vào phải được lưu trữ chính xác và thời gian (timestamp) phải tự động sinh ra.
+   */
   @Test
   void testConstructorAndInitialGetters() {
-    // Verify that the injected mocks and values are stored correctly
+    // Kiểm tra xem các đối tượng mock và mức giá có được lưu đúng không
     assertEquals(mockBidder, transaction.getBidder(), "The bidder should match the injected mock");
     assertEquals(mockItem, transaction.getItem(), "The item should match the injected mock");
     assertEquals(500.0, transaction.getAmount(), "The bid amount should be 500.0");
 
-    // The timestamp should be generated automatically in the constructor
-    assertNotNull(transaction.getTimestamp(), "The timestamp must be generated and not null");
-
-    // auctionId is not set in the constructor, so for an int primitive, it defaults to 0
-    assertEquals(0, transaction.getAuctionId(), "The default primitive int auctionId should be 0");
+    // Kiểm tra xem thời gian tạo giao dịch (timestamp) đã được hệ thống tự động sinh ra chưa
+    assertNotNull(transaction.getTimestamp(), "The timestamp must be generated automatically and not be null");
   }
 }

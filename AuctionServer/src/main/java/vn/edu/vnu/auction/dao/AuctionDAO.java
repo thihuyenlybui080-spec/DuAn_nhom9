@@ -58,9 +58,9 @@ public class AuctionDAO {
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
         Auction a = mapAuction(rs, allUsers);
-          if (a != null) {
-              list.add(a);
-          }
+        if (a != null) {
+          list.add(a);
+        }
       }
       ps.close();
     } catch (SQLException e) {
@@ -109,9 +109,9 @@ public class AuctionDAO {
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           Auction a = mapAuction(rs, allUsers);
-            if (a != null) {
-                list.add(a);
-            }
+          if (a != null) {
+            list.add(a);
+          }
         }
       }
     } catch (SQLException e) {
@@ -136,9 +136,9 @@ public class AuctionDAO {
       ps.setString(4, endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
       ps.executeUpdate();
       try (ResultSet keys = ps.getGeneratedKeys()) {
-          if (keys.next()) {
-              return keys.getInt(1);
-          }
+        if (keys.next()) {
+          return keys.getInt(1);
+        }
       }
     } catch (SQLException e) {
       System.err.println("[AuctionDAO] insertAuction: " + e.getMessage());
@@ -270,9 +270,9 @@ public class AuctionDAO {
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           Auction a = mapAuction(rs, allUsers);
-            if (a != null) {
-                list.add(a);
-            }
+          if (a != null) {
+            list.add(a);
+          }
         }
       }
     } catch (SQLException e) {
@@ -292,9 +292,9 @@ public class AuctionDAO {
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
         Auction a = mapAuction(rs, allUsers);
-          if (a != null) {
-              list.add(a);
-          }
+        if (a != null) {
+          list.add(a);
+        }
       }
     } catch (SQLException e) {
       logger.error("[AuctionDAO] getFinishedAuctions SQL error: {}", e.getMessage());

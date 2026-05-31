@@ -834,15 +834,15 @@ public class ClientHandler implements Runnable {
    */
   private void cleanup() {
     try {
-        if (inputStream != null) {
-            inputStream.close();
-        }
-        if (outputStream != null) {
-            outputStream.close();
-        }
-        if (!clientSocket.isClosed()) {
-            clientSocket.close();
-        }
+      if (inputStream != null) {
+        inputStream.close();
+      }
+      if (outputStream != null) {
+        outputStream.close();
+      }
+      if (!clientSocket.isClosed()) {
+        clientSocket.close();
+      }
     } catch (IOException e) {
       logger.warn("Cleanup error: " + e.getMessage());
     }
