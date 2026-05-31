@@ -173,8 +173,8 @@ Nếu không có file này, Server tự dùng giá trị mặc định.
 ### Bước 2 — Chạy Server
 
 ```bash
-cd AuctionServer/target
-java -jar AuctionServer-1.0.jar
+cd AuctionServer
+java -jar target\AuctionServer-1.0.jar
 ```
 
 Khi thấy log:
@@ -201,8 +201,8 @@ server:
 ### Bước 4 — Chạy Client
 
 ```bash
-cd AuctionClient/target
-java -jar AuctionClient-1.0.jar
+cd AuctionClient
+java -jar target\AuctionClient-1.0.jar
 ```
 
 Cửa sổ đăng nhập JavaFX sẽ hiện ra.
