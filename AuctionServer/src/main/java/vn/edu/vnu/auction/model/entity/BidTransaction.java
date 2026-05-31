@@ -3,6 +3,7 @@ package vn.edu.vnu.auction.model.entity;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -14,10 +15,11 @@ import java.time.LocalDateTime;
  * </p>
  */
 public class BidTransaction implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
-    private Bidder bidder;
-    private Item item;
-    private double amount;
+    private final Bidder bidder;
+    private final Item item;
+    private final double amount;
     private LocalDateTime timestamp;
     private int auctionId;
 

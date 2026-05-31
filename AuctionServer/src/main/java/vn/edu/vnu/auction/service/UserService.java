@@ -80,8 +80,6 @@ public class UserService {
 
      private void notifyAutionsForLockedBidder(Bidder bidder){
          auctionService.getActiveAuctions().forEach(auction -> {
-             // Send notification to ALL active auctions when bidder is locked
-             // This ensures the bidder sees the notification regardless of which auction they're viewing
              ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
                      NotificationMessage.TYPE_USER_LOCKED,
                      auction.getId(),
@@ -92,7 +90,6 @@ public class UserService {
 
      private void notifyAuctionsForUnlockedBidder(Bidder bidder){
          auctionService.getActiveAuctions().forEach(auction -> {
-             // Send notification to ALL active auctions when bidder is unlocked
              ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
                      NotificationMessage.TYPE_USER_UNLOCKED,
                      auction.getId(),

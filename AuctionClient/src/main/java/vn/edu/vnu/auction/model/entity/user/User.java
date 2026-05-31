@@ -4,6 +4,8 @@ package vn.edu.vnu.auction.model.entity.user;
 import vn.edu.vnu.auction.common.exception.AuthenticationException;
 import vn.edu.vnu.auction.model.entity.Entity;
 
+import java.io.Serial;
+
 /**
  * Lớp cơ sở trừu tượng đại diện cho người dùng trong hệ thống đấu giá.
  * <p>
@@ -12,6 +14,7 @@ import vn.edu.vnu.auction.model.entity.Entity;
  * </p>
  */
 public abstract class User extends Entity {
+    @Serial
     private static final long serialVersionUID = 1L;
     protected String userName;
     private String email;
@@ -59,16 +62,8 @@ public abstract class User extends Entity {
      */
     public final void updateStatus(UserStatusRecord newRecord) {
         this.statusRecord = newRecord;
-        onStatusChanged(newRecord.getStatus());
     }
 
-    /**
-     * Phương thức callback được gọi khi trạng thái người dùng thay đổi.
-     * Có thể được ghi đè bởi các lớp con để xử lý logic cụ thể.
-     *
-     * @param newStatus trạng thái mới của người dùng
-     */
-    public void onStatusChanged(UserStatus newStatus){};
 
     /**
      * Xác thực đăng nhập của người dùng.
@@ -80,7 +75,7 @@ public abstract class User extends Entity {
      */
     public void logIn(String name, String password) throws AuthenticationException {
 
-        if (!statusRecord.getStatus().isActive()) {
+        if (!statusRecord.status().isActive()) {
             throw new AuthenticationException("Account is banned");
         }
         if (!this.userName.equals(name) || !this.password.equals(password)) {
@@ -100,14 +95,14 @@ public abstract class User extends Entity {
      *
      * @return trạng thái hiện tại của người dùng
      */
-    public UserStatus getStatus() {return statusRecord.getStatus();}
+    public UserStatus getStatus() {return statusRecord.status();}
 
     /**
      * Kiểm tra xem tài khoản người dùng có đang hoạt động không.
      *
      * @return true nếu tài khoản đang hoạt động, false nếu bị khóa
      */
-    public boolean isActive() {return statusRecord.getStatus().isActive();}
+    public boolean isActive() {return statusRecord.status().isActive();}
 
     /**
      * Đặt trạng thái hoạt động của người dùng.
@@ -120,7 +115,6 @@ public abstract class User extends Entity {
         } else {
             this.statusRecord = new UserStatusRecord(UserStatus.BANNED, null);
         }
-        onStatusChanged(statusRecord.getStatus());
     }
 
     /**

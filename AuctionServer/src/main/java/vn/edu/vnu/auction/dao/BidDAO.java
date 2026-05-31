@@ -127,7 +127,6 @@ public class BidDAO {
             logger.info("[BidDAO] getBidHistory: Retrieved {} bids for bidderId={}", list.size(), bidderId);
         } catch (SQLException e) {
             logger.error("[BidDAO] getBidHistory: {}", e.getMessage());
-            e.printStackTrace();
         }
         return list;
     }

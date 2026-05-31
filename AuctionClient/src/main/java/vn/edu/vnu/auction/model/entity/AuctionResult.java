@@ -3,12 +3,14 @@ package vn.edu.vnu.auction.model.entity;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.User;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AuctionResult implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private final int auctionId;
@@ -26,7 +28,7 @@ public class AuctionResult implements Serializable {
         this.finalPrice = auction.getCurrentPrice();
         this.status = auction.getStatus();
         this.endTime = auction.getItem().getEndTime();
-        this.bidHistory = new ArrayList<>(auction.getBids());
+        bidHistory = new ArrayList<>(auction.getBids());
     }
 
     public void setStatus(AuctionStatus newStatus) {

@@ -1,14 +1,6 @@
 package vn.edu.vnu.auction.model.entity.user;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.model.entity.AuctionResult;
-import vn.edu.vnu.auction.model.entity.BidTransaction;
-import vn.edu.vnu.auction.model.entity.item.Item;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.io.Serial;
 
 /**
  * Đại diện cho người tham gia đấu giá (Bidder).
@@ -18,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * </p>
  */
 public class Bidder extends User  {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

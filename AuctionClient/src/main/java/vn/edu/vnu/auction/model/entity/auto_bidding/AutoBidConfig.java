@@ -1,5 +1,6 @@
 package vn.edu.vnu.auction.model.entity.auto_bidding;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -8,6 +9,7 @@ import java.io.Serializable;
  */
 public class AutoBidConfig implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     private final double maxBid;
     private final double increment;

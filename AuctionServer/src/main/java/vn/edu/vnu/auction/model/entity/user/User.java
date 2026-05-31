@@ -19,7 +19,7 @@ public abstract class User extends Entity {
     protected String userName;
     private String email;
     protected String password;
-    private String fullName;
+    private final String fullName;
     private UserStatusRecord statusRecord = UserStatusRecord.defaultActive();
 
     /**
@@ -64,24 +64,6 @@ public abstract class User extends Entity {
         this.statusRecord = newRecord;
     }
 
-
-    /**
-     * Xác thực người dùng với thông tin đăng nhập được cung cấp.
-     *
-     * @param name tên người dùng cần kiểm tra
-     * @param password mật khẩu cần kiểm tra
-     * @throws AuthenticationException nếu xác thực thất bại
-     */
-    public void logIn(String name, String password) throws AuthenticationException {
-
-        if (!statusRecord.status().isActive()) {
-            throw new AuthenticationException("Account is banned");
-        }
-        if (!this.userName.equals(name) || !this.password.equals(password)) {
-            throw new AuthenticationException("Invalid username or password");
-        }
-    }
-
     /**
      * Lấy trạng thái người dùng.
      *
@@ -105,23 +87,6 @@ public abstract class User extends Entity {
         return userName;
     }
 
-    /**
-     * Lấy địa chỉ email.
-     *
-     * @return email
-     */
-    public String getEmail(){
-        return email;
-    }
-
-    /**
-     * Lấy mật khẩu.
-     *
-     * @return mật khẩu
-     */
-    public String getPassword(){
-        return password;
-    }
 
     /**
      * Lấy họ tên đầy đủ.
@@ -139,33 +104,6 @@ public abstract class User extends Entity {
      */
     public void setName(String name){
         this.userName = name;
-    }
-
-    /**
-     * Đặt địa chỉ email.
-     *
-     * @param email email mới
-     */
-    public void setEmail(String email){
-        this.email = email;
-    }
-
-    /**
-     * Đặt mật khẩu.
-     *
-     * @param password mật khẩu mới
-     */
-    public void setPassword(String password){
-        this.password = password;
-    }
-
-    /**
-     * Đặt họ tên đầy đủ.
-     *
-     * @param fullName họ tên đầy đủ mới
-     */
-    public void setFullName(String fullName){
-        this.fullName = fullName;
     }
 
     /**

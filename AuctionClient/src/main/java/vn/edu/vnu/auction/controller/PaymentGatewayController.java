@@ -20,13 +20,14 @@ import javafx.util.Duration;
 import vn.edu.vnu.auction.model.entity.AuctionResult;
 import vn.edu.vnu.auction.service.AuctionClientService;
 
+import java.io.InputStream;
+
 public class PaymentGatewayController {
 
     private static final String COLOR_PRIMARY = "#722f37";
     private static final String COLOR_ACCENT  = "#c0c43f";
     private static final String COLOR_DARK    = "#1a0d0f";
     private static final String COLOR_CARD    = "#3d1c21";
-    private static final String COLOR_TEXT    = "#ffffff";
     private static String selectedMethod = null;
 
     public static void Show(AuctionResult result, Runnable onSuccess) {
@@ -112,9 +113,9 @@ public class PaymentGatewayController {
 
         Button btnClose = new Button("✕");
         btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #ffffff; -fx-font-size: 14px; -fx-cursor: hand; -fx-opacity: 0.7;");
-        btnClose.setOnAction(e -> stage.close());
-        btnClose.setOnMouseEntered(e -> btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #e53935; -fx-font-size: 14px; -fx-cursor: hand;"));
-        btnClose.setOnMouseExited(e -> btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #ffffff; -fx-font-size: 14px; -fx-cursor: hand; -fx-opacity: 0.7;"));
+        btnClose.setOnAction(_ -> stage.close());
+        btnClose.setOnMouseEntered(_ -> btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #e53935; -fx-font-size: 14px; -fx-cursor: hand;"));
+        btnClose.setOnMouseExited(_ -> btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #ffffff; -fx-font-size: 14px; -fx-cursor: hand; -fx-opacity: 0.7;"));
 
         header.getChildren().addAll(icon, titleBox, btnClose);
         return header;
@@ -159,19 +160,19 @@ public class PaymentGatewayController {
         ToggleGroup group = new ToggleGroup();
 
         // All false — no method selected by default
-        ToggleButton btnATM  = buildMethodBtn("🏧\nATM Card", group, false);
-        ToggleButton btnQR   = buildMethodBtn("📱\nQR Code",  group, false);
-        ToggleButton btnVisa = buildMethodBtn("💳\nVisa/MC",  group, false);
+        ToggleButton btnATM  = buildMethodBtn("🏧\nATM Card", group);
+        ToggleButton btnQR   = buildMethodBtn("📱\nQR Code",  group);
+        ToggleButton btnVisa = buildMethodBtn("💳\nVisa/MC",  group);
 
-        btnATM.setOnAction(e -> {
+        btnATM.setOnAction(_ -> {
             selectedMethod = "ATM";
             showATMForm(methodContent);
         });
-        btnQR.setOnAction(e -> {
+        btnQR.setOnAction(_ -> {
             selectedMethod = "QR";
             showQRForm(methodContent, result);
         });
-        btnVisa.setOnAction(e -> {
+        btnVisa.setOnAction(_ -> {
             selectedMethod = "VISA";
             showVisaForm(methodContent);
         });
@@ -223,17 +224,7 @@ public class PaymentGatewayController {
         }
 
         if (qrStream != null) {
-            Image qrImage = new Image(qrStream);
-            ImageView qrView = new ImageView(qrImage);
-            qrView.setFitWidth(180);
-            qrView.setFitHeight(180);
-            qrView.setPreserveRatio(true);
-
-            VBox qrWrapper = new VBox(qrView);
-            qrWrapper.setAlignment(Pos.CENTER);
-            qrWrapper.setPadding(new Insets(12));
-            qrWrapper.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;");
-            qrWrapper.setMaxWidth(Region.USE_PREF_SIZE);
+            VBox qrWrapper = getVBox(qrStream);
 
             Label lblAmount = new Label(formatPrice(result.getFinalPrice()) + " ₫");
             lblAmount.setFont(Font.font("System", FontWeight.BOLD, 16));
@@ -258,6 +249,21 @@ public class PaymentGatewayController {
 
             container.getChildren().addAll(lbl, lblErr, lblAmount, lblHint);
         }
+    }
+
+    private static VBox getVBox(InputStream qrStream) {
+        Image qrImage = new Image(qrStream);
+        ImageView qrView = new ImageView(qrImage);
+        qrView.setFitWidth(180);
+        qrView.setFitHeight(180);
+        qrView.setPreserveRatio(true);
+
+        VBox qrWrapper = new VBox(qrView);
+        qrWrapper.setAlignment(Pos.CENTER);
+        qrWrapper.setPadding(new Insets(12));
+        qrWrapper.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;");
+        qrWrapper.setMaxWidth(Region.USE_PREF_SIZE);
+        return qrWrapper;
     }
 
     // ─── Visa Form ──────────────────────────────────────────────────────────────
@@ -298,7 +304,7 @@ public class PaymentGatewayController {
         btnPay.setFont(Font.font("System", FontWeight.BOLD, 14));
         btnPay.setStyle("-fx-background-color: " + COLOR_ACCENT + "; -fx-text-fill: " + COLOR_PRIMARY + "; -fx-background-radius: 8; -fx-cursor: hand;");
 
-        btnPay.setOnAction(e -> {
+        btnPay.setOnAction(_ -> {
             // Check no method selected
             if (selectedMethod == null) {
                 lblStatus.setVisible(true);
@@ -315,48 +321,47 @@ public class PaymentGatewayController {
             Timeline timeline = new Timeline();
 
             if ("VISA".equals(selectedMethod)) {
-                KeyFrame s1 = new KeyFrame(Duration.millis(400), ev -> {
+                KeyFrame s1 = new KeyFrame(Duration.millis(400), _ -> {
                     progressBar.setProgress(0.3);
                     lblStatus.setText("Connecting to Stripe...");
-                    // ✅ Mở Stripe ở đây — đúng lúc bấm Confirm
+
                     try {
                         String url = AuctionClientService.getInstance().createPaymentLink(result.getAuctionId());
                         if (url != null) java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        lblStatus.setText("❌ Failed to open payment page: " + ex.getMessage());
+                    } catch (Exception e) {
+                        lblStatus.setText("❌ Failed to open payment page: " + e.getMessage());
                         lblStatus.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-font-weight: bold;");
                         btnPay.setDisable(false);
                         progressBar.setVisible(false);
                         return;
                     }
                 });
-                KeyFrame s2 = new KeyFrame(Duration.millis(1200), ev -> {
+                KeyFrame s2 = new KeyFrame(Duration.millis(1200), _ -> {
                     progressBar.setProgress(0.7);
                     lblStatus.setText("Waiting for payment on Stripe...");
                 });
-                KeyFrame s3 = new KeyFrame(Duration.millis(2200), ev -> {
+                KeyFrame s3 = new KeyFrame(Duration.millis(2200), _ -> {
                     progressBar.setProgress(0.95);
                     lblStatus.setText("Finalizing...");
                 });
-                KeyFrame s4 = new KeyFrame(Duration.millis(2800), ev ->
+                KeyFrame s4 = new KeyFrame(Duration.millis(2800), _ ->
                         confirmPayment(result, stage, onSuccess, btnPay, progressBar, lblStatus));
                 timeline.getKeyFrames().addAll(s1, s2, s3, s4);
 
             } else if ("ATM".equals(selectedMethod)) {
-                KeyFrame s1 = new KeyFrame(Duration.millis(500),  ev -> { progressBar.setProgress(0.25); lblStatus.setText("Connecting to bank..."); });
-                KeyFrame s2 = new KeyFrame(Duration.millis(1200), ev -> { progressBar.setProgress(0.5);  lblStatus.setText("Verifying card information..."); });
-                KeyFrame s3 = new KeyFrame(Duration.millis(2000), ev -> { progressBar.setProgress(0.75); lblStatus.setText("Sending OTP to your phone..."); });
-                KeyFrame s4 = new KeyFrame(Duration.millis(3000), ev -> { progressBar.setProgress(0.95); lblStatus.setText("Finalizing..."); });
-                KeyFrame s5 = new KeyFrame(Duration.millis(3600), ev -> confirmPayment(result, stage, onSuccess, btnPay, progressBar, lblStatus));
+                KeyFrame s1 = new KeyFrame(Duration.millis(500),  _ -> { progressBar.setProgress(0.25); lblStatus.setText("Connecting to bank..."); });
+                KeyFrame s2 = new KeyFrame(Duration.millis(1200), _ -> { progressBar.setProgress(0.5);  lblStatus.setText("Verifying card information..."); });
+                KeyFrame s3 = new KeyFrame(Duration.millis(2000), _ -> { progressBar.setProgress(0.75); lblStatus.setText("Sending OTP to your phone..."); });
+                KeyFrame s4 = new KeyFrame(Duration.millis(3000), _ -> { progressBar.setProgress(0.95); lblStatus.setText("Finalizing..."); });
+                KeyFrame s5 = new KeyFrame(Duration.millis(3600), _ -> confirmPayment(result, stage, onSuccess, btnPay, progressBar, lblStatus));
                 timeline.getKeyFrames().addAll(s1, s2, s3, s4, s5);
 
             } else { // QR
-                KeyFrame s1 = new KeyFrame(Duration.millis(500),  ev -> { progressBar.setProgress(0.3);  lblStatus.setText("Waiting for QR scan..."); });
-                KeyFrame s2 = new KeyFrame(Duration.millis(1500), ev -> { progressBar.setProgress(0.6);  lblStatus.setText("Transaction detected..."); });
-                KeyFrame s3 = new KeyFrame(Duration.millis(2500), ev -> { progressBar.setProgress(0.9);  lblStatus.setText("Processing payment..."); });
-                KeyFrame s4 = new KeyFrame(Duration.millis(3200), ev -> { progressBar.setProgress(0.95); lblStatus.setText("Finalizing..."); });
-                KeyFrame s5 = new KeyFrame(Duration.millis(3800), ev -> confirmPayment(result, stage, onSuccess, btnPay, progressBar, lblStatus));
+                KeyFrame s1 = new KeyFrame(Duration.millis(500),  _ -> { progressBar.setProgress(0.3);  lblStatus.setText("Waiting for QR scan..."); });
+                KeyFrame s2 = new KeyFrame(Duration.millis(1500), _ -> { progressBar.setProgress(0.6);  lblStatus.setText("Transaction detected..."); });
+                KeyFrame s3 = new KeyFrame(Duration.millis(2500), _ -> { progressBar.setProgress(0.9);  lblStatus.setText("Processing payment..."); });
+                KeyFrame s4 = new KeyFrame(Duration.millis(3200), _ -> { progressBar.setProgress(0.95); lblStatus.setText("Finalizing..."); });
+                KeyFrame s5 = new KeyFrame(Duration.millis(3800), _ -> confirmPayment(result, stage, onSuccess, btnPay, progressBar, lblStatus));
                 timeline.getKeyFrames().addAll(s1, s2, s3, s4, s5);
             }
 
@@ -380,14 +385,13 @@ public class PaymentGatewayController {
             
             stage.close();
             if (onSuccess != null) onSuccess.run();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
             bar.setVisible(false);
             lbl.setVisible(true);
-            lbl.setText("❌ Payment failed: " + ex.getMessage());
+            lbl.setText("❌ Payment failed: " + e.getMessage());
             lbl.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-font-weight: bold;");
             
-            ToastNotification.show(stage, "Error", "Payment failed: " + ex.getMessage(), ToastNotification.Type.ERROR);
+            ToastNotification.show(stage, "Error", "Payment failed: " + e.getMessage(), ToastNotification.Type.ERROR);
             
             btnPay.setDisable(false);
         }
@@ -446,7 +450,7 @@ public class PaymentGatewayController {
         return div;
     }
 
-    private static ToggleButton buildMethodBtn(String text, ToggleGroup group, boolean selected) {
+    private static ToggleButton buildMethodBtn(String text, ToggleGroup group) {
         ToggleButton btn = new ToggleButton(text);
         btn.setToggleGroup(group);
         btn.setTextAlignment(TextAlignment.CENTER);
@@ -456,13 +460,13 @@ public class PaymentGatewayController {
         String normal = "-fx-background-color: " + COLOR_CARD + "; -fx-text-fill: #fff; -fx-background-radius: 8; -fx-border-color: rgba(192,196,63,0.3); -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand;";
         String active = "-fx-background-color: " + COLOR_PRIMARY + "; -fx-text-fill: " + COLOR_ACCENT + "; -fx-background-radius: 8; -fx-border-color: " + COLOR_ACCENT + "; -fx-border-radius: 8; -fx-border-width: 1.5; -fx-font-weight: bold; -fx-cursor: hand;";
 
-        btn.setStyle(selected ? active : normal);
-        btn.setSelected(selected);
-        btn.selectedProperty().addListener((obs, was, is) -> btn.setStyle(is ? active : normal));
+        btn.setStyle(normal);
+        btn.setSelected(false);
+        btn.selectedProperty().addListener((_, _, is) -> btn.setStyle(is ? active : normal));
         return btn;
     }
 
-    private static String formatPrice(double price) {
+    public static String formatPrice(double price) {
         if (price >= 1_000_000_000) return String.format("%,.1f B", price / 1_000_000_000);
         if (price >= 1_000_000)     return String.format("%,.1f M", price / 1_000_000);
         return String.format("%,.0f", price);

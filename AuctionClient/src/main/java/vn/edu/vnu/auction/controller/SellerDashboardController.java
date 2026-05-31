@@ -43,6 +43,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -259,7 +260,7 @@ public class SellerDashboardController implements Initializable {
         auctionListContainer.getChildren().clear();
 
         if (list == null || list.isEmpty()) {
-            auctionListContainer.getChildren().add(buildEmptyState(
+            auctionListContainer.getChildren().add(UIFactory.buildEmptyState(
                     "📭", "No auctions yet", "Go to \"Create Auction\" to list your first item."));
             lblAuctionCount.setText("0 auctions");
             return;
@@ -270,52 +271,7 @@ public class SellerDashboardController implements Initializable {
     }
 
     private HBox buildAuctionCard(Auction auction) {
-        HBox card = new HBox(14);
-        card.setPadding(new Insets(12));
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21);"
-                + "-fx-border-color: #3d1c21;"
-                + "-fx-border-radius: 8;"
-                + "-fx-background-radius: 8;");
-
-        // Thumb
-        VBox thumb = new VBox(3);
-        thumb.setAlignment(Pos.CENTER);
-        thumb.setPrefSize(64, 64);
-        thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
-        Label icon = new Label(getCategoryIcon(auction.getItem().getCategory()));
-        icon.setStyle("-fx-font-size: 22px; -fx-text-fill: #722f37");
-        Label cat = new Label(auction.getItem().getCategory());
-        cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
-        thumb.getChildren().addAll(icon, cat);
-
-        // Info
-        VBox info = new VBox(4);
-        HBox.setHgrow(info, Priority.ALWAYS);
-
-        HBox row1 = new HBox(8);
-        row1.setAlignment(Pos.CENTER_LEFT);
-        Label nameLabel = new Label(auction.getItem().getItemName());
-        nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
-        Label badge = buildStatusBadge(auction.getStatus());
-        row1.getChildren().addAll(nameLabel, badge);
-
-        Label priceLabel = new Label(
-                "Current: " + formatPrice(auction.getCurrentPrice()) + " ₫"
-                        + "  ·  " + auction.getBids().size() + " bids");
-        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #fff; -fx-opacity: 0.7");
-
-        Label timeLabel = new Label(
-                "Starts: " + (auction.getItem().getStartTime() != null
-                        ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                        : "—")
-                + "  ·  Ends: " + (auction.getItem().getEndTime() != null
-                        ? auction.getItem().getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                        : "—"));
-        timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
-
-        info.getChildren().addAll(row1, priceLabel, timeLabel);
-
+        HBox card = UIFactory.buildAuctionCard(auction);
         VBox actions = new VBox(6);
         actions.setAlignment(Pos.CENTER);
         actions.setPrefWidth(80);
@@ -337,7 +293,7 @@ public class SellerDashboardController implements Initializable {
 
         actions.getChildren().addAll(btnView, btnDelete);
 
-        card.getChildren().addAll(thumb, info, actions);
+        card.getChildren().add( actions);
         return card;
     }
 
@@ -352,7 +308,7 @@ public class SellerDashboardController implements Initializable {
         itemListContainer.getChildren().clear();
 
         if (list == null || list.isEmpty()) {
-            itemListContainer.getChildren().add(buildEmptyState(
+            itemListContainer.getChildren().add(UIFactory.buildEmptyState(
                     "📦", "No items yet", "Click \"Add Item\" to create your first product."));
             lblItemCount.setText("0 items");
             return;
@@ -376,7 +332,7 @@ public class SellerDashboardController implements Initializable {
         thumb.setAlignment(Pos.CENTER);
         thumb.setPrefSize(56, 56);
         thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
-        Label icon = new Label(getCategoryIcon(item.getCategory()));
+        Label icon = new Label(UIFactory.getCategoryIcon(item.getCategory()));
         icon.setStyle("-fx-font-size: 20px; -fx-text-fill: #722f37;");
         Label cat = new Label(item.getCategory());
         cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
@@ -496,9 +452,7 @@ public class SellerDashboardController implements Initializable {
                         ToastNotification.show(stage, "Success", "Item deleted successfully!", ToastNotification.Type.SUCCESS);
                         lblStatusBar.setText("Item deleted: " + item.getItemName());
                     }
-                    
-                    // Auto-hide status bar after 3 seconds
-                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                    new java.util.Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
                             Platform.runLater(() -> {
@@ -515,7 +469,6 @@ public class SellerDashboardController implements Initializable {
                     showErrorAlert("Cannot delete", e.getMessage());
                 } catch (Exception e) {
                     showErrorAlert("System error", e.getMessage());
-                    e.printStackTrace();
                 }
             }
         });
@@ -548,10 +501,8 @@ public class SellerDashboardController implements Initializable {
             stage.setTitle("Auction detail");
             stage.show();
         }  catch (IOException e){
-            e.printStackTrace();
             showErrorAlert("Load Error", "Failed to load auction detail: " + e.getMessage());
         } catch (Exception e){
-            e.printStackTrace();
             showErrorAlert("Error", "An error occurred: " + e.getMessage());
         }
     }
@@ -581,8 +532,7 @@ public class SellerDashboardController implements Initializable {
                     
                     Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                     ToastNotification.show(stage, "Success", "Auction cancelled and item deleted successfully!", ToastNotification.Type.SUCCESS);
-                    
-                    // Auto-hide status bar after 3 seconds
+
                     new java.util.Timer().schedule(new java.util.TimerTask() {
                         @Override
                         public void run() {
@@ -649,23 +599,13 @@ public class SellerDashboardController implements Initializable {
             showFormError("End time must be after start time.");
             return;
         }
-        ItemFactory factory;
-        switch (category) {
-            case "Electronics":
-                factory = new ElectronicsFactory();
-                break;
-            case "Art":
-                factory = new ArtFactory();
-                break;
-            case "Vehicle":
-                factory = new VehicleFactory();
-                break;
-            case "Other":
-                factory = new OtherFactory();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported category: " + category);
-        }
+        ItemFactory factory = switch (category) {
+            case "Electronics" -> new ElectronicsFactory();
+            case "Art" -> new ArtFactory();
+            case "Vehicle" -> new VehicleFactory();
+            case "Other" -> new OtherFactory();
+            default -> throw new IllegalArgumentException("Unsupported category: " + category);
+        };
 
         Item item = factory.createItem(itemName, seller.getId(), description, startingPrice, startTime, endTime);
         item.setImagePath(selectedImagePath);
@@ -780,66 +720,7 @@ public class SellerDashboardController implements Initializable {
         lblFormError.setManaged(false);
     }
 
-    private VBox buildEmptyState(String icon, String title, String hint){
-        VBox vBox = new VBox(10);
-        vBox.setAlignment(Pos.CENTER);
-        vBox.setPadding(new Insets(50));
-        Label iconLabel = new Label(icon);
-        iconLabel.setStyle("-fx-font-size: 38px;");
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 15));
-        Label hintLabel = new Label(hint);
-        hintLabel.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 12px");
-        vBox.getChildren().addAll(iconLabel, titleLabel, hintLabel);
-        return vBox;
-    }
-
-    private Label buildStatusBadge(AuctionStatus status){
-        Label badge = new Label();
-        switch (status) {
-            case RUNNING:
-                badge.setText("● Live");
-                badge.setStyle(
-                        "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-                break;
-            case OPEN:
-                badge.setText("● Upcoming");
-                badge.setStyle(
-                        "-fx-background-color: #e8f0fe; -fx-text-fill: #1a56db;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-                break;
-            case FINISHED:
-                badge.setText("● Finished");
-                badge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #888;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-                break;
-            default:
-                badge.setText(status.toString());
-                badge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #888;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-        }
-        return badge;
-
-    }
-
     private String formatPrice(double price){
         return VND_FORMAT.format((long) price);
-    }
-
-    private String getCategoryIcon(String category){
-        if(category == null){
-            return "📦";
-        }
-        switch (category.toLowerCase()) {
-            case "electronics": return "💻";
-            case "art":         return "🎨";
-            case "vehicle":     return "🚗";
-            case "other":       return "📦";
-            default:            return "📦";
-        }
-
     }
 }
