@@ -237,6 +237,17 @@ public class BiddingController implements Initializable, Observer {
                         lblBidError.setText("⏱ Anti-snipe: +60s added!");
                         lblBidError.setVisible(true);
                         lblBidError.setManaged(true);
+                        
+                        // Auto-hide after 3 seconds
+                        new java.util.Timer().schedule(new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> {
+                                    lblBidError.setVisible(false);
+                                    lblBidError.setManaged(false);
+                                });
+                            }
+                        }, 3000);
                     });
                     break;
                 case NotificationMessage.TYPE_AUTO_BID_AUCTION_ENDED:
@@ -250,6 +261,17 @@ public class BiddingController implements Initializable, Observer {
                         updateStatusBadge();
                         lblCountdown.setText("ENDED");
                         
+                        // Auto-hide after 3 seconds
+                        new java.util.Timer().schedule(new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> {
+                                    lblBidError.setVisible(false);
+                                    lblBidError.setManaged(false);
+                                });
+                            }
+                        }, 3000);
+                        
                         Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                         ToastNotification.show(stage, "Auto-Bid Failed", message, ToastNotification.Type.ERROR);
                     });
@@ -261,12 +283,17 @@ public class BiddingController implements Initializable, Observer {
                             bidder.setActive(false);
                             if (autoBidEnable) {
                                 onDisableAutoBid();
+
+                                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                                ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid has been disabled.", ToastNotification.Type.ERROR);
+                                lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
+                                lblBidError.setText("🔒 Your account has been locked. Auto-bid disabled.");
+                            } else {
+                                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                                ToastNotification.show(stage, "Account Locked", "Your account has been locked. You cannot place bids.", ToastNotification.Type.ERROR);
+                                lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
+                                lblBidError.setText("🔒 Your account has been locked. You cannot place bids.");
                             }
-                            
-                            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                            ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid has been disabled.", ToastNotification.Type.ERROR);
-                            lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
-                            lblBidError.setText("🔒 Your account has been locked. Auto-bid disabled.");
                             lblBidError.setVisible(true);
                             lblBidError.setManaged(true);
                         }
@@ -1009,9 +1036,26 @@ public class BiddingController implements Initializable, Observer {
         lblBidError.setText(message);
         lblBidError.setVisible(true);
         lblBidError.setManaged(true);
+
+        // Auto-hide after 3 seconds, but only if bidder is not locked
+        if (bidder.isActive()) {
+            new java.util.Timer().schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        lblBidError.setVisible(false);
+                        lblBidError.setManaged(false);
+                    });
+                }
+            }, 3000);
+        }
     }
 
     private void hideBidError() {
+        // Don't hide error message if bidder is locked
+        if (!bidder.isActive()) {
+            return;
+        }
         lblBidError.setVisible(false);
         lblBidError.setManaged(false);
     }

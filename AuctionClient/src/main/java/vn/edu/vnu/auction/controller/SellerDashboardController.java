@@ -496,6 +496,16 @@ public class SellerDashboardController implements Initializable {
                         ToastNotification.show(stage, "Success", "Item deleted successfully!", ToastNotification.Type.SUCCESS);
                         lblStatusBar.setText("Item deleted: " + item.getItemName());
                     }
+                    
+                    // Auto-hide status bar after 3 seconds
+                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> {
+                                lblStatusBar.setText("");
+                            });
+                        }
+                    }, 3000);
 
                 } catch (IllegalArgumentException e) {
                     Stage stage = (Stage) rootBorderPane.getScene().getWindow();
@@ -571,6 +581,16 @@ public class SellerDashboardController implements Initializable {
                     
                     Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                     ToastNotification.show(stage, "Success", "Auction cancelled and item deleted successfully!", ToastNotification.Type.SUCCESS);
+                    
+                    // Auto-hide status bar after 3 seconds
+                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> {
+                                lblStatusBar.setText("");
+                            });
+                        }
+                    }, 3000);
                 } catch (Exception e) {
                     Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                     ToastNotification.show(stage, "Error", "Failed to cancel auction: " + e.getMessage(), ToastNotification.Type.ERROR);
@@ -742,6 +762,17 @@ public class SellerDashboardController implements Initializable {
         lblFormError.setText(message);
         lblFormError.setVisible(true);
         lblFormError.setManaged(true);
+        
+        // Auto-hide after 3 seconds
+        new java.util.Timer().schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    lblFormError.setVisible(false);
+                    lblFormError.setManaged(false);
+                });
+            }
+        }, 3000);
     }
 
     private void hideFormError(){

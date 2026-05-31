@@ -274,6 +274,16 @@ public class AdminDashboardController implements Initializable {
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Unlocked: " + user.getFullName());
                     ToastNotification.show(stage, "Success", "User unlocked successfully: " + user.getFullName(), ToastNotification.Type.SUCCESS);
+                    
+                    // Auto-hide status bar after 3 seconds
+                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> {
+                                lblStatusBar.setText("");
+                            });
+                        }
+                    }, 3000);
                 } else {
                     btn.setText("🔓 Unlock");
                     btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #fff;"
@@ -281,6 +291,16 @@ public class AdminDashboardController implements Initializable {
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Locked: " + user.getFullName());
                     ToastNotification.show(stage, "Success", "User locked successfully: " + user.getFullName(), ToastNotification.Type.SUCCESS);
+                    
+                    // Auto-hide status bar after 3 seconds
+                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> {
+                                lblStatusBar.setText("");
+                            });
+                        }
+                    }, 3000);
                 }
                 applyUserFilter();
             }catch (RuntimeException e) {
@@ -437,6 +457,16 @@ public class AdminDashboardController implements Initializable {
                 lblStatusBar.setText("Force End: " + auction.getItem().getItemName());
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 ToastNotification.show(stage, "Success", "Auction force ended successfully: " + auction.getItem().getItemName(), ToastNotification.Type.SUCCESS);
+                
+                // Auto-hide status bar after 3 seconds
+                new java.util.Timer().schedule(new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        Platform.runLater(() -> {
+                            lblStatusBar.setText("");
+                        });
+                    }
+                }, 3000);
             }
             else{
                 AuctionClientService.getInstance().cancelAuction(auction.getId());
@@ -444,6 +474,16 @@ public class AdminDashboardController implements Initializable {
                 lblStatusBar.setText("Cancel: " + auction.getItem().getItemName());
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 ToastNotification.show(stage, "Success", "Auction cancelled successfully: " + auction.getItem().getItemName(), ToastNotification.Type.SUCCESS);
+                
+                // Auto-hide status bar after 3 seconds
+                new java.util.Timer().schedule(new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        Platform.runLater(() -> {
+                            lblStatusBar.setText("");
+                        });
+                    }
+                }, 3000);
             }
             loadAuctions();
         });
