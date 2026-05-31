@@ -4,20 +4,7 @@ Hệ thống đấu giá trực tuyến theo mô hình **Client-Server**, cho ph
 
 ---
 
-## 📑 Mục lục
-
-- [Phạm vi hệ thống](#-phạm-vi-hệ-thống)
-- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-- [Yêu cầu môi trường](#-yêu-cầu-môi-trường)
-- [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
-- [Vị trí file JAR](#-vị-trí-file-jar)
-- [Hướng dẫn chạy](#-hướng-dẫn-chạy)
-- [Danh sách chức năng](#-danh-sách-chức-năng)
-- [Tài liệu & Demo](#-tài-liệu--demo)
-
----
-
-## 🎯  Mô tả bài toán & Phạm vi hệ thống
+## 1.  Mô tả bài toán & Phạm vi hệ thống
  
 ### Bài toán đặt ra
  
@@ -50,7 +37,7 @@ Giao tiếp qua **TCP Socket (port 8080)** với giao thức Request/Response + 
 
 ---
 
-## 🛠️ Công nghệ sử dụng
+## 2. Công nghệ sử dụng
 
 ### Server
 | Thành phần | Chi tiết |
@@ -74,7 +61,7 @@ Giao tiếp qua **TCP Socket (port 8080)** với giao thức Request/Response + 
 
 ---
 
-## 💻 Yêu cầu môi trường
+## 3. Yêu cầu môi trường
 
 - **Java 21** trở lên (bắt buộc — Server dùng Virtual Thread, Client dùng JavaFX 25)
 - **Maven 3.8+** (nếu build từ source)
@@ -89,7 +76,7 @@ java -version
 
 ---
 
-## 📁 Cấu trúc thư mục
+## 4. Cấu trúc thư mục
 
 ```
 AuctionServer/
@@ -150,7 +137,7 @@ AuctionClient/
 
 ---
 
-## 📦 Vị trí file JAR
+## 5. Vị trí file JAR
 
 Sau khi build (hoặc giải nén từ bản nộp), các file JAR nằm tại:
 
@@ -164,7 +151,7 @@ AuctionClient/target/AuctionClient-1.0.jar
 
 ---
 
-## 🚀 Hướng dẫn chạy
+## 6. Hướng dẫn chạy
 
 > ⚠️ **Phải chạy Server trước, sau đó mới chạy Client.**
 
@@ -301,7 +288,7 @@ mvn clean package -DskipTests
 
 ---
 
-## 📄 Tài liệu & Demo
+## 7. Tài liệu & Demo
 
 | Loại | Link |
 |------|------|
@@ -310,7 +297,7 @@ mvn clean package -DskipTests
 
 ---
 
-## 👥 Thành viên nhóm
+## 8. Thành viên nhóm
 
 | Họ tên | MSSV |
 |---|---|
