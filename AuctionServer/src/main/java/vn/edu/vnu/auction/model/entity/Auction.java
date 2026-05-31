@@ -151,9 +151,9 @@ public class Auction implements Subject, Serializable {
    */
   public void placeBid(BidTransaction bid, boolean notify)
       throws InvalidBidException, AuctionClosedException {
-      if (bid == null) {
-          throw new IllegalArgumentException("Invalid bid!");
-      }
+    if (bid == null) {
+      throw new IllegalArgumentException("Invalid bid!");
+    }
 
     lock.lock();
     try {
@@ -180,9 +180,9 @@ public class Auction implements Subject, Serializable {
   public void finishAuction(AuctionStatus finalStatus) {
     lock.lock();
     try {
-        if (status == AuctionStatus.FINISHED || status == AuctionStatus.CANCELED) {
-            return;
-        }
+      if (status == AuctionStatus.FINISHED || status == AuctionStatus.CANCELED) {
+        return;
+      }
       status = finalStatus;
     } finally {
       lock.unlock();
@@ -196,9 +196,9 @@ public class Auction implements Subject, Serializable {
   public void setTimer(ScheduledFuture<?> timer) {
     lock.lock();
     try {
-        if (this.currentTimer != null) {
-            this.currentTimer.cancel(false);
-        }
+      if (this.currentTimer != null) {
+        this.currentTimer.cancel(false);
+      }
       this.currentTimer = timer;
     } finally {
       lock.unlock();
@@ -213,12 +213,12 @@ public class Auction implements Subject, Serializable {
     try {
       // Anti-snipe kích hoạt cả khi phiên đang OPEN (chưa có bid) hoặc RUNNING phòng trường TH thời gian khi khởi tạo quá ngắn
 
-        if (status != AuctionStatus.OPEN && status != AuctionStatus.RUNNING) {
-            return false;
-        }
-        if (getSecondsRemaining() >= thresholdSec) {
-            return false;
-        }
+      if (status != AuctionStatus.OPEN && status != AuctionStatus.RUNNING) {
+        return false;
+      }
+      if (getSecondsRemaining() >= thresholdSec) {
+        return false;
+      }
 
       item.setEndTime(item.getEndTime().plusSeconds(extensionSec));
       return true;
@@ -315,9 +315,9 @@ public class Auction implements Subject, Serializable {
    * before modifying the bids list.
    */
   public void addBids(List<BidTransaction> bidsToAdd) {
-      if (bidsToAdd == null) {
-          return;
-      }
+    if (bidsToAdd == null) {
+      return;
+    }
     lock.lock();
     try {
       bids.addAll(bidsToAdd);

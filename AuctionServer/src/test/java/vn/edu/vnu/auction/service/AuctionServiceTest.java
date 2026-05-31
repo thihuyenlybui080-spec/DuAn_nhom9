@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,22 +20,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import vn.edu.vnu.auction.dao.AuctionDAO;
+import vn.edu.vnu.auction.dao.AutoBidDAO;
 import vn.edu.vnu.auction.dao.ItemDAO;
 import vn.edu.vnu.auction.dao.UserDAO;
 import vn.edu.vnu.auction.model.entity.Auction;
 import vn.edu.vnu.auction.model.entity.AuctionResult;
 import vn.edu.vnu.auction.model.entity.AuctionStatus;
 import vn.edu.vnu.auction.model.entity.item.Item;
+import vn.edu.vnu.auction.model.entity.user.Seller;
 import vn.edu.vnu.auction.model.entity.user.User;
 import vn.edu.vnu.auction.util.AuctionHistoryManager;
 import vn.edu.vnu.auction.util.AuctionManager;
 
 /**
  * Lớp kiểm thử (Unit Test) dành cho {@link AuctionService}.
- * <p>
- * Kiểm tra các chức năng quản lý vòng đời của một phiên đấu giá bao gồm: bắt đầu, kết thúc, hủy bỏ,
- * các hàm truy vấn thống kê và khả năng đồng bộ với cơ sở dữ liệu.
- * </p>
  */
 class AuctionServiceTest {
 
@@ -42,9 +41,6 @@ class AuctionServiceTest {
   private AuctionManager mockAuctionManager;
   private ScheduledExecutorService mockScheduler;
 
-  /**
-   * Dọn dẹp trạng thái và giả lập (mock) bộ lập lịch (Scheduler) trước mỗi bài test.
-   */
   @BeforeEach
   void setUp() throws Exception {
     AuctionService.resetForTesting();
@@ -54,7 +50,7 @@ class AuctionServiceTest {
 
     auctionService = AuctionService.getInstance();
 
-    // Replace the real AuctionManager with a Mock to control scheduling
+    // Giả lập (Mock) AuctionManager
     mockAuctionManager = Mockito.mock(AuctionManager.class);
     mockScheduler = Mockito.mock(ScheduledExecutorService.class);
     Mockito.when(mockAuctionManager.getScheduler()).thenReturn(mockScheduler);
@@ -62,11 +58,14 @@ class AuctionServiceTest {
     Field managerField = AuctionService.class.getDeclaredField("auctionManager");
     managerField.setAccessible(true);
     managerField.set(auctionService, mockAuctionManager);
+
+    // BỔ SUNG QUAN TRỌNG: Mock PaymentService để chặn gọi xuống DB khi End Auction
+    PaymentService mockPaymentService = Mockito.mock(PaymentService.class);
+    Field paymentField = AuctionService.class.getDeclaredField("paymentService");
+    paymentField.setAccessible(true);
+    paymentField.set(auctionService, mockPaymentService);
   }
 
-  /**
-   * Dọn dẹp lại hệ thống sau khi test xong để giải phóng bộ nhớ.
-   */
   @AfterEach
   void tearDown() {
     AuctionService.resetForTesting();
@@ -75,9 +74,6 @@ class AuctionServiceTest {
     AuctionHistoryManager.getInstance().clearHistory();
   }
 
-  /**
-   * Kiểm tra cơ chế Singleton của lớp AuctionService.
-   */
   @Test
   void testGetInstance() {
     AuctionService instance1 = AuctionService.getInstance();
@@ -87,13 +83,6 @@ class AuctionServiceTest {
     assertSame(instance1, instance2, "Only one instance of AuctionService is allowed.");
   }
 
-  // ===================================================================================
-  // CORE LIFECYCLE TESTS (Bắt đầu, Kết thúc, Hủy)
-  // ===================================================================================
-
-  /**
-   * Kiểm tra luồng khởi tạo một phiên đấu giá mới (startAuction).
-   */
   @Test
   void testStartAuction_Success() {
     Item mockItem = Mockito.mock(Item.class);
@@ -103,13 +92,18 @@ class AuctionServiceTest {
     Mockito.when(mockItem.getStartTime()).thenReturn(LocalDateTime.now().plusHours(1));
     Mockito.when(mockItem.getEndTime()).thenReturn(LocalDateTime.now().plusHours(2));
 
+    // Bổ sung chặn UserDAO để không chọc xuống DB
     try (MockedStatic<ItemDAO> mockedItemDao = Mockito.mockStatic(ItemDAO.class);
-        MockedStatic<AuctionDAO> mockedAuctionDao = Mockito.mockStatic(AuctionDAO.class)) {
+        MockedStatic<AuctionDAO> mockedAuctionDao = Mockito.mockStatic(AuctionDAO.class);
+        MockedStatic<UserDAO> mockedUserDao = Mockito.mockStatic(UserDAO.class)) {
 
       mockedItemDao.when(() -> ItemDAO.insertItem(mockItem, 10)).thenReturn(100);
       mockedAuctionDao.when(() -> AuctionDAO.insertAuction(
           Mockito.eq(100), Mockito.anyDouble(), Mockito.anyLong(), Mockito.any())
       ).thenReturn(200);
+
+      Seller mockSeller = Mockito.mock(Seller.class);
+      mockedUserDao.when(() -> UserDAO.getUserById(10)).thenReturn(mockSeller);
 
       Auction createdAuction = auctionService.startAuction(mockItem);
 
@@ -121,15 +115,14 @@ class AuctionServiceTest {
     }
   }
 
-  /**
-   * Kiểm tra logic hủy phiên đấu giá đang nằm trong bộ nhớ (Memory).
-   */
   @Test
   void testCancelAuction_InMemory() {
     int auctionId = 55;
     Auction mockAuction = Mockito.mock(Auction.class);
     Mockito.when(mockAuction.getId()).thenReturn(auctionId);
+
     Item mockItem = Mockito.mock(Item.class);
+    Mockito.when(mockItem.getItemName()).thenReturn("Mock Item"); // Ngăn lỗi NPE
     Mockito.when(mockAuction.getItem()).thenReturn(mockItem);
 
     Mockito.when(mockAuctionManager.getActive(auctionId)).thenReturn(mockAuction);
@@ -144,14 +137,12 @@ class AuctionServiceTest {
     }
   }
 
-  /**
-   * Kiểm tra luồng kết thúc phiên đấu giá một cách cưỡng chế (Forced End).
-   */
   @Test
   void testEndAuction_Forced() {
     int auctionId = 99;
     Item mockItem = Mockito.mock(Item.class);
     Mockito.when(mockItem.getId()).thenReturn(111);
+    Mockito.when(mockItem.getItemName()).thenReturn("Mock Item"); // Ngăn lỗi NPE
 
     Auction mockAuction = Mockito.mock(Auction.class);
     Mockito.when(mockAuction.getId()).thenReturn(auctionId);
@@ -170,13 +161,6 @@ class AuctionServiceTest {
     }
   }
 
-  // ===================================================================================
-  // QUERY & DATA RETRIEVAL TESTS (Truy vấn, lấy dữ liệu để tăng Coverage)
-  // ===================================================================================
-
-  /**
-   * Kiểm tra chức năng lấy thông tin phiên đấu giá khi không có trong RAM, fallback xuống DB.
-   */
   @Test
   void testGetAuction_FallbackToDB() {
     int auctionId = 77;
@@ -190,13 +174,9 @@ class AuctionServiceTest {
       Auction retrievedAuction = auctionService.getAuction(auctionId);
 
       assertSame(dbAuction, retrievedAuction, "Returned auction must match DB data.");
-
     }
   }
 
-  /**
-   * Kiểm tra chức năng xóa phiên khỏi RAM và cập nhật trạng thái CANCELED xuống DB.
-   */
   @Test
   void testRemoveAuction() {
     int auctionId = 33;
@@ -210,13 +190,11 @@ class AuctionServiceTest {
     }
   }
 
-  /**
-   * Kiểm tra chức năng lấy tất cả các phiên đấu giá (getAllAuctions).
-   */
   @Test
   void testGetAllAuctions() {
     List<User> mockUsers = new ArrayList<>();
-    List<Auction> expectedAuctions = Arrays.asList(Mockito.mock(Auction.class));
+    Auction mockAuction = Mockito.mock(Auction.class);
+    List<Auction> expectedAuctions = Arrays.asList(mockAuction);
 
     try (MockedStatic<UserDAO> mockedUserDao = Mockito.mockStatic(UserDAO.class);
         MockedStatic<AuctionDAO> mockedAuctionDao = Mockito.mockStatic(AuctionDAO.class)) {
@@ -230,9 +208,6 @@ class AuctionServiceTest {
     }
   }
 
-  /**
-   * Kiểm tra chức năng lấy các phiên đấu giá theo ID của người bán (getAuctionsBySeller).
-   */
   @Test
   void testGetAuctionsBySeller() {
     int sellerId = 5;
@@ -252,18 +227,12 @@ class AuctionServiceTest {
     }
   }
 
-  /**
-   * Kiểm tra chức năng xử lý ID người bán không hợp lệ.
-   */
   @Test
   void testGetAuctionsBySeller_InvalidId() {
     List<Auction> actualAuctions = auctionService.getAuctionsBySeller(-1);
     assertTrue(actualAuctions.isEmpty(), "Must return empty list for invalid seller ID.");
   }
 
-  /**
-   * Kiểm tra chức năng lấy danh sách các phiên đấu giá đã thắng (getWonAuctions).
-   */
   @Test
   void testGetWonAuctions() {
     int bidderId = 8;
@@ -271,7 +240,8 @@ class AuctionServiceTest {
 
     Auction mockAuction = Mockito.mock(Auction.class);
     Item mockItem = Mockito.mock(Item.class);
-    Mockito.when(mockAuction.getItem()).thenReturn(mockItem); // Prevent NullPointerException
+    Mockito.when(mockItem.getItemName()).thenReturn("Mock Item"); // Ngăn lỗi NPE
+    Mockito.when(mockAuction.getItem()).thenReturn(mockItem);
     List<Auction> dbAuctions = Arrays.asList(mockAuction);
 
     try (MockedStatic<UserDAO> mockedUserDao = Mockito.mockStatic(UserDAO.class);
@@ -288,36 +258,34 @@ class AuctionServiceTest {
     }
   }
 
-  /**
-   * Kiểm tra chức năng lấy danh sách các phiên đang chạy (getActiveAuctions) và logic lập lịch lại
-   * (reschedule) dựa trên thời gian.
-   */
   @Test
   void testGetActiveAuctions_ReschedulesCorrectly() {
     List<User> mockUsers = new ArrayList<>();
 
-    // Mock an auction that has already started but not yet ended
     Auction runningAuction = Mockito.mock(Auction.class);
     Item mockItem = Mockito.mock(Item.class);
     Mockito.when(runningAuction.getItem()).thenReturn(mockItem);
-    Mockito.when(mockItem.getStartTime()).thenReturn(LocalDateTime.now().minusHours(1)); // Started
-    Mockito.when(mockItem.getEndTime())
-        .thenReturn(LocalDateTime.now().plusHours(1)); // Ends in 1 hour
+    Mockito.when(mockItem.getStartTime()).thenReturn(LocalDateTime.now().minusHours(1));
+    Mockito.when(mockItem.getEndTime()).thenReturn(LocalDateTime.now().plusHours(1));
+    Mockito.when(mockItem.getItemName()).thenReturn("Mock Item"); // Ngăn lỗi NPE
 
     List<Auction> activeList = Arrays.asList(runningAuction);
 
+    // Bổ sung chặn AutoBidDAO để tránh chọc xuống Database khôi phục thiết lập
     try (MockedStatic<UserDAO> mockedUserDao = Mockito.mockStatic(UserDAO.class);
-        MockedStatic<AuctionDAO> mockedAuctionDao = Mockito.mockStatic(AuctionDAO.class)) {
+        MockedStatic<AuctionDAO> mockedAuctionDao = Mockito.mockStatic(AuctionDAO.class);
+        MockedStatic<AutoBidDAO> mockedAutoBidDao = Mockito.mockStatic(AutoBidDAO.class)) {
 
       mockedUserDao.when(UserDAO::getAllUsers).thenReturn(mockUsers);
       mockedAuctionDao.when(() -> AuctionDAO.getActiveAuctions(mockUsers)).thenReturn(activeList);
 
+      mockedAutoBidDao.when(() -> AutoBidDAO.getAutoBidsByAuction(Mockito.anyInt()))
+          .thenReturn(Collections.emptyMap());
+
       List<Auction> results = auctionService.getActiveAuctions();
 
       assertFalse(results.isEmpty(), "Active auctions list must not be empty.");
-      // Verify it was pushed to memory
       Mockito.verify(mockAuctionManager, Mockito.times(1)).putActive(runningAuction);
-      // Verify status was updated to RUNNING
       Mockito.verify(runningAuction, Mockito.times(1)).setStatus(AuctionStatus.RUNNING);
     }
   }
