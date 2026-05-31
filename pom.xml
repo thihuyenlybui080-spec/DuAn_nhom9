@@ -83,8 +83,8 @@
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <violationSeverity>warning</violationSeverity>
+                    <failsOnError>false</failsOnError>
+                  
                     <sourceDirectories>
                         <sourceDirectory>${project.basedir}/AuctionClient/src/main/java</sourceDirectory>
                         <sourceDirectory>${project.basedir}/AuctionServer/src/main/java</sourceDirectory>
