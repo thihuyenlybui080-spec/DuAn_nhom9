@@ -61,53 +61,79 @@ public class BiddingController implements Initializable, Observer {
     private String comingFromTitle;
 
 
-    @FXML private Label lblUsername;
+    @FXML
+    private Label lblUsername;
 
     // ── FXML – Topbar ─────────────────────────────────────────────────────────
 
-    @FXML private Label lblItemName;
-    @FXML private Label lblCategory;
-    @FXML private Label lblCountdown;
-    @FXML private Label lblCountdownLabel;
-    @FXML private Label lblStatusBadge;
+    @FXML
+    private Label lblItemName;
+    @FXML
+    private Label lblCategory;
+    @FXML
+    private Label lblCountdown;
+    @FXML
+    private Label lblCountdownLabel;
+    @FXML
+    private Label lblStatusBadge;
 
     // ── FXML – Cột trái ───────────────────────────────────────────────────────
 
-    @FXML private Label lblBidCount;
-    @FXML private VBox bidHistoryContainer;
+    @FXML
+    private Label lblBidCount;
+    @FXML
+    private VBox bidHistoryContainer;
 
 
     // ── FXML – Cột phải ───────────────────────────────────────────────────────
 
     @FXML
     private Label lblCurrentPrice;
-    @FXML private Label lblLeader;
+    @FXML
+    private Label lblLeader;
 
     // Place Bid
-    @FXML private TextField txtBidAmount;
-    @FXML private Label lblMinBid;
-    @FXML private Button btnPlaceBid;
-    @FXML private Label lblBidError;
+    @FXML
+    private TextField txtBidAmount;
+    @FXML
+    private Label lblMinBid;
+    @FXML
+    private Button btnPlaceBid;
+    @FXML
+    private Label lblBidError;
 
     // ── FXML – Auto-Bid ─────────────────────────────────────────────────────
 
-    @FXML private CheckBox chkAutoBid;
-    @FXML private VBox autoBidForm;
-    @FXML private TextField txtMaxBid;
-    @FXML private TextField txtIncrement;
-    @FXML private Button btnEnableAutoBid;
-    @FXML private Label lblAutoBidStatus;
-    @FXML private Label lblAutoBidHint;
-    @FXML private Label lblAutoBidActiveStatus;
-    @FXML private Button btnDisableAutoBid;
+    @FXML
+    private CheckBox chkAutoBid;
+    @FXML
+    private VBox autoBidForm;
+    @FXML
+    private TextField txtMaxBid;
+    @FXML
+    private TextField txtIncrement;
+    @FXML
+    private Button btnEnableAutoBid;
+    @FXML
+    private Label lblAutoBidStatus;
+    @FXML
+    private Label lblAutoBidHint;
+    @FXML
+    private Label lblAutoBidActiveStatus;
+    @FXML
+    private Button btnDisableAutoBid;
 
     // ── FXML – Status bar ─────────────────────────────────────────────────────
 
-    @FXML private Label lblLastUpdate;
-    @FXML private BorderPane rootBorderPane;
-    @FXML private ImageView imvProductImage;
+    @FXML
+    private Label lblLastUpdate;
+    @FXML
+    private BorderPane rootBorderPane;
+    @FXML
+    private ImageView imvProductImage;
 
-    @FXML private AreaChart<String, Number> priceChart;
+    @FXML
+    private AreaChart<String, Number> priceChart;
     private XYChart.Series<String, Number> priceSeries;
 
     private Auction auction;
@@ -123,20 +149,20 @@ public class BiddingController implements Initializable, Observer {
     /**
      * Khởi tạo controller sau khi FXML được tải.
      *
-     * @param url vị trí của FXML
+     * @param url            vị trí của FXML
      * @param resourceBundle tài nguyên bundle
      */
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle){
+    public void initialize(URL url, ResourceBundle resourceBundle) {
 
     }
 
     /**
      * Thiết lập dữ liệu cho màn hình đấu giá.
      *
-     * @param auction phiên đấu giá đang xem
-     * @param bidder người tham gia đấu giá hiện tại
-     * @param fromFXML file FXML để quay lại khi nhấn nút back
+     * @param auction   phiên đấu giá đang xem
+     * @param bidder    người tham gia đấu giá hiện tại
+     * @param fromFXML  file FXML để quay lại khi nhấn nút back
      * @param fromTitle tiêu đề của màn hình quay lại
      */
     public void setData(Auction auction, Bidder bidder, String fromFXML, String fromTitle) {
@@ -174,12 +200,12 @@ public class BiddingController implements Initializable, Observer {
     private void registerNotificationHandlers() {
         NotificationListener.getInstance().register(auction.getId(), notification -> {
             switch (notification.getType()) {
-                case NotificationMessage.TYPE_BID_UPDATED        -> handleBidUpdated(notification);
-                case NotificationMessage.TYPE_AUCTION_ENDED      -> handleAuctionEnded(notification);
-                case NotificationMessage.TYPE_TIME_EXTENDED      -> handleTimeExtended(notification);
+                case NotificationMessage.TYPE_BID_UPDATED -> handleBidUpdated(notification);
+                case NotificationMessage.TYPE_AUCTION_ENDED -> handleAuctionEnded(notification);
+                case NotificationMessage.TYPE_TIME_EXTENDED -> handleTimeExtended(notification);
                 case NotificationMessage.TYPE_AUTO_BID_AUCTION_ENDED -> handleAutoBidAuctionEnded(notification);
-                case NotificationMessage.TYPE_USER_LOCKED        -> handleUserLocked(notification);
-                case NotificationMessage.TYPE_USER_UNLOCKED      -> handleUserUnlocked(notification);
+                case NotificationMessage.TYPE_USER_LOCKED -> handleUserLocked(notification);
+                case NotificationMessage.TYPE_USER_UNLOCKED -> handleUserUnlocked(notification);
             }
         });
     }
@@ -268,7 +294,7 @@ public class BiddingController implements Initializable, Observer {
         });
     }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
+    // ─── UI helpers ───────────────────────────────────────────────────────────────
     private void showTemporaryMessage(String text, String color) {
         showMessage(text, color);
         new java.util.Timer().schedule(new java.util.TimerTask() {
@@ -330,6 +356,7 @@ public class BiddingController implements Initializable, Observer {
             System.err.println("Failed to reload bids: " + e.getMessage());
         }
     }
+
     private void populateView() {
         lblUsername.setText(bidder.getName());
         lblItemName.setText(auction.getItem().getItemName());
@@ -391,7 +418,7 @@ public class BiddingController implements Initializable, Observer {
     private void updatePriceChart() {
         List<BidTransaction> chartBids = new ArrayList<>(localBids);
         Collections.reverse(chartBids);
-        for(BidTransaction bid : chartBids){
+        for (BidTransaction bid : chartBids) {
             String time = bid.getTimestamp() != null
                     ? bid.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
                     : "--";
@@ -400,7 +427,7 @@ public class BiddingController implements Initializable, Observer {
         }
     }
 
-    private void updatePriceArea(){
+    private void updatePriceArea() {
         lblCurrentPrice.setText(formatPrice(auction.getCurrentPrice()));
 
         String leaderName = null;
@@ -430,7 +457,7 @@ public class BiddingController implements Initializable, Observer {
         lblBidCount.setText(localBids.size() + " bids");
     }
 
-    private void updateBidButton(){
+    private void updateBidButton() {
         boolean canBid = auction.getStatus() == AuctionStatus.RUNNING;
         btnPlaceBid.setDisable(!canBid);
         txtBidAmount.setDisable(!canBid);
@@ -458,7 +485,7 @@ public class BiddingController implements Initializable, Observer {
      * Xử lý sự kiện khi người dùng nhấn nút đặt giá thầu.
      */
     @FXML
-    private void onPlaceBid(){
+    private void onPlaceBid() {
         hideBidError();
         if (!bidder.isActive()) {
             Stage stage = (Stage) rootBorderPane.getScene().getWindow();
@@ -467,10 +494,10 @@ public class BiddingController implements Initializable, Observer {
             updateBidButton();
             return;
         }
-        
+
         String raw = txtBidAmount.getText().trim().replaceAll("[^0-9]", "");
 
-        if(raw.isEmpty()){
+        if (raw.isEmpty()) {
             Stage stage = (Stage) rootBorderPane.getScene().getWindow();
             ToastNotification.show(stage, "Error", "Please enter a bid amount", ToastNotification.Type.ERROR);
             showBidError("Please enter a bid amount");
@@ -478,10 +505,9 @@ public class BiddingController implements Initializable, Observer {
         }
 
         double amount;
-        try{
+        try {
             amount = Double.parseDouble(raw);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             Stage stage = (Stage) rootBorderPane.getScene().getWindow();
             ToastNotification.show(stage, "Error", "Invalid amount.", ToastNotification.Type.ERROR);
             showBidError("Invalid amount.");
@@ -495,7 +521,7 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        try{
+        try {
             Auction updatedAuction = AuctionClientService.getInstance().placeBid(auction.getId(), bidder.getId(), amount);
             txtBidAmount.clear();
             if (updatedAuction != null) {
@@ -514,7 +540,7 @@ public class BiddingController implements Initializable, Observer {
             refreshBidHistory();
             showBidError("✅ Bid placed successfully: " + formatPrice(amount) + " ₫");
             lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
-            
+
             Stage stage = (Stage) rootBorderPane.getScene().getWindow();
             ToastNotification.show(stage, "Success", "Bid placed successfully: " + formatPrice(amount) + " ₫", ToastNotification.Type.SUCCESS);
         } catch (RuntimeException e) {
@@ -528,14 +554,14 @@ public class BiddingController implements Initializable, Observer {
      * Xử lý sự kiện khi người dùng bật/tắt checkbox auto-bid.
      */
     @FXML
-    private void onToggleAutoBid(){
+    private void onToggleAutoBid() {
         boolean on = chkAutoBid.isSelected();
         autoBidForm.setVisible(on);
         autoBidForm.setManaged(on);
         lblAutoBidHint.setVisible(!on);
         lblAutoBidHint.setManaged(!on);
 
-        if(!on){
+        if (!on) {
             autoBidEnable = false;
             AuctionClientService.getInstance().disableAutoBid(auction.getId(), bidder.getId());
             lblAutoBidStatus.setText("");
@@ -554,7 +580,7 @@ public class BiddingController implements Initializable, Observer {
      * Xử lý sự kiện khi người dùng nhấn nút kích hoạt auto-bid.
      */
     @FXML
-    private void onEnableAutoBid(){
+    private void onEnableAutoBid() {
         if (!bidder.isActive()) {
             lblAutoBidStatus.setText("Your account is locked and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
@@ -562,7 +588,7 @@ public class BiddingController implements Initializable, Observer {
             ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid cannot be enabled.", ToastNotification.Type.ERROR);
             return;
         }
-        
+
         if (auction.getStatus() == AuctionStatus.FINISHED) {
             lblAutoBidStatus.setText("This auction has ended and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
@@ -585,8 +611,8 @@ public class BiddingController implements Initializable, Observer {
         }
 
         String maxBidStr = txtMaxBid.getText().trim().replaceAll("[^0-9]", "");
-        String incrStr    = txtIncrement.getText().trim().replaceAll("[^0-9]", "");
-        if(maxBidStr.isEmpty() || incrStr.isEmpty()){
+        String incrStr = txtIncrement.getText().trim().replaceAll("[^0-9]", "");
+        if (maxBidStr.isEmpty() || incrStr.isEmpty()) {
             lblAutoBidStatus.setText("Please fill in both fields");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
             return;
@@ -594,7 +620,7 @@ public class BiddingController implements Initializable, Observer {
 
         double maxBid;
         double increment;
-        try{
+        try {
             maxBid = Double.parseDouble(maxBidStr);
             increment = Double.parseDouble(incrStr);
 
@@ -604,7 +630,7 @@ public class BiddingController implements Initializable, Observer {
             return;
         }
 
-        if(maxBid <= auction.getCurrentPrice()){
+        if (maxBid <= auction.getCurrentPrice()) {
             lblAutoBidStatus.setText("Max bid must be higher than current price.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
             return;
@@ -657,8 +683,9 @@ public class BiddingController implements Initializable, Observer {
         }).start();
 
     }
+
     @Override
-    public void update(int auctionId, double newPrice, String highestBidder){
+    public void update(int auctionId, double newPrice, String highestBidder) {
         Platform.runLater(() -> {
             this.auction.setCurrentPrice(newPrice);
             this.auction.setHighestBidderName(highestBidder);
@@ -730,8 +757,9 @@ public class BiddingController implements Initializable, Observer {
         lblAutoBidHint.setVisible(true);
         lblAutoBidHint.setManaged(true);
     }
+
     private void refreshBidHistory() {
-        if(priceSeries != null && !localBids.isEmpty()){
+        if (priceSeries != null && !localBids.isEmpty()) {
             priceSeries.getData().clear();
             updatePriceChart();
         }
@@ -752,7 +780,7 @@ public class BiddingController implements Initializable, Observer {
         lblBidCount.setText(localBids.size() + " bids");
     }
 
-    private HBox buildBidRow(BidTransaction tx, boolean isTop){
+    private HBox buildBidRow(BidTransaction tx, boolean isTop) {
         HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(6, 0, 6, 0));
@@ -787,6 +815,7 @@ public class BiddingController implements Initializable, Observer {
         return row;
 
     }
+
     private void startAutoRefresh() {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(
@@ -809,7 +838,7 @@ public class BiddingController implements Initializable, Observer {
                     needsUpdate = true;
                 }
                 if (updatedAuction.getItem() != null && updatedAuction.getItem().getEndTime() != null
-                    && !updatedAuction.getItem().getEndTime().equals(this.auction.getItem().getEndTime())) {
+                        && !updatedAuction.getItem().getEndTime().equals(this.auction.getItem().getEndTime())) {
                     this.auction.getItem().setEndTime(updatedAuction.getItem().getEndTime());
                     logger.info("Synced auction end time to {}", updatedAuction.getItem().getEndTime());
                     needsUpdate = true;
@@ -818,7 +847,7 @@ public class BiddingController implements Initializable, Observer {
                     updateCountdown();
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             //
         }
     }
@@ -835,10 +864,10 @@ public class BiddingController implements Initializable, Observer {
         }
 
         long totalSecs;
-        if(auction.getStatus() == AuctionStatus.OPEN && auction.getItem().getStartTime() != null){
+        if (auction.getStatus() == AuctionStatus.OPEN && auction.getItem().getStartTime() != null) {
             totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getStartTime()).getSeconds();
             lblCountdownLabel.setText("Starts in");
-            if(totalSecs <= 0){
+            if (totalSecs <= 0) {
                 try {
                     Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
                     if (updatedAuction != null) {
@@ -851,16 +880,16 @@ public class BiddingController implements Initializable, Observer {
                 }
                 return;
             }
-        } else if(auction.getItem().getEndTime() != null){
+        } else if (auction.getItem().getEndTime() != null) {
             totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getEndTime()).getSeconds();
             lblCountdownLabel.setText("Time Left");
-            
+
             if (totalSecs <= 60 && totalSecs > 0 && !timeWarningShown) {
                 timeWarningShown = true;
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 ToastNotification.show(stage, "Warning", "Auction ending in less than 1 minute!", ToastNotification.Type.WARNING);
             }
-            
+
             if (totalSecs <= 0) {
                 try {
                     logger.info("End time reached, refreshing auction {} status from server (current: {})", auction.getId(), auction.getStatus());
@@ -893,7 +922,7 @@ public class BiddingController implements Initializable, Observer {
         long s = totalSecs % 60;
         lblCountdown.setText(String.format("%02d:%02d:%02d", h, m, s));
 
-        if(auction.getStatus() == AuctionStatus.OPEN){
+        if (auction.getStatus() == AuctionStatus.OPEN) {
             lblCountdown.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #60a5fa;");
         } else if (totalSecs <= 300) {
             lblCountdown.setStyle(
@@ -915,7 +944,7 @@ public class BiddingController implements Initializable, Observer {
             ToastNotification.show(stage, "Congratulations!", "You won the auction for " + auction.getItem().getItemName() + "!", ToastNotification.Type.SUCCESS);
         } else {
             ToastNotification.show(stage, "Auction Ended", "The auction has ended. Winner: " +
-                (updatedAuction.getHighestBidder() != null ? updatedAuction.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
+                    (updatedAuction.getHighestBidder() != null ? updatedAuction.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
         }
     }
 
@@ -985,7 +1014,7 @@ public class BiddingController implements Initializable, Observer {
      * @param event sự kiện action
      */
     @FXML
-    private void onNavMyAuctions(ActionEvent event){
+    private void onNavMyAuctions(ActionEvent event) {
         sceneManager.switchScene(event, "bidding.fxml", "Bidding");
     }
 
@@ -1023,7 +1052,4 @@ public class BiddingController implements Initializable, Observer {
     private String formatPrice(double price) {
         return VND_FORMAT.format((long) price);
     }
-
-
-
 }
