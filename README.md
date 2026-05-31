@@ -1,7 +1,7 @@
 # DuAn_nhom9
 # Hệ Thống Quản Lý Đấu Giá Tự Động (Automated Auction Management System)
 
-Hệ thống quản lý đấu giá tự động theo mô hình **Client - Server** thời gian thực, tích hợp giao diện đồ họa trực quan **JavaFX**, cơ chế kiểm soát đồng thời mạnh mẽ và logic chống bắn tỉa giá (Anti-sniping). Dự án được cấu trúc và quản lý bằng **Maven**, tuân thủ nghiêm ngặt các nguyên lý thiết kế phần mềm hướng đối tượng (OOP) và tiêu chuẩn mã nguồn Google Java Style.
+Hệ thống quản lý đấu giá tự động theo mô hình **Client - Server** thời gian thực, tích hợp giao diện đồ họa trực quan **JavaFX**, cơ chế kiểm soát đồng thời mạnh mẽ và logic chống bắn tỉa khi đặt giá (Anti-sniping). Dự án được cấu trúc và quản lý bằng **Maven**, tuân thủ nghiêm ngặt các nguyên lý thiết kế phần mềm hướng đối tượng (OOP) và tiêu chuẩn mã nguồn Google Java Style.
 
 ---
 
@@ -9,21 +9,21 @@ Hệ thống quản lý đấu giá tự động theo mô hình **Client - Serve
 
 * **Bài toán đặt ra:** Trong các hệ thống đấu giá trực tuyến, việc xử lý hàng ngàn yêu cầu đặt giá (Bid) cùng một thời điểm thường dẫn đến các vấn đề nghiêm trọng về tranh chấp dữ liệu (Race Condition). Đặc biệt, hiện tượng "bắn tỉa giá" (Sniping) — người tham gia đợi đến giây cuối cùng để đặt giá khiến người khác không kịp phản hồi — làm giảm tính minh bạch của phiên đấu giá.
 * **Phạm vi giải quyết:** Hệ thống được xây dựng để giải quyết trọn vẹn các thách thức trên thông qua kiến trúc phân tán phân lớp:
-    * **Phía Server (Backend):** Đóng vai trò là trung tâm điều phối, lắng nghe đa kết nối qua Socket. Server quản lý vòng đời phiên đấu giá, đồng bộ trạng thái, tự động kích hoạt bộ đếm ngược chống bắn tỉa, xử lý chức năng tự động đặt giá (Auto-bid), tích hợp thanh toán và lưu trữ dữ liệu.
+    * **Phía Server (Backend):** Đóng vai trò là trung tâm điều phối, lắng nghe đa kết nối qua Socket. Server quản lý vòng đời phiên đấu giá, đồng bộ trạng thái, tự động kích hoạt bộ đếm ngược chống bắn tỉa giúp những người tham gia khác không bị bối rối, xử lý chức năng tự động đặt giá (Auto-bid), tích hợp thanh toán và lưu trữ dữ liệu.
     * **Phía Client (Frontend):** Cung cấp giao diện người dùng GUI (JavaFX) chuyên nghiệp. Client tiếp nhận tương tác, gửi yêu cầu dưới dạng gói tin đối tượng và cập nhật tức thời các biến động giá theo thời gian thực (Real-time).
 
 ---
 
 ## 2. Kiến trúc Công nghệ & Yêu cầu Môi trường
 
-* **Ngôn ngữ lập trình:** Java (Java SE 8+ / Khuyến nghị JDK 13 - JDK 17).
+* **Ngôn ngữ lập trình:** Java (Java SE 8+ / Khuyến nghị JDK ).
 * **Giao diện người dùng (GUI):** JavaFX (Sử dụng kiến trúc MVC với các tệp `.fxml`).
 * **Quản lý dự án & Build:** Apache Maven.
-* **Cơ sở dữ liệu & Tối ưu hóa:** * **MySQL Server** (Tương tác qua JDBC Driver).
+* **Cơ sở dữ liệu & Tối ưu hóa:** * **SQLite ** .
     * **HikariCP:** Bộ quản lý bể chứa kết nối (Connection Pool) hiệu năng cao, duy trì `MaximumPoolSize = 20` giúp tối ưu hóa tài nguyên mạng.
 * **Logging:** SLF4J kết hợp Logback ghi vết hệ thống chuẩn công nghiệp.
 * **Kiểm thử tự động (Testing):** JUnit 5 và Mockito bao phủ các luồng nghiệp vụ.
-* **Yêu cầu cài đặt:** Máy tính đã cấu hình `JAVA_HOME` và MySQL Server đang hoạt động.
+* **Yêu cầu cài đặt:** Máy tính đã cấu hình `JAVA_HOME`  đang hoạt động.
 
 ---
 
@@ -49,9 +49,9 @@ Dự án được tổ chức theo chuẩn Maven:
 Hệ thống thiết kế một giao thức truyền tải hướng kết nối hoạt động trên nền tảng **TCP**, đóng gói dữ liệu qua cơ chế **Java Object Serialization** (`ObjectInputStream`/`ObjectOutputStream`). Điều này đảm bảo tính toàn vẹn tuyệt đối và thứ tự truyền nhận của gói tin.
 
 Giao thức quy định 3 loại cấu trúc đối tượng trao đổi qua mạng:
-1. **`Request` (Client ──> Server):** Gói tin yêu cầu mang `requestId` duy nhất, mã lệnh `action` (VD: `ACTION_PLACE_BID`, `ACTION_WATCH_AUCTION`) và phần thân `data`.
-2. **`Response` (Server ──> Client):** Gói tin phản hồi mang trạng thái (`OK`/`ERROR`), thông báo chi tiết và đối tượng kết quả trả về.
-3. **`NotificationMessage` (Server ──» Tất cả Client):** Gói tin phát sóng (Broadcast) gửi từ `ClientRegistry` để báo động khẩn (VD: `TYPE_BID_UPDATED`, `TYPE_TIME_EXTENDED`) giúp Client đồng bộ giao diện tức thì.
+1. **`Request` (Client ──> Server):** Gói tin yêu cầu mang `requestId` duy nhất, mã lệnh `action` (VD: `ACTION_PLACE_BID`, `ACTION_WATCH_AUCTION`) và phần thân `data`, giúp người dùng có thể tương tác trực tuyến với server .
+2. **`Response` (Server ──> Client):** Gói tin phản hồi mang trạng thái (`OK`/`ERROR`), thông báo chi tiết và đối tượng kết quả trả về, đại diện cho phản ứng của server đối với yêu cầu của client .
+3. **`NotificationMessage` (Server ──» Tất cả Client):** Gói tin phát sóng (Broadcast) gửi từ `ClientRegistry` để báo động khẩn (VD: `TYPE_BID_UPDATED`, `TYPE_TIME_EXTENDED`) giúp Client đồng bộ giao diện tức thì, thông báo những thay đổi về cuộc đấu giá cho tất cả những người tham gia tại thời điểm đó .
 
 ---
 
@@ -65,15 +65,8 @@ Nhóm sử dụng `maven-shade-plugin` để đóng gói toàn bộ thư viện 
 
 ## 6. Hướng dẫn chạy Server/Client theo thứ tự cụ thể
 
-**Bước 1: Khởi tạo Cơ sở dữ liệu**
-1. Import file `auction_system.sql` vào MySQL Server.
-2. Tạo tệp `config.properties` đặt **cùng cấp thư mục** với tệp `.jar` (nếu chạy jar) hoặc thiết lập trong IDE, với nội dung:
-   ```properties
-   db.host=localhost
-   db.port=3306
-   db.name=loginregister
-   db.user=root
-   db.pass=Mat_khau_cua_ban
+**Bước 1: Đóng gói(Package) **
+
 **Bước 2: Khởi động Server**
 Mở Terminal tại thư mục chứa file jar của Server, chạy lệnh kèm tham số là số `PORT` muốn sử dụng (Server sử dụng *Virtual Threads* để xử lý đa luồng):
 ```bash
