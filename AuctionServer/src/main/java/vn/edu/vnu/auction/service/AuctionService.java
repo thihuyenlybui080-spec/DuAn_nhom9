@@ -7,6 +7,7 @@ import vn.edu.vnu.auction.model.entity.AuctionStatus;
 import vn.edu.vnu.auction.model.entity.auto_bidding.AutoBidConfig;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
+import vn.edu.vnu.auction.model.entity.user.Seller;
 import vn.edu.vnu.auction.model.entity.user.User;
 import vn.edu.vnu.auction.util.AuctionHistoryManager;
 import vn.edu.vnu.auction.util.AuctionManager;
@@ -91,6 +92,14 @@ public class AuctionService {
         Auction auction = new Auction(item);
         if (auctionDbId > 0) {
             auction.setId(auctionDbId);
+        }
+
+        // Set the seller on the auction
+        User seller = UserDAO.getUserById(sellerId);
+        if (seller instanceof Seller) {
+            auction.setSeller((Seller) seller);
+        } else {
+            logger.error("Seller with ID {} not found or is not a Seller type", sellerId);
         }
 
         if (startDelay <= 0) {

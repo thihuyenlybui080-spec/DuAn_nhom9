@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  * </p>
  */
 public abstract class Item extends Entity {
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
     private String itemName;
     private final int createdBy;

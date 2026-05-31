@@ -10,6 +10,7 @@ public class NotificationMessage implements Serializable {
     public static final String TYPE_TIME_EXTENDED = "TIME_EXTENDED";
     public static final String TYPE_AUTO_BID_AUCTION_ENDED = "AUTO_BID_AUCTION_ENDED";
     public static final String TYPE_USER_LOCKED = "USER_LOCKED";
+    public static final String TYPE_USER_UNLOCKED = "USER_UNLOCKED";
 
     private final String type;
     private final int auctionId;

@@ -112,7 +112,8 @@ public class AuctionDetailController implements Initializable {
         lblItemName.setText(auction.getItem().getItemName());
         lblDescription.setText(auction.getItem().getDescription());
 
-        lblSeller.setText(auction.getSeller().getName());
+        String sellerName = (auction.getSeller() != null) ? auction.getSeller().getName() : "Unknown";
+        lblSeller.setText(sellerName);
         lblStartPrice.setText(formatPrice(auction.getItem().getStartingPrice()) + " ₫");
         lblStartTime.setText(auction.getItem().getStartTime() != null
                 ? auction.getItem().getStartTime().format(DT_FORMAT) : "—");

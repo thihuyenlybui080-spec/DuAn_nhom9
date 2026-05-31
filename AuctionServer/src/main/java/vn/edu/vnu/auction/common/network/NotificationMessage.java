@@ -24,6 +24,8 @@ public class NotificationMessage implements Serializable {
     public static final String TYPE_AUTO_BID_AUCTION_ENDED = "AUTO_BID_AUCTION_ENDED";
     /** Loại thông báo khi người dùng bị khóa */
     public static final String TYPE_USER_LOCKED = "USER_LOCKED";
+    /** Loại thông báo khi người dùng được mở khóa */
+    public static final String TYPE_USER_UNLOCKED = "USER_UNLOCKED";
 
     private final String type;
     private final int auctionId;

@@ -272,6 +272,33 @@ public class BiddingController implements Initializable, Observer {
                         }
                     });
                     break;
+                case NotificationMessage.TYPE_USER_UNLOCKED:
+                    Platform.runLater(() -> {
+                        Integer unlockedBidderId = (Integer) notification.getData();
+                        if (unlockedBidderId != null && unlockedBidderId.equals(bidder.getId())) {
+                            bidder.setActive(true);
+                            
+                            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+                            ToastNotification.show(stage, "Account Unlocked", "Your account has been unlocked. You can now bid and use auto-bid.", ToastNotification.Type.SUCCESS);
+                            lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
+                            lblBidError.setText("✅ Your account has been unlocked.");
+                            lblBidError.setVisible(true);
+                            lblBidError.setManaged(true);
+                            updateBidButton();
+                            
+                            // Hide error message after 3 seconds
+                            new java.util.Timer().schedule(new java.util.TimerTask() {
+                                @Override
+                                public void run() {
+                                    Platform.runLater(() -> {
+                                        lblBidError.setVisible(false);
+                                        lblBidError.setManaged(false);
+                                    });
+                                }
+                            }, 3000);
+                        }
+                    });
+                    break;
             }
             }
          );
@@ -433,6 +460,16 @@ public class BiddingController implements Initializable, Observer {
     @FXML
     private void onPlaceBid(){
         hideBidError();
+        
+        // Check if bidder is locked
+        if (!bidder.isActive()) {
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Account Locked", "Your account has been locked. You cannot place bids.", ToastNotification.Type.ERROR);
+            showBidError("🔒 Your account has been locked. You cannot place bids.");
+            updateBidButton();
+            return;
+        }
+        
         String raw = txtBidAmount.getText().trim().replaceAll("[^0-9]", "");
 
         if(raw.isEmpty()){
@@ -520,6 +557,15 @@ public class BiddingController implements Initializable, Observer {
      */
     @FXML
     private void onEnableAutoBid(){
+        // Check if bidder is locked
+        if (!bidder.isActive()) {
+            lblAutoBidStatus.setText("Your account is locked and cannot enable auto-bid.");
+            lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid cannot be enabled.", ToastNotification.Type.ERROR);
+            return;
+        }
+        
         if (auction.getStatus() == AuctionStatus.FINISHED) {
             lblAutoBidStatus.setText("This auction has ended and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");

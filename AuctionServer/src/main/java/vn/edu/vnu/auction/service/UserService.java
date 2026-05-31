@@ -58,6 +58,7 @@ public class UserService {
         else {
             user.updateStatus(UserStatusRecord.defaultActive());
             UserDAO.updateUserStatus(user.getId(), UserStatus.ACTIVE);
+            handleUserUnrestricted(user);
             logger.info("User {} unlocked (ACTIVE)", user.getName());
         }
      }
@@ -71,19 +72,32 @@ public class UserService {
          }
      }
 
+     private void handleUserUnrestricted(User user){
+         if (user instanceof Bidder bidder) {
+             notifyAuctionsForUnlockedBidder(bidder);
+         }
+     }
+
      private void notifyAutionsForLockedBidder(Bidder bidder){
          auctionService.getActiveAuctions().forEach(auction -> {
-             boolean hasParticipated = auction.getBids().stream()
-                     .anyMatch(bid -> bid.getBidder().getId() == bidder.getId());
-             boolean hasAutoBid = AutobidService.getInstance().isAutoBidActive(auction.getId(), bidder.getId());
+             // Send notification to ALL active auctions when bidder is locked
+             // This ensures the bidder sees the notification regardless of which auction they're viewing
+             ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
+                     NotificationMessage.TYPE_USER_LOCKED,
+                     auction.getId(),
+                     bidder.getId()
+             ));
+         });
+     }
 
-             if (hasParticipated || hasAutoBid) {
-                 ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
-                         NotificationMessage.TYPE_USER_LOCKED,
-                         auction.getId(),
-                         bidder.getId()
-                 ));
-             }
+     private void notifyAuctionsForUnlockedBidder(Bidder bidder){
+         auctionService.getActiveAuctions().forEach(auction -> {
+             // Send notification to ALL active auctions when bidder is unlocked
+             ClientRegistry.getInstance().notifyAll(auction.getId(), new NotificationMessage(
+                     NotificationMessage.TYPE_USER_UNLOCKED,
+                     auction.getId(),
+                     bidder.getId()
+             ));
          });
      }
 

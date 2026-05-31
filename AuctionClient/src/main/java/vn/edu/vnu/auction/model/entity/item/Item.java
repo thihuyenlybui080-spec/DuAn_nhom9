@@ -7,9 +7,10 @@ import vn.edu.vnu.auction.model.entity.Entity;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
     private String itemName;
-    private int createdBy;
+    private final int createdBy;
     private String description;
     private double startingPrice;
     private LocalDateTime startTime;
