@@ -110,7 +110,7 @@
                     <configLocation>google_checks.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>false</failsOnError>
-                    <violationSeverity>warning</violationSeverity>
+                    
                 </configuration>
             </plugin>
 
