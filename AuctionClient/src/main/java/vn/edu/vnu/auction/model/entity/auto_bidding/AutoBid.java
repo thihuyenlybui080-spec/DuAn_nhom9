@@ -2,10 +2,12 @@ package vn.edu.vnu.auction.model.entity.auto_bidding;
 
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public class AutoBid implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     private final Bidder bidder;
     private final int auctionId;

@@ -1,9 +1,9 @@
 package vn.edu.vnu.auction.model.entity.user;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.Serial;
 
 public class Admin extends User {
+    @Serial
     private static final long serialVersionUID = 1L;
     public Admin( String userName, String password, String email, String fullName) {
         super( userName, password, email, fullName);

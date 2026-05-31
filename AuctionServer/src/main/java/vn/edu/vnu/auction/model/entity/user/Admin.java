@@ -2,9 +2,9 @@ package vn.edu.vnu.auction.model.entity.user;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.edu.vnu.auction.model.entity.user.User;
 
 public class Admin extends User {
+
   private static final long serialVersionUID = 1L;
   private static final Logger logger = LoggerFactory.getLogger(Admin.class);
 

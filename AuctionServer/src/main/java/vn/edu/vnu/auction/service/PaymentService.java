@@ -199,7 +199,6 @@ public class PaymentService {
                                 )
                                 .build()
                 )
-                // Lưu auctionId vào metadata để xác nhận sau
                 .putMetadata("auction_id", String.valueOf(auctionId))
                 .putMetadata("bidder_id", String.valueOf(bidder.getId()))
                 .build();

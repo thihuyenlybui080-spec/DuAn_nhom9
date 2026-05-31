@@ -33,14 +33,10 @@ public class LoginController implements Initializable {
     @FXML
     private StackPane rootStackPane;
 
-    private final String REGISTER_FXML = "register.fxml";
-    private final String REGISTER_TITLE = "Register";
-
     private final SceneManager sceneManager = new SceneManager(getClass());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
-        URL test = getClass().getResource("/vn/edu/vnu/auctionclient/login.fxml");
         Platform.runLater(() -> {
             if(rootStackPane.getScene() != null) {
                 Stage stage = (Stage) rootStackPane.getScene().getWindow();
@@ -50,21 +46,28 @@ public class LoginController implements Initializable {
     }
 
     public void onRegister(ActionEvent event){
+        String REGISTER_FXML = "register.fxml";
+        String REGISTER_TITLE = "Register";
         sceneManager.switchScene(event, REGISTER_FXML, REGISTER_TITLE);
     }
-    public void LoginButtonAction(ActionEvent event){
+
+    @FXML
+    public void LoginButtonAction(){
         messageLabel.setText("You try to login");
-        if(usernameTF.getText().isBlank() == false && passwordTF.getText().isBlank() == false){
+        if(!usernameTF.getText().isBlank() && !passwordTF.getText().isBlank()){
             validateLogin();
         }
         else {
             messageLabel.setText("Please enter username and password!");
         }
     }
-    public void cancelButtonAction(ActionEvent event){
+
+    @FXML
+    public void cancelButtonAction(){
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
+
     public void validateLogin() {
         String username = usernameTF.getText();
         String password = passwordTF.getText();
@@ -81,26 +84,7 @@ public class LoginController implements Initializable {
                 ToastNotification.show(stage, "Success", "Login successful! Welcome, " + user.getName(), ToastNotification.Type.SUCCESS);
                 messageLabel.setText("Login successful! Welcome, " + user.getName());
 
-                PauseTransition pause = new PauseTransition(Duration.seconds(1));
-                pause.setOnFinished(e -> {
-                    switch (role) {
-                        case "ADMIN" -> {
-                            AdminDashboardController ctrl = sceneManager.switchSceneAndGetController(
-                                    stage, "admin_dashboard.fxml", "Admin Dashboard");
-                            if (ctrl != null) ctrl.setCurrentAdmin((Admin) user);
-                        }
-                        case "SELLER" -> {
-                            SellerDashboardController ctrl = sceneManager.switchSceneAndGetController(
-                                    stage, "seller_dashboard.fxml", "Seller Dashboard");
-                            if (ctrl != null) ctrl.setCurrentUser((Seller) user);
-                        }
-                        default -> {
-                            BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(
-                                    stage, "bidder_dashboard.fxml", "Bidder Dashboard");
-                            if (ctrl != null) ctrl.setCurrent((Bidder) user);
-                        }
-                    }
-                });
+                PauseTransition pause = getPauseTransition(role, stage, user);
                 pause.play();
 
             } else {
@@ -113,8 +97,31 @@ public class LoginController implements Initializable {
             Stage stage = (Stage) rootStackPane.getScene().getWindow();
             ToastNotification.show(stage, "Error", e.getMessage(), ToastNotification.Type.ERROR);
             messageLabel.setText(e.getMessage());
-            e.printStackTrace();
         }
+    }
+
+    private PauseTransition getPauseTransition(String role, Stage stage, User user) {
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(_ -> {
+            switch (role) {
+                case "ADMIN" -> {
+                    AdminDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                            stage, "admin_dashboard.fxml", "Admin Dashboard");
+                    if (ctrl != null) ctrl.setCurrentAdmin((Admin) user);
+                }
+                case "SELLER" -> {
+                    SellerDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                            stage, "seller_dashboard.fxml", "Seller Dashboard");
+                    if (ctrl != null) ctrl.setCurrentUser((Seller) user);
+                }
+                default -> {
+                    BidderDashboardController ctrl = sceneManager.switchSceneAndGetController(
+                            stage, "bidder_dashboard.fxml", "Bidder Dashboard");
+                    if (ctrl != null) ctrl.setCurrent((Bidder) user);
+                }
+            }
+        });
+        return pause;
     }
 
 }

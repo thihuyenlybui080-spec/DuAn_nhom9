@@ -2,13 +2,10 @@ package vn.edu.vnu.auction.controller;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -54,24 +51,17 @@ public class RegisterController implements Initializable {
     private StackPane rootStackPane;
 
     String selectedGender = "";
-    private static int currentUserId; // Lưu userId của user hiện tại
+    private static int currentUserId;
 
     @FXML
     ToggleGroup genderGroup = new ToggleGroup();
     private final SceneManager sceneManager = new SceneManager(getClass());
-
-    public static int getCurrentUserId() {
-        return currentUserId;
-    }
-
     public static void setCurrentUserId(int userId) {
         currentUserId = userId;
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        URL test = getClass().getResource("/vn/edu/vnu/auctionclient/register.fxml");
-
         roleComboBox.getItems().addAll(ROLE_BIDDER, ROLE_SELLER);
         ToggleGroup genderGroup = new ToggleGroup();
         maleRButton.setToggleGroup(genderGroup);
@@ -85,12 +75,7 @@ public class RegisterController implements Initializable {
             }
         });
 
-        genderGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-            @Override
-            public void changed(ObservableValue<? extends Toggle> observableValue, Toggle oldToggle, Toggle newToggle) {
-                onGenderSelected(newToggle);
-            }
-        });
+        genderGroup.selectedToggleProperty().addListener((_, _, newToggle) -> onGenderSelected(newToggle));
     }
 
     public void onGenderSelected(Toggle selectedToggle) {
@@ -136,9 +121,7 @@ public class RegisterController implements Initializable {
             registrationMessageLabel.setText("Registration successful");
             
             PauseTransition pause = new PauseTransition(Duration.seconds(2));
-            pause.setOnFinished(e -> {
-                sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE);
-            });
+            pause.setOnFinished(_ -> sceneManager.switchScene(event, LOGIN_FXML, LOGIN_TITLE));
             pause.play();
         }
     }
@@ -169,7 +152,8 @@ public class RegisterController implements Initializable {
         return passwordPF.getText().equals(confirmPasswordPF.getText());
     }
 
-    public void closeButtonOnAction(ActionEvent event) {
+    @FXML
+    public void closeButtonOnAction() {
         Stage stage = (Stage) closeButton.getScene().getWindow();
         stage.close();
         Platform.exit();
@@ -188,8 +172,7 @@ public class RegisterController implements Initializable {
         String email    = emailTF.getText().trim();
 
         try {
-            int userId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
-            currentUserId = userId;
+            currentUserId = AuctionClientService.getInstance().register(username, password, fullName, email, phone, selectedGender, role);
             registrationMessageLabel.setText("Registration successful!");
             
             Stage stage = (Stage) rootStackPane.getScene().getWindow();

@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_FXML;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_TITLE;
+import static vn.edu.vnu.auction.controller.UIFactory.updateStatusBadge;
 import static vn.edu.vnu.auction.model.entity.AuctionStatus.*;
 
 public class AuctionDetailController implements Initializable {
@@ -45,7 +46,7 @@ public class AuctionDetailController implements Initializable {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private static final NumberFormat VND_FORMAT = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    @FXML private Label lblStatusBadge;;
+    @FXML private Label lblStatusBadge;
     @FXML Button btnSignOut;
     @FXML private Label lblCategory;
     @FXML private Label lblItemName;
@@ -62,7 +63,6 @@ public class AuctionDetailController implements Initializable {
     @FXML private Label lblCountdown;
     @FXML private Label lblCountdownLabel;
     @FXML private Button btnPlaceBid;
-    @FXML private Button btnBack;
     @FXML private Label lblAuctionIdBar;
     @FXML private Label lblConnectionStatus;
     @FXML private BorderPane rootBorderPane;
@@ -104,7 +104,7 @@ public class AuctionDetailController implements Initializable {
             logger.warn("Warning: currentUser is null");
         }
 
-        updateStatusBadge();
+        updateStatusBadge(auction, lblStatusBadge);
 
         lblCategory.setText(auction.getItem().getCategory());
 
@@ -121,7 +121,6 @@ public class AuctionDetailController implements Initializable {
                 ? auction.getItem().getEndTime().format(DT_FORMAT) : "—");
         lblAuctionIdBar.setText("Auction ID: #" + auction.getId());
 
-        // Display product image if available
         String imagePath = auction.getItem().getImagePath();
         logger.debug("[AuctionDetail] Image path: {}", imagePath);
         if (imagePath != null && !imagePath.isEmpty()) {
@@ -132,13 +131,11 @@ public class AuctionDetailController implements Initializable {
                     Image image = new Image(imageFile.toURI().toString());
                     imvProductImage.setImage(image);
                     imvProductImage.setPreserveRatio(true);
-                    imvProductImage.setFitHeight(200);
                 } else {
                     logger.error("[AuctionDetail] Image file not found: {}", imagePath);
                 }
             } catch (Exception e) {
                 logger.error("[AuctionDetail] Error loading product image: {}", e.getMessage());
-                e.printStackTrace();
             }
         } else {
             logger.debug("[AuctionDetail] Image path is null or empty");
@@ -148,34 +145,7 @@ public class AuctionDetailController implements Initializable {
         updateBidButton();
     }
 
-    private void updateStatusBadge(){
-        switch (auction.getStatus()) {
-            case RUNNING:
-                lblStatusBadge.setText("● Live");
-                lblStatusBadge.setStyle(
-                        "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                                + "-fx-background-radius: 10; -fx-padding: 4 12;"
-                                + "-fx-font-size: 11px; -fx-font-weight: bold;");
-                break;
-            case OPEN:
-                lblStatusBadge.setText("● Upcoming");
-                lblStatusBadge.setStyle(
-                        "-fx-background-color: #e8f0fe; -fx-text-fill: #1a56db;"
-                                + "-fx-background-radius: 10; -fx-padding: 4 12;"
-                                + "-fx-font-size: 11px; -fx-font-weight: bold;");
-                break;
-            case FINISHED:
-                lblStatusBadge.setText("● Finished");
-                lblStatusBadge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #888;"
-                                + "-fx-background-radius: 10; -fx-padding: 4 12;"
-                                + "-fx-font-size: 11px; -fx-font-weight: bold;");
-                break;
-            default:
-                lblStatusBadge.setText(auction.getStatus().toString());
-        }
-    }
-    private void updatePriceArea(){
+        private void updatePriceArea(){
         lblCurrentPrice.setText(formatPrice(auction.getCurrentPrice()));
         lblBidCount.setText(auction.getBids().size() + " bids placed");
     }
@@ -205,7 +175,7 @@ public class AuctionDetailController implements Initializable {
             stage.show();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("[AuctionDetail] Error loading bidding scene: {}", e.getMessage());
         }
     }
 
@@ -238,7 +208,7 @@ public class AuctionDetailController implements Initializable {
             if(updated != null){
                 this.auction = updated;
                 updatePriceArea();
-                updateStatusBadge();
+                updateStatusBadge(auction, lblStatusBadge);
                 updateBidButton();
                 lblConnectionStatus.setText(
                         "● Live — updated " + LocalDateTime.now().format(TIME_FORMAT)
@@ -321,7 +291,6 @@ public class AuctionDetailController implements Initializable {
                 sceneManager.switchScene(stage, comingFromFxml, comingFromTitle);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("Error in onBack: {}", e.getMessage());
         }
     }

@@ -68,7 +68,7 @@
                                  <children>
                                     <StackPane style="-fx-background-color: #0a0405; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
                                        <children>
-                                          <ImageView fx:id="imvProductImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                                          <ImageView fx:id="imvProductImage" fitHeight="200.0" fitWidth="Infinity" pickOnBounds="true" preserveRatio="true" StackPane.alignment="CENTER" />
                                        </children>
                                     </StackPane>
                                     <Label fx:id="lblItemName" text="Luxury Item Name" textFill="#c0c43f">

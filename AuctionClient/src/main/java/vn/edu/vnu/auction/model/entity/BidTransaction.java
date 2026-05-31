@@ -3,15 +3,16 @@ package vn.edu.vnu.auction.model.entity;
 import vn.edu.vnu.auction.model.entity.item.Item;
 import vn.edu.vnu.auction.model.entity.user.Bidder;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 public class BidTransaction implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
-    private Bidder bidder;
-    private Item item;
-    private double amount;
-    private LocalDateTime timestamp;
-    private int auctionId;
+    private final Bidder bidder;
+    private final Item item;
+    private final double amount;
+    private final LocalDateTime timestamp;
     public BidTransaction(Bidder bidder, Item item, double amount){
         this.bidder = bidder;
         this.item = item;
@@ -30,8 +31,4 @@ public class BidTransaction implements Serializable {
     public LocalDateTime getTimestamp(){
         return timestamp;
     }
-    public int getAuctionId() {
-        return auctionId;
-    }
-
 }

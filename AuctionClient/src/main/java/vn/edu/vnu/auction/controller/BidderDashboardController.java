@@ -1,5 +1,6 @@
 package vn.edu.vnu.auction.controller;
 
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_FXML;
 import static vn.edu.vnu.auction.controller.MainController.LOGIN_TITLE;
+import static vn.edu.vnu.auction.controller.UIFactory.getCategoryIcon;
 import static vn.edu.vnu.auction.model.entity.AuctionStatus.*;
 
 /**
@@ -63,7 +65,6 @@ public class BidderDashboardController implements Initializable {
     @FXML private TextField txtSearch;
 
     @FXML private HBox filterbar;
-    @FXML private ToggleGroup categoryGroup;
     @FXML private ToggleButton btnAll;
     @FXML private ToggleButton btnVehicles;
     @FXML private ToggleButton btnElectronics;
@@ -296,13 +297,11 @@ public class BidderDashboardController implements Initializable {
         String keyword = txtSearch.getText().trim().toLowerCase();
         List<Auction> result = allAutions.stream()
                 .filter(this::matchesCategory)
-                .filter(a -> {
-                    switch (currentStatus) {
-                        case "Live": return RUNNING.equals(a.getStatus());
-                        case "Upcoming": return OPEN.equals(a.getStatus());
-                        case "Finished": return FINISHED.equals(a.getStatus());
-                        default: return true;
-                    }
+                .filter(a -> switch (currentStatus) {
+                    case "Live" -> RUNNING.equals(a.getStatus());
+                    case "Upcoming" -> OPEN.equals(a.getStatus());
+                    case "Finished" -> FINISHED.equals(a.getStatus());
+                    default -> true;
                 })
                 .filter(a -> keyword.isEmpty()
                 || a.getItem().getItemName().contains(keyword)
@@ -375,8 +374,8 @@ public class BidderDashboardController implements Initializable {
         if(countdownScheduler != null && !countdownScheduler.isShutdown()){
             countdownScheduler.shutdownNow();
         }
-        // Stop all payment countdown timelines
-        paymentCountdownTimelines.values().forEach(timeline -> timeline.stop());
+
+        paymentCountdownTimelines.values().forEach(Animation::stop);
         paymentCountdownTimelines.clear();
     }
 
@@ -452,12 +451,12 @@ public class BidderDashboardController implements Initializable {
         btnBid.setMaxWidth(Double.MAX_VALUE);
         btnBid.setStyle(getBidButtonStyle(auction.getStatus()));
         btnBid.setFont(Font.font("System", FontWeight.BOLD, 12));
-        btnBid.setOnAction(e -> onBidClicked(auction));
+        btnBid.setOnAction(_ -> onBidClicked(auction));
 
         Button btnDetail = new Button("Details");
         btnDetail.setMaxWidth(Double.MAX_VALUE);
         btnDetail.setStyle("-fx-background-color: transparent; -fx-border-color: #c0c43f; -fx-border-radius: 4; -fx-text-fill: #c0c43f; -fx-font-size: 12px; -fx-cursor: hand;");
-        btnDetail.setOnAction(e -> onDetailClicked(auction));
+        btnDetail.setOnAction(_ -> onDetailClicked(auction));
         actions.getChildren().addAll(btnBid, btnDetail);
         return actions;
     }
@@ -527,10 +526,8 @@ public class BidderDashboardController implements Initializable {
             stage.show();
 
         } catch (IOException e) {
-            e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Failed to load bidding screen: " + e.getMessage()).showAndWait();
         } catch (Exception e) {
-            e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).showAndWait();
         }
     }
@@ -559,21 +556,12 @@ public class BidderDashboardController implements Initializable {
             stopAutoRefresh();
 
         } catch (IOException e) {
-            e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Failed to load auction detail: " + e.getMessage()).showAndWait();
         } catch (Exception e) {
-            e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).showAndWait();
         }
     }
 
-    private void navigateTo(String fxmlFile, String title){
-        Stage stage = (Stage) auctionContainer.getScene().getWindow();
-        sceneManager.switchScene(stage, fxmlFile, title);
-        stopAutoRefresh();
-    }
-
-    //Chỉ hiện pane được chọn, ẩn các pane còn lại
     private void showPane(javafx.scene.Node target){
         paneAuctions.setVisible(false);
         paneAuctions.setManaged(false);
@@ -653,10 +641,6 @@ public class BidderDashboardController implements Initializable {
                 lblItem.setStyle("-fx-text-fill: #fff;");
                 lblItem.setPrefWidth(200);
 
-                Label lblAuctionId = new Label(String.valueOf(bid.getAuctionId()));
-                lblAuctionId.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
-                lblAuctionId.setPrefWidth(100);
-
                 Label lblAmount = new Label(formatPrice(bid.getAmount()) + " ₫");
                 lblAmount.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
                 lblAmount.setPrefWidth(150);
@@ -668,7 +652,7 @@ public class BidderDashboardController implements Initializable {
                 spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                row.getChildren().addAll(lblItem, lblAuctionId, spacer, lblAmount, lblTime);
+                row.getChildren().addAll(lblItem, spacer, lblAmount, lblTime);
                 paneHistory.getChildren().add(row);
             }
 
@@ -677,7 +661,6 @@ public class BidderDashboardController implements Initializable {
             Label error = new Label("Failed to load history: " + e.getMessage());
             error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
             paneHistory.getChildren().add(error);
-            e.printStackTrace();
         }
     }
 
@@ -785,7 +768,6 @@ public class BidderDashboardController implements Initializable {
             Label error = new Label("Failed to load won items: " + e.getMessage());
             error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
             paneWon.getChildren().add(error);
-            e.printStackTrace();
         }
     }
 
@@ -800,7 +782,7 @@ public class BidderDashboardController implements Initializable {
 
             List<AuctionResult> payable = wonList.stream()
                     .filter(result -> result.getStatus() == FINISHED || result.getStatus() == PAID || result.getStatus() == CANCELED)
-                    .collect(Collectors.toList());
+                    .toList();
             if(payable.isEmpty()){
                 Label empty = new Label("No payments");
                 empty.setStyle("-fx-text-fill: #c0c43f; -fx-font-size: 14px;");
@@ -814,7 +796,6 @@ public class BidderDashboardController implements Initializable {
             Label error = new Label("Failed to load payment items: " + e.getMessage());
             error.setStyle("-fx-text-fill: #e53935; -fx-font-size: 14px;");
             panePayment.getChildren().add(error);
-            e.printStackTrace();
         }
     }
 
@@ -873,10 +854,9 @@ public class BidderDashboardController implements Initializable {
             btnPay.setStyle("-fx-background-color: #c0c43f; -fx-text-fill: #722f37;"
                     + "-fx-font-weight: bold; -fx-background-radius: 6;"
                     + "-fx-cursor: hand; -fx-font-size: 13px;");
-            btnPay.setOnAction(event -> onPayClicked(result, card, btnPay));
+            btnPay.setOnAction(_ -> onPayClicked(result, card, btnPay));
 
-            // Create countdown timeline
-            Timeline countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            Timeline countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), _ -> {
                 long remainingSeconds = ChronoUnit.SECONDS.between(LocalDateTime.now(), paymentDeadline);
                 if (remainingSeconds <= 0) {
                     lblDeadline.setText("⏰ Payment deadline expired");
@@ -951,19 +931,6 @@ public class BidderDashboardController implements Initializable {
         btnAll.setStyle(STYLE_FILTER_NORMAL);
 
         active.setStyle(STYLE_FILTER_ACTIVE);
-    }
-
-    private String getCategoryIcon(String category){
-        if(category == null){
-            return "📦";
-        }
-        switch (category.toLowerCase()){
-            case "electronics": return "💻";
-            case "art":         return "🎨";
-            case "vehicle":     return "🚗";
-            case "other":       return "📦";
-            default:            return "📦";
-        }
     }
 
     private String formatPrice(double price){
@@ -1041,21 +1008,21 @@ public class BidderDashboardController implements Initializable {
     }
 
     private String getBidButtonText(AuctionStatus status){
-        switch (status){
-            case RUNNING: return "Place Bid";
-            case OPEN: return "Preview";
-            default: return "View Result";
-        }
+        return switch (status) {
+            case RUNNING -> "Place Bid";
+            case OPEN -> "Preview";
+            default -> "View Result";
+        };
     }
 
     private String getBidButtonStyle(AuctionStatus status){
-        switch (status){
-            case RUNNING:
-                return "-fx-background-color: #c0c43f; -fx-text-fill: #722f37; -fx-background-radius: 4; -fx-font-size: 12px;";
-            case OPEN:
-                return "-fx-background-color: transparent; -fx-text-fill: #c0c43f; -fx-background-radius: 4; -fx-font-size: 12px; -fx-border-color: #c0c43f; -fx-border-radius: 4";
-            default:
-                return "-fx-background-color: #999; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-size: 12px;";
-        }
+        return switch (status) {
+            case RUNNING ->
+                    "-fx-background-color: #c0c43f; -fx-text-fill: #722f37; -fx-background-radius: 4; -fx-font-size: 12px;";
+            case OPEN ->
+                    "-fx-background-color: transparent; -fx-text-fill: #c0c43f; -fx-background-radius: 4; -fx-font-size: 12px; -fx-border-color: #c0c43f; -fx-border-radius: 4";
+            default ->
+                    "-fx-background-color: #999; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-size: 12px;";
+        };
     }
 }

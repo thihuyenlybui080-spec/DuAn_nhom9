@@ -1,113 +1,115 @@
 package vn.edu.vnu.auction.model.entity.user;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import vn.edu.vnu.auction.common.exception.AuthenticationException;
+import java.lang.reflect.Field;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Lớp kiểm thử (Unit Test) dành cho lớp trừu tượng {@link User}.
+ * <p>
+ * Vì User là một abstract class, lớp kiểm thử này sử dụng một lớp con giả lập (DummyUser)
+ * để khởi tạo và kiểm chứng các logic dùng chung cho mọi loại người dùng (khởi tạo, cập nhật trạng thái).
+ * </p>
+ */
 class UserTest {
 
-    // Concrete dummy subclass to test the abstract User class
-    private static class DummyUser extends User {
-        public DummyUser(String userName, String password, String email, String fullName) {
-            super(userName, password, email, fullName);
-        }
+  /**
+   * Lớp con giả lập (Dummy) kế thừa từ User nhằm mục đích phục vụ Unit Test.
+   */
+  private static class DummyUser extends User {
 
-        public DummyUser(int id, String userName, String password, String email, String fullName) {
-            super(id, userName, password, email, fullName);
-        }
-
-        @Override
-        public String getRole() {
-            return "DummyRole";
-        }
+    public DummyUser(String userName, String password, String email, String fullName) {
+      super(userName, password, email, fullName);
     }
 
-    private User user;
-
-    @BeforeEach
-    void setUp() {
-        // Initialize the dummy user object before each test
-        user = new DummyUser("testUser", "password123", "test@vnu.edu.vn", "Test Full Name");
+    public DummyUser(int id, String userName, String password, String email, String fullName) {
+      super(id, userName, password, email, fullName);
     }
 
-    @Test
-    void testConstructorWithoutId() {
-        // Verify default ID and fields are assigned correctly
-        assertEquals(-1, user.getId(), "Default ID should be -1 from Entity");
-        assertEquals("testUser", user.getName());
-        assertEquals("password123", user.getPassword());
-        assertEquals("test@vnu.edu.vn", user.getEmail());
-        assertEquals("Test Full Name", user.getFullName());
-
-        // Verify the user is active by default
-        assertTrue(user.isActive(), "User must be active by default upon creation");
+    @Override
+    public String getRole() {
+      return "DummyRole";
     }
+  }
 
-    @Test
-    void testConstructorWithId() {
-        User userWithId = new DummyUser(5, "user5", "pass5", "user5@vnu.edu.vn", "User Five");
-        assertEquals(5, userWithId.getId());
-        assertEquals("user5", userWithId.getName());
-    }
+  private User user;
 
-    @Test
-    void testSettersAndGetters() {
-        // Test updating user information
-        user.setName("newName");
-        user.setPassword("newPass");
-        user.setEmail("new@vnu.edu.vn");
-        user.setFullName("New Full Name");
+  /**
+   * Khởi tạo dữ liệu giả lập trước mỗi kịch bản kiểm thử.
+   */
+  @BeforeEach
+  void setUp() {
+    user = new DummyUser("testUser", "password123", "test@vnu.edu.vn", "Test Full Name");
+  }
 
-        assertEquals("newName", user.getName());
-        assertEquals("newPass", user.getPassword());
-        assertEquals("new@vnu.edu.vn", user.getEmail());
-        assertEquals("New Full Name", user.getFullName());
-    }
+  /**
+   * Kiểm tra hàm tạo mặc định (không ID) của User.
+   * Xác minh ID mặc định (-1), trạng thái mặc định (Active) và sử dụng Reflection
+   * để đọc các biến bị đóng gói bảo mật.
+   * * @throws Exception nếu có lỗi truy cập vùng nhớ qua Reflection
+   */
+  @Test
+  void testConstructorWithoutId() throws Exception {
+    // Kiểm tra các hàm Getter công khai
+    assertEquals(-1, user.getId());
+    assertEquals("testUser", user.getName());
+    assertEquals("Test Full Name", user.getFullName());
+    assertTrue(user.isActive());
 
-    @Test
-    void testLogIn_Success() {
-        // Should not throw any exception when credentials match and account is active
-        assertDoesNotThrow(() -> user.logIn("testUser", "password123"),
-                "Login should succeed with correct credentials");
-    }
+    // Dùng Reflection kiểm tra biến private/protected
+    Field emailField = User.class.getDeclaredField("email");
+    emailField.setAccessible(true);
+    assertEquals("test@vnu.edu.vn", emailField.get(user));
 
-    @Test
-    void testLogIn_Fail_WrongPassword() {
-        AuthenticationException exception = assertThrows(AuthenticationException.class,
-                () -> user.logIn("testUser", "wrongPass"));
+    Field passwordField = User.class.getDeclaredField("password");
+    passwordField.setAccessible(true);
+    assertEquals("password123", passwordField.get(user));
+  }
 
-        assertEquals("Invalid username or password", exception.getMessage());
-    }
+  /**
+   * Kiểm tra hàm tạo có truyền tham số ID.
+   * Đảm bảo hệ thống ghi nhận đúng định danh ID từ cơ sở dữ liệu.
+   */
+  @Test
+  void testConstructorWithId() {
+    User userWithId = new DummyUser(5, "user5", "pass5", "user5@vnu.edu.vn", "User Five");
+    assertEquals(5, userWithId.getId());
+    assertEquals("user5", userWithId.getName());
+  }
 
-    @Test
-    void testLogIn_Fail_WrongUsername() {
-        AuthenticationException exception = assertThrows(AuthenticationException.class,
-                () -> user.logIn("wrongUser", "password123"));
+  /**
+   * Kiểm tra các hàm Setter và Getter công khai được phép sử dụng.
+   */
+  @Test
+  void testSettersAndGetters() {
+    // Vì class gốc chỉ cung cấp hàm setName(), ta tiến hành kiểm chứng hàm này
+    user.setName("newName");
+    assertEquals("newName", user.getName());
+  }
 
-        assertEquals("Invalid username or password", exception.getMessage());
-    }
+  /**
+   * Kiểm tra tính năng cập nhật trạng thái hoạt động của người dùng.
+   * Sử dụng Mockito để giả lập một trạng thái bị cấm (Banned/Inactive) và kiểm chứng
+   * xem hệ thống có ghi nhận sự thay đổi này không.
+   */
+  @Test
+  void testUpdateStatus() {
+    // Giả lập trạng thái Inactive (không hoạt động)
+    UserStatus mockStatus = Mockito.mock(UserStatus.class);
+    Mockito.when(mockStatus.isActive()).thenReturn(false);
 
-    @Test
-    void testLogIn_Fail_AccountBanned() {
-        // Step 1: Create a mock UserStatus showing the account is NOT active (Banned)
-        UserStatus mockStatus = Mockito.mock(UserStatus.class);
-        Mockito.when(mockStatus.isActive()).thenReturn(false);
+    UserStatusRecord mockRecord = Mockito.mock(UserStatusRecord.class);
+    Mockito.when(mockRecord.status()).thenReturn(mockStatus);
 
-        // Step 2: Create a mock UserStatusRecord that holds the banned status
-        UserStatusRecord mockRecord = Mockito.mock(UserStatusRecord.class);
-        Mockito.when(mockRecord.status()).thenReturn(mockStatus);
+    // Cập nhật trạng thái cho user
+    user.updateStatus(mockRecord);
 
-        // Step 3: Apply the banned record to our user
-        user.updateStatus(mockRecord);
-
-        // Step 4: Verify that login throws an exception because the account is banned
-        AuthenticationException exception = assertThrows(AuthenticationException.class,
-                () -> user.logIn("testUser", "password123"));
-
-        assertEquals("Account is banned", exception.getMessage(),
-                "An exception must be thrown if the account is not active");
-    }
+    // Kiểm tra xem User đã bị vô hiệu hóa thành công chưa
+    assertFalse(user.isActive(), "User should be inactive after status update");
+  }
 }

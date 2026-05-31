@@ -3,6 +3,7 @@ package vn.edu.vnu.auction.controller;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -56,13 +57,13 @@ public class ToastNotification {
             fadeIn.setToValue(1);
             fadeIn.play();
 
-            /**Tự động ẩn sau 3 giây */
+            /*Tự động ẩn sau 3 giây */
             PauseTransition pause = new PauseTransition(Duration.seconds(3));
-            pause.setOnFinished(e -> {
+            pause.setOnFinished((ActionEvent e) -> {
                 FadeTransition fadeOut = new FadeTransition(Duration.millis(400), box);
                 fadeOut.setFromValue(1);
                 fadeOut.setToValue(0);
-                fadeOut.setOnFinished(ev -> popup.hide());
+                fadeOut.setOnFinished(e1 -> popup.hide());
                 fadeOut.play();
             });
             pause.play();
@@ -70,24 +71,23 @@ public class ToastNotification {
     }
 
     private static String getStyle(Type type) {
-        String color;
-        switch (type) {
-            case SUCCESS: color = "#2d8a4e"; break;
-            case ERROR:   color = "#c0392b"; break;
-            case WARNING: color = "#e67e22"; break;
-            default:      color = "#185FA5"; break;
-        }
+        String color = switch (type) {
+            case SUCCESS -> "#2d8a4e";
+            case ERROR -> "#c0392b";
+            case WARNING -> "#e67e22";
+            default -> "#185FA5";
+        };
         return "-fx-background-color: " + color + ";"
                 + "-fx-background-radius: 8;"
                 + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0, 0, 4);";
     }
 
     private static String getIcon(Type type) {
-        switch (type) {
-            case SUCCESS: return "✅";
-            case ERROR:   return "❌";
-            case WARNING: return "⚠️";
-            default:      return "ℹ️";
-        }
+        return switch (type) {
+            case SUCCESS -> "✅";
+            case ERROR -> "❌";
+            case WARNING -> "⚠️";
+            default -> "ℹ️";
+        };
     }
 }

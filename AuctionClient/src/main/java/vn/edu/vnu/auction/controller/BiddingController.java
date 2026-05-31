@@ -70,15 +70,12 @@ public class BiddingController implements Initializable, Observer {
     @FXML private Label lblCountdown;
     @FXML private Label lblCountdownLabel;
     @FXML private Label lblStatusBadge;
-    @FXML private Button btnBack;
 
     // ── FXML – Cột trái ───────────────────────────────────────────────────────
 
     @FXML private Label lblBidCount;
     @FXML private VBox bidHistoryContainer;
-    @FXML private Button btnNavAuctions;
-    @FXML private Button btnSignOut;
-    @FXML private Button btnNavMyAuctions;
+
 
     // ── FXML – Cột phải ───────────────────────────────────────────────────────
 
@@ -106,21 +103,18 @@ public class BiddingController implements Initializable, Observer {
 
     // ── FXML – Status bar ─────────────────────────────────────────────────────
 
-    @FXML private Label lblConnectionStatus;
     @FXML private Label lblLastUpdate;
     @FXML private BorderPane rootBorderPane;
     @FXML private ImageView imvProductImage;
 
     @FXML private AreaChart<String, Number> priceChart;
-    @FXML private CategoryAxis xAxis;
-    @FXML private NumberAxis yAxis;
     private XYChart.Series<String, Number> priceSeries;
 
     private Auction auction;
     private Bidder bidder;
     private boolean autoBidEnable = false;
     private ScheduledExecutorService scheduler;
-    private List<BidTransaction> localBids = new ArrayList<>();
+    private final List<BidTransaction> localBids = new ArrayList<>();
     private boolean timeWarningShown = false;
 
     private final SceneManager sceneManager = new SceneManager(getClass());
@@ -145,197 +139,202 @@ public class BiddingController implements Initializable, Observer {
      * @param fromFXML file FXML để quay lại khi nhấn nút back
      * @param fromTitle tiêu đề của màn hình quay lại
      */
-    public void setData(Auction auction, Bidder bidder, String fromFXML, String fromTitle){
+    public void setData(Auction auction, Bidder bidder, String fromFXML, String fromTitle) {
         this.auction = auction;
         this.bidder = bidder;
         this.comingFromFile = fromFXML;
         this.comingFromTitle = fromTitle;
+
+        setupFullScreen();
+        registerAuctionObserver();
+        populateView();
+        AuctionClientService.getInstance().watchAuction(auction.getId());
+        checkAutoBidStatus();
+        registerNotificationHandlers();
+        startAutoRefresh();
+    }
+
+// ─── Setup helpers ────────────────────────────────────────────────────────────
+
+    private void setupFullScreen() {
         Platform.runLater(() -> {
             Stage stage = (Stage) rootBorderPane.getScene().getWindow();
             if (stage != null) stage.setFullScreen(true);
         });
-        if(this.auction != null){
+    }
+
+    private void registerAuctionObserver() {
+        if (this.auction != null) {
             this.auction.addObserver(this);
         }
-        populateView();
-        AuctionClientService.getInstance().watchAuction(auction.getId());
-        checkAutoBidStatus();
+    }
+
+// ─── Notification handlers ───────────────────────────────────────────────────
+
+    private void registerNotificationHandlers() {
         NotificationListener.getInstance().register(auction.getId(), notification -> {
             switch (notification.getType()) {
-                case NotificationMessage.TYPE_BID_UPDATED:
-                    Auction updated = (Auction) notification.getData();
-                    Platform.runLater(() -> {
-                        this.auction.setCurrentPrice(updated.getCurrentPrice());
-                        if (updated.getHighestBidder() != null) {
-                            this.auction.setHighestBidder(updated.getHighestBidder());
-                            this.auction.setHighestBidderName(updated.getHighestBidder().getName());
-                        } else if (updated.getBids() != null && !updated.getBids().isEmpty()) {
-                            BidTransaction highestBid = updated.getBids().stream()
-                                    .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
-                                    .orElse(null);
-                            if (highestBid != null && highestBid.getBidder() != null) {
-                                this.auction.setHighestBidder(highestBid.getBidder());
-                                this.auction.setHighestBidderName(highestBid.getBidder().getName());
-                            }
-                        }
-                        this.auction.setStatus(updated.getStatus());
-                        if (updated.getItem() != null && updated.getItem().getEndTime() != null) {
-                            this.auction.getItem().setEndTime(updated.getItem().getEndTime());
-                        }
-                        if (updated.getBids() != null && !updated.getBids().isEmpty()) {
-                            localBids.clear();
-                            localBids.addAll(updated.getBids());
-                            localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
-                        } else {
-                            try {
-                                List<BidTransaction> bids = AuctionClientService.getInstance().getBidsByAuction(auction.getId());
-                                localBids.clear();
-                                localBids.addAll(bids);
-                                localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
-                            } catch (Exception e) {
-                                System.err.println("Failed to reload bids: " + e.getMessage());
-                            }
-                        }
-                        updatePriceArea();
-                        refreshBidHistory();
-                        updateStatusBadge();
-                        updateBidButton();
-                    });
-                    break;
-                case NotificationMessage.TYPE_AUCTION_ENDED:
-                    Platform.runLater(() -> {
-                        Auction ended = (Auction) notification.getData();
-                        this.auction.setStatus(ended.getStatus());
-                        updateBidButton();
-                        updateStatusBadge();
-                        lblCountdown.setText("ENDED");
-                        
-                        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                        // Check if current bidder is the winner
-                        if (ended.getHighestBidder() != null && ended.getHighestBidder().getId() == bidder.getId()) {
-                            ToastNotification.show(stage, "Congratulations!", "You won the auction for " + auction.getItem().getItemName() + "!", ToastNotification.Type.SUCCESS);
-                        } else {
-                            ToastNotification.show(stage, "Auction Ended", "The auction has ended. Winner: " + 
-                                (ended.getHighestBidder() != null ? ended.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
-                        }
-                    });
-                    break;
-                case NotificationMessage.TYPE_TIME_EXTENDED:
-                    Platform.runLater(() -> {
-                        Auction extended = (Auction) notification.getData();
-                        if (extended.getItem() != null && extended.getItem().getEndTime() != null) {
-                            this.auction.getItem().setEndTime(extended.getItem().getEndTime());
-                        }
-                        if (extended.getStatus() != null && extended.getStatus() == AuctionStatus.RUNNING) {
-                            this.auction.setStatus(AuctionStatus.RUNNING);
-                            updateStatusBadge();
-                            updateBidButton();
-                        }
-                        lblCountdown.setStyle(
-                                "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ff9800;");
-                        lblBidError.setStyle("-fx-text-fill: #ff9800; -fx-font-size: 11px;");
-                        lblBidError.setText("⏱ Anti-snipe: +60s added!");
-                        lblBidError.setVisible(true);
-                        lblBidError.setManaged(true);
-                        
-                        // Auto-hide after 3 seconds
-                        new java.util.Timer().schedule(new java.util.TimerTask() {
-                            @Override
-                            public void run() {
-                                Platform.runLater(() -> {
-                                    lblBidError.setVisible(false);
-                                    lblBidError.setManaged(false);
-                                });
-                            }
-                        }, 3000);
-                    });
-                    break;
-                case NotificationMessage.TYPE_AUTO_BID_AUCTION_ENDED:
-                    Platform.runLater(() -> {
-                        String message = (String) notification.getData();
-                        lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
-                        lblBidError.setText("🤖 " + message);
-                        lblBidError.setVisible(true);
-                        lblBidError.setManaged(true);
-                        updateBidButton();
-                        updateStatusBadge();
-                        lblCountdown.setText("ENDED");
-                        
-                        // Auto-hide after 3 seconds
-                        new java.util.Timer().schedule(new java.util.TimerTask() {
-                            @Override
-                            public void run() {
-                                Platform.runLater(() -> {
-                                    lblBidError.setVisible(false);
-                                    lblBidError.setManaged(false);
-                                });
-                            }
-                        }, 3000);
-                        
-                        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                        ToastNotification.show(stage, "Auto-Bid Failed", message, ToastNotification.Type.ERROR);
-                    });
-                    break;
-                case NotificationMessage.TYPE_USER_LOCKED:
-                    Platform.runLater(() -> {
-                        Integer lockedBidderId = (Integer) notification.getData();
-                        if (lockedBidderId != null && lockedBidderId.equals(bidder.getId())) {
-                            bidder.setActive(false);
-                            if (autoBidEnable) {
-                                onDisableAutoBid();
+                case NotificationMessage.TYPE_BID_UPDATED        -> handleBidUpdated(notification);
+                case NotificationMessage.TYPE_AUCTION_ENDED      -> handleAuctionEnded(notification);
+                case NotificationMessage.TYPE_TIME_EXTENDED      -> handleTimeExtended(notification);
+                case NotificationMessage.TYPE_AUTO_BID_AUCTION_ENDED -> handleAutoBidAuctionEnded(notification);
+                case NotificationMessage.TYPE_USER_LOCKED        -> handleUserLocked(notification);
+                case NotificationMessage.TYPE_USER_UNLOCKED      -> handleUserUnlocked(notification);
+            }
+        });
+    }
 
-                                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                                ToastNotification.show(stage, "Account Locked", "Your account has been locked. Auto-bid has been disabled.", ToastNotification.Type.ERROR);
-                                lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
-                                lblBidError.setText("🔒 Your account has been locked. Auto-bid disabled.");
-                            } else {
-                                Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                                ToastNotification.show(stage, "Account Locked", "Your account has been locked. You cannot place bids.", ToastNotification.Type.ERROR);
-                                lblBidError.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11px;");
-                                lblBidError.setText("🔒 Your account has been locked. You cannot place bids.");
-                            }
-                            lblBidError.setVisible(true);
-                            lblBidError.setManaged(true);
-                        }
-                    });
-                    break;
-                case NotificationMessage.TYPE_USER_UNLOCKED:
-                    Platform.runLater(() -> {
-                        Integer unlockedBidderId = (Integer) notification.getData();
-                        if (unlockedBidderId != null && unlockedBidderId.equals(bidder.getId())) {
-                            bidder.setActive(true);
-                            
-                            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                            ToastNotification.show(stage, "Account Unlocked", "Your account has been unlocked. You can now bid and use auto-bid.", ToastNotification.Type.SUCCESS);
-                            lblBidError.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 11px;");
-                            lblBidError.setText("✅ Your account has been unlocked.");
-                            lblBidError.setVisible(true);
-                            lblBidError.setManaged(true);
-                            updateBidButton();
-                            
-                            // Hide error message after 3 seconds
-                            new java.util.Timer().schedule(new java.util.TimerTask() {
-                                @Override
-                                public void run() {
-                                    Platform.runLater(() -> {
-                                        lblBidError.setVisible(false);
-                                        lblBidError.setManaged(false);
-                                    });
-                                }
-                            }, 3000);
-                        }
-                    });
-                    break;
+    private void handleBidUpdated(NotificationMessage notification) {
+        Auction updated = (Auction) notification.getData();
+        Platform.runLater(() -> {
+            syncAuctionState(updated);
+            updatePriceArea();
+            refreshBidHistory();
+            UIFactory.updateStatusBadge(auction, lblStatusBadge);
+            updateBidButton();
+        });
+    }
+
+    private void handleAuctionEnded(NotificationMessage notification) {
+        Auction ended = (Auction) notification.getData();
+        Platform.runLater(() -> {
+            this.auction.setStatus(ended.getStatus());
+            updateBidButton();
+            UIFactory.updateStatusBadge(auction, lblStatusBadge);
+            handleAuctionEnded(ended, bidder, auction);
+        });
+    }
+
+    private void handleTimeExtended(NotificationMessage notification) {
+        Auction extended = (Auction) notification.getData();
+        Platform.runLater(() -> {
+            if (extended.getItem() != null && extended.getItem().getEndTime() != null) {
+                this.auction.getItem().setEndTime(extended.getItem().getEndTime());
             }
+            if (extended.getStatus() == AuctionStatus.RUNNING) {
+                this.auction.setStatus(AuctionStatus.RUNNING);
+                UIFactory.updateStatusBadge(auction, lblStatusBadge);
+                updateBidButton();
             }
-         );
-        startAutoRefresh();
+            showTemporaryMessage("⏱ Anti-snipe: +60s added!", "#ff9800");
+            lblCountdown.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ff9800;");
+        });
+    }
+
+    private void handleAutoBidAuctionEnded(NotificationMessage notification) {
+        String message = (String) notification.getData();
+        Platform.runLater(() -> {
+            showTemporaryMessage("🤖 " + message, "#ef4444");
+            updateBidButton();
+            UIFactory.updateStatusBadge(auction, lblStatusBadge);
+            lblCountdown.setText("ENDED");
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Auto-Bid Failed", message, ToastNotification.Type.ERROR);
+        });
+    }
+
+    private void handleUserLocked(NotificationMessage notification) {
+        Integer lockedBidderId = (Integer) notification.getData();
+        if (lockedBidderId == null || !lockedBidderId.equals(bidder.getId())) return;
+        Platform.runLater(() -> {
+            bidder.setActive(false);
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            if (autoBidEnable) {
+                onDisableAutoBid();
+                ToastNotification.show(stage, "Account Locked",
+                        "Your account has been locked. Auto-bid has been disabled.",
+                        ToastNotification.Type.ERROR);
+                showMessage("🔒 Your account has been locked. Auto-bid disabled.", "#ef4444");
+            } else {
+                ToastNotification.show(stage, "Account Locked",
+                        "Your account has been locked. You cannot place bids.",
+                        ToastNotification.Type.ERROR);
+                showMessage("🔒 Your account has been locked. You cannot place bids.", "#ef4444");
+            }
+        });
+    }
+
+    private void handleUserUnlocked(NotificationMessage notification) {
+        Integer unlockedBidderId = (Integer) notification.getData();
+        if (unlockedBidderId == null || !unlockedBidderId.equals(bidder.getId())) return;
+        Platform.runLater(() -> {
+            bidder.setActive(true);
+            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+            ToastNotification.show(stage, "Account Unlocked",
+                    "Your account has been unlocked. You can now bid and use auto-bid.",
+                    ToastNotification.Type.SUCCESS);
+            showTemporaryMessage("✅ Your account has been unlocked.", "#4ade80");
+            updateBidButton();
+        });
+    }
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+    private void showTemporaryMessage(String text, String color) {
+        showMessage(text, color);
+        new java.util.Timer().schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    lblBidError.setVisible(false);
+                    lblBidError.setManaged(false);
+                });
+            }
+        }, 3000);
+    }
+
+    private void showMessage(String text, String color) {
+        lblBidError.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 11px;");
+        lblBidError.setText(text);
+        lblBidError.setVisible(true);
+        lblBidError.setManaged(true);
+    }
+
+    private void syncAuctionState(Auction updated) {
+        this.auction.setCurrentPrice(updated.getCurrentPrice());
+        this.auction.setStatus(updated.getStatus());
+
+        if (updated.getHighestBidder() != null) {
+            this.auction.setHighestBidder(updated.getHighestBidder());
+            this.auction.setHighestBidderName(updated.getHighestBidder().getName());
+        } else if (updated.getBids() != null && !updated.getBids().isEmpty()) {
+            updated.getBids().stream()
+                    .max(Comparator.comparingDouble(BidTransaction::getAmount))
+                    .map(BidTransaction::getBidder)
+                    .ifPresent(b -> {
+                        this.auction.setHighestBidder(b);
+                        this.auction.setHighestBidderName(b.getName());
+                    });
+        }
+
+        if (updated.getItem() != null && updated.getItem().getEndTime() != null) {
+            this.auction.getItem().setEndTime(updated.getItem().getEndTime());
+        }
+
+        if (updated.getBids() != null && !updated.getBids().isEmpty()) {
+            localBids.clear();
+            localBids.addAll(updated.getBids());
+            localBids.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
+        } else {
+            reloadBidsFromServer();
+        }
+    }
+
+    private void reloadBidsFromServer() {
+        try {
+            List<BidTransaction> bids = AuctionClientService.getInstance()
+                    .getBidsByAuction(auction.getId());
+            localBids.clear();
+            localBids.addAll(bids);
+            localBids.sort((b1, b2) -> b2.getTimestamp().compareTo(b1.getTimestamp()));
+        } catch (Exception e) {
+            System.err.println("Failed to reload bids: " + e.getMessage());
+        }
     }
     private void populateView() {
         lblUsername.setText(bidder.getName());
         lblItemName.setText(auction.getItem().getItemName());
         lblCategory.setText(auction.getItem().getCategory());
-        updateStatusBadge();
+        UIFactory.updateStatusBadge(auction, lblStatusBadge);
         String imagePath = auction.getItem().getImagePath();
         System.out.println("[BiddingController] Image path: " + imagePath);
         if (imagePath != null && !imagePath.isEmpty()) {
@@ -352,7 +351,6 @@ public class BiddingController implements Initializable, Observer {
                 }
             } catch (Exception e) {
                 System.err.println("[BiddingController] Error loading product image: " + e.getMessage());
-                e.printStackTrace();
             }
         } else {
             System.out.println("[BiddingController] Image path is null or empty");
@@ -371,14 +369,13 @@ public class BiddingController implements Initializable, Observer {
                     }
                 }
                 if (!localBids.isEmpty()) {
-                    BidTransaction highestBid = localBids.get(0);
+                    BidTransaction highestBid = localBids.getFirst();
                     this.auction.setCurrentPrice(highestBid.getAmount());
                     this.auction.setHighestBidder(highestBid.getBidder());
                     this.auction.setHighestBidderName(highestBid.getBidder().getName());
                 }
             } catch (Exception e) {
                 System.err.println("Failed to load bids: " + e.getMessage());
-                e.printStackTrace();
             }
         }
         updatePriceArea();
@@ -387,6 +384,11 @@ public class BiddingController implements Initializable, Observer {
         priceSeries.setName("Bid Price");
         priceChart.getData().add(priceSeries);
 
+        updatePriceChart();
+        updateBidButton();
+    }
+
+    private void updatePriceChart() {
         List<BidTransaction> chartBids = new ArrayList<>(localBids);
         Collections.reverse(chartBids);
         for(BidTransaction bid : chartBids){
@@ -395,35 +397,6 @@ public class BiddingController implements Initializable, Observer {
                     : "--";
             priceSeries.getData().add(
                     new XYChart.Data<>(time, bid.getAmount()));
-        }
-        updateBidButton();
-    }
-
-    private void updateStatusBadge() {
-        switch (auction.getStatus()) {
-            case RUNNING:
-                lblStatusBadge.setText("● Live");
-                lblStatusBadge.setStyle(
-                        "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                                + "-fx-background-radius: 10; -fx-padding: 4 12;"
-                                + "-fx-font-size: 11px; -fx-font-weight: bold;");
-                break;
-            case OPEN:
-                lblStatusBadge.setText("● Upcoming");
-                lblStatusBadge.setStyle(
-                        "-fx-background-color: #e8f0fe; -fx-text-fill: #1a56db;"
-                                + "-fx-background-radius: 10; -fx-padding: 4 12;"
-                                + "-fx-font-size: 11px; -fx-font-weight: bold;");
-                break;
-            case FINISHED:
-                lblStatusBadge.setText("● Finished");
-                lblStatusBadge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #888;"
-                                + "-fx-background-radius: 10; -fx-padding: 4 12;"
-                                + "-fx-font-size: 11px; -fx-font-weight: bold;");
-                break;
-            default:
-                lblStatusBadge.setText(auction.getStatus().toString());
         }
     }
 
@@ -437,9 +410,9 @@ public class BiddingController implements Initializable, Observer {
         }
         if (leaderName == null && !localBids.isEmpty()) {
             BidTransaction highestBid = localBids.stream()
-                    .max((b1, b2) -> Double.compare(b1.getAmount(), b2.getAmount()))
+                    .max(Comparator.comparingDouble(BidTransaction::getAmount))
                     .orElse(null);
-            if (highestBid != null && highestBid.getBidder() != null) {
+            if (highestBid.getBidder() != null) {
                 leaderName = highestBid.getBidder().getName();
                 logger.debug("[DEBUG] Leader from localBids: {}", leaderName);
             }
@@ -487,8 +460,6 @@ public class BiddingController implements Initializable, Observer {
     @FXML
     private void onPlaceBid(){
         hideBidError();
-        
-        // Check if bidder is locked
         if (!bidder.isActive()) {
             Stage stage = (Stage) rootBorderPane.getScene().getWindow();
             ToastNotification.show(stage, "Account Locked", "Your account has been locked. You cannot place bids.", ToastNotification.Type.ERROR);
@@ -584,7 +555,6 @@ public class BiddingController implements Initializable, Observer {
      */
     @FXML
     private void onEnableAutoBid(){
-        // Check if bidder is locked
         if (!bidder.isActive()) {
             lblAutoBidStatus.setText("Your account is locked and cannot enable auto-bid.");
             lblAutoBidStatus.setStyle("-fx-text-fill: #e53935; -fx-font-size: 11px;");
@@ -694,7 +664,7 @@ public class BiddingController implements Initializable, Observer {
             this.auction.setHighestBidderName(highestBidder);
             updatePriceArea();
             refreshBidHistory();
-            updateStatusBadge();
+            UIFactory.updateStatusBadge(auction, lblStatusBadge);
             updateBidButton();
             lblLastUpdate.setText(
                     "Updated " + LocalDateTime.now().format(TIME_FORMAT));
@@ -711,7 +681,7 @@ public class BiddingController implements Initializable, Observer {
                 if (isActive) {
                     double maxBid = (Double) status.get("maxBid");
                     double increment = (Double) status.get("increment");
-                    lblAutoBidActiveStatus.setText("✓ Auto-Bid Active (Max: " + VND_FORMAT.format(maxBid) + ")");
+                    lblAutoBidActiveStatus.setText("✓ Auto-Bid Active (Max: " + VND_FORMAT.format(maxBid) + " incr: " + VND_FORMAT.format(increment) + ")");
                     lblAutoBidActiveStatus.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 12px; -fx-font-weight: bold;");
                     if (btnDisableAutoBid != null) {
                         btnDisableAutoBid.setVisible(true);
@@ -719,8 +689,6 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = true;
                     chkAutoBid.setSelected(true);
-                    txtMaxBid.clear();
-                    txtIncrement.clear();
                 } else {
                     lblAutoBidActiveStatus.setText("");
                     if (btnDisableAutoBid != null) {
@@ -729,9 +697,9 @@ public class BiddingController implements Initializable, Observer {
                     }
                     autoBidEnable = false;
                     chkAutoBid.setSelected(false);
-                    txtMaxBid.clear();
-                    txtIncrement.clear();
                 }
+                txtMaxBid.clear();
+                txtIncrement.clear();
             });
         }
     }
@@ -749,8 +717,7 @@ public class BiddingController implements Initializable, Observer {
         }
         autoBidEnable = false;
         chkAutoBid.setSelected(false);
-        
-        // Reset form and button to initial state
+
         lblAutoBidStatus.setText("");
         btnEnableAutoBid.setText("⚡ Enable Auto-Bid");
         btnEnableAutoBid.setStyle(
@@ -766,15 +733,7 @@ public class BiddingController implements Initializable, Observer {
     private void refreshBidHistory() {
         if(priceSeries != null && !localBids.isEmpty()){
             priceSeries.getData().clear();
-            List<BidTransaction> chartBids = new ArrayList<>(localBids);
-            Collections.reverse(chartBids);
-            for(BidTransaction bid : chartBids){
-                String time = bid.getTimestamp() != null
-                        ? bid.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                        : "--";
-                priceSeries.getData().add(
-                        new XYChart.Data<>(time, bid.getAmount()));
-            }
+            updatePriceChart();
         }
         bidHistoryContainer.getChildren().clear();
 
@@ -837,7 +796,7 @@ public class BiddingController implements Initializable, Observer {
 
     private void tick() {
         updateCountdown();
-        // Always refresh from server to ensure UI is synced
+
         try {
             Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
             if (updatedAuction != null) {
@@ -845,11 +804,10 @@ public class BiddingController implements Initializable, Observer {
                 if (updatedAuction.getStatus() != this.auction.getStatus()) {
                     logger.info("Server status: {}, Local status: {}", updatedAuction.getStatus(), this.auction.getStatus());
                     this.auction.setStatus(updatedAuction.getStatus());
-                    updateStatusBadge();
+                    UIFactory.updateStatusBadge(auction, lblStatusBadge);
                     updateBidButton();
                     needsUpdate = true;
                 }
-                // Also sync end time if it's different
                 if (updatedAuction.getItem() != null && updatedAuction.getItem().getEndTime() != null
                     && !updatedAuction.getItem().getEndTime().equals(this.auction.getItem().getEndTime())) {
                     this.auction.getItem().setEndTime(updatedAuction.getItem().getEndTime());
@@ -860,8 +818,8 @@ public class BiddingController implements Initializable, Observer {
                     updateCountdown();
                 }
             }
-        } catch (Exception e) {
-            // Silent fail - don't spam logs on every tick
+        } catch (Exception e){
+            //
         }
     }
 
@@ -881,16 +839,15 @@ public class BiddingController implements Initializable, Observer {
             totalSecs = Duration.between(LocalDateTime.now(), auction.getItem().getStartTime()).getSeconds();
             lblCountdownLabel.setText("Starts in");
             if(totalSecs <= 0){
-                // Refresh auction data from server when start time is reached
                 try {
                     Auction updatedAuction = AuctionClientService.getInstance().getAuctionById(auction.getId());
                     if (updatedAuction != null) {
                         this.auction.setStatus(updatedAuction.getStatus());
-                        updateStatusBadge();
+                        UIFactory.updateStatusBadge(auction, lblStatusBadge);
                         updateBidButton();
                     }
                 } catch (Exception e) {
-                    logger.error("Failed to refresh auction status: {}", e.getMessage());
+                    throw new RuntimeException(e);
                 }
                 return;
             }
@@ -911,19 +868,10 @@ public class BiddingController implements Initializable, Observer {
                     if (updatedAuction != null) {
                         logger.info("Server returned auction with status: {}", updatedAuction.getStatus());
                         this.auction.setStatus(updatedAuction.getStatus());
-                        updateStatusBadge();
+                        UIFactory.updateStatusBadge(auction, lblStatusBadge);
                         updateBidButton();
                         if (updatedAuction.getStatus() == AuctionStatus.FINISHED) {
-                            lblCountdown.setText("ENDED");
-                            
-                            Stage stage = (Stage) rootBorderPane.getScene().getWindow();
-                            if (updatedAuction.getHighestBidder() != null && updatedAuction.getHighestBidder().getId() == bidder.getId()) {
-                                ToastNotification.show(stage, "Congratulations!", "You won the auction for " + auction.getItem().getItemName() + "!", ToastNotification.Type.SUCCESS);
-                            } else {
-                                ToastNotification.show(stage, "Auction Ended", "The auction has ended. Winner: " + 
-                                    (updatedAuction.getHighestBidder() != null ? updatedAuction.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
-                            }
-                            
+                            handleAuctionEnded(updatedAuction, bidder, auction);
                             stopScheduler();
                             return;
                         }
@@ -956,6 +904,18 @@ public class BiddingController implements Initializable, Observer {
         } else {
             lblCountdown.setStyle(
                     "-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #c0c43f;");
+        }
+    }
+
+    private void handleAuctionEnded(Auction updatedAuction, Bidder bidder, Auction auction) {
+        lblCountdown.setText("ENDED");
+
+        Stage stage = (Stage) rootBorderPane.getScene().getWindow();
+        if (updatedAuction.getHighestBidder() != null && updatedAuction.getHighestBidder().getId() == bidder.getId()) {
+            ToastNotification.show(stage, "Congratulations!", "You won the auction for " + auction.getItem().getItemName() + "!", ToastNotification.Type.SUCCESS);
+        } else {
+            ToastNotification.show(stage, "Auction Ended", "The auction has ended. Winner: " +
+                (updatedAuction.getHighestBidder() != null ? updatedAuction.getHighestBidder().getName() : "No winner"), ToastNotification.Type.INFO);
         }
     }
 
@@ -1037,7 +997,6 @@ public class BiddingController implements Initializable, Observer {
         lblBidError.setVisible(true);
         lblBidError.setManaged(true);
 
-        // Auto-hide after 3 seconds, but only if bidder is not locked
         if (bidder.isActive()) {
             new java.util.Timer().schedule(new java.util.TimerTask() {
                 @Override
@@ -1052,7 +1011,6 @@ public class BiddingController implements Initializable, Observer {
     }
 
     private void hideBidError() {
-        // Don't hide error message if bidder is locked
         if (!bidder.isActive()) {
             return;
         }

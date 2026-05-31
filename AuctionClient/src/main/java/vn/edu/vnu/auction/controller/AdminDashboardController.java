@@ -29,9 +29,7 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -46,8 +44,6 @@ public class AdminDashboardController implements Initializable {
             "-fx-background-color: #722f37; -fx-font-weight: bold; -fx-text-fill: #c0c43f";
     private static final String STYLE_NAV_NORMAL =
             "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold";
-    private static final DateTimeFormatter TIME_FORMAT =
-            DateTimeFormatter.ofPattern("HH:mm");
     private static final NumberFormat VND_FORMAT =
             NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
@@ -185,7 +181,7 @@ public class AdminDashboardController implements Initializable {
         userListContainer.getChildren().clear();
         if(list.isEmpty()){
             userListContainer.getChildren().add(
-                    buildEmptyState("👤", "No users found", "Try changing the filter."));
+                    UIFactory.buildEmptyState("👤", "No users found", "Try changing the filter."));
             lblUserCount.setText("0 users");
             return;
         }
@@ -274,8 +270,7 @@ public class AdminDashboardController implements Initializable {
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Unlocked: " + user.getFullName());
                     ToastNotification.show(stage, "Success", "User unlocked successfully: " + user.getFullName(), ToastNotification.Type.SUCCESS);
-                    
-                    // Auto-hide status bar after 3 seconds
+
                     new java.util.Timer().schedule(new java.util.TimerTask() {
                         @Override
                         public void run() {
@@ -291,8 +286,7 @@ public class AdminDashboardController implements Initializable {
                             + "-fx-font-size: 11px; -fx-cursor: hand;");
                     lblStatusBar.setText("Locked: " + user.getFullName());
                     ToastNotification.show(stage, "Success", "User locked successfully: " + user.getFullName(), ToastNotification.Type.SUCCESS);
-                    
-                    // Auto-hide status bar after 3 seconds
+
                     new java.util.Timer().schedule(new java.util.TimerTask() {
                         @Override
                         public void run() {
@@ -361,7 +355,7 @@ public class AdminDashboardController implements Initializable {
 
         if(list.isEmpty()){
             auctionListContainer.getChildren().add(
-                    buildEmptyState("📭", "No auctions found", "Try changing the filter."));
+                    UIFactory.buildEmptyState("📭", "No auctions found", "Try changing the filter."));
             lblAuctionCount.setText("0 auctions");
             return;
         }
@@ -371,55 +365,7 @@ public class AdminDashboardController implements Initializable {
     }
 
     private HBox buildAuctionCard(Auction auction){
-        HBox card = new HBox(14);
-        card.setPadding(new Insets(12));
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #722f37, #3d1c21);"
-                + "-fx-border-color: #3d1c21;"
-                + "-fx-border-radius: 8;"
-                + "-fx-background-radius: 8;");
-
-        // Thumb
-        VBox thumb = new VBox(3);
-        thumb.setAlignment(Pos.CENTER);
-        thumb.setPrefSize(64, 64);
-        thumb.setStyle("-fx-background-color: #f5e8e8; -fx-background-radius: 8;");
-        Label icon = new Label(getCategoryIcon(auction.getItem().getCategory()));
-        icon.setStyle("-fx-font-size: 22px; -fx-background-color: #722f37");
-        Label cat = new Label(auction.getItem().getCategory());
-        cat.setStyle("-fx-font-size: 9px; -fx-text-fill: #722f37;");
-        thumb.getChildren().addAll(icon, cat);
-
-        // Info
-        VBox info = new VBox(4);
-        HBox.setHgrow(info, Priority.ALWAYS);
-
-        HBox row1 = new HBox(8);
-        row1.setAlignment(Pos.CENTER_LEFT);
-        Label nameLabel = new Label(auction.getItem().getItemName());
-        nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
-        Label badge = buildAuctionStatusBadge(auction.getStatus());
-        Label idLabel = new Label("ID: " + auction.getId());
-        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7;");
-        row1.getChildren().addAll(nameLabel, badge, idLabel);
-
-        Label priceLabel = new Label(
-                "Current: " + formatPrice(auction.getCurrentPrice()) + " ₫"
-                        + "  ·  " + auction.getBids().size() + " bids");
-        priceLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
-
-        Label timeLabel = new Label(
-                "Starts: " + (auction.getItem().getStartTime() != null
-                        ? auction.getItem().getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                        : "—")
-                + "  ·  Ends: " + (auction.getItem().getEndTime() != null
-                        ? auction.getItem().getEndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                        : "—"));
-        timeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #c0c43f; -fx-opacity: 0.7");
-
-        info.getChildren().addAll(row1, priceLabel, timeLabel);
-
-        // Actions
+        HBox card = UIFactory.buildAuctionCard(auction);
         VBox actions = new VBox(6);
         actions.setAlignment(Pos.CENTER);
         actions.setPrefWidth(90);
@@ -435,7 +381,7 @@ public class AdminDashboardController implements Initializable {
             actions.getChildren().add(btnForce);
         }
 
-        card.getChildren().addAll(thumb, info, actions);
+        card.getChildren().add(actions);
         return card;
     }
 
@@ -457,16 +403,7 @@ public class AdminDashboardController implements Initializable {
                 lblStatusBar.setText("Force End: " + auction.getItem().getItemName());
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 ToastNotification.show(stage, "Success", "Auction force ended successfully: " + auction.getItem().getItemName(), ToastNotification.Type.SUCCESS);
-                
-                // Auto-hide status bar after 3 seconds
-                new java.util.Timer().schedule(new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        Platform.runLater(() -> {
-                            lblStatusBar.setText("");
-                        });
-                    }
-                }, 3000);
+
             }
             else{
                 AuctionClientService.getInstance().cancelAuction(auction.getId());
@@ -474,17 +411,15 @@ public class AdminDashboardController implements Initializable {
                 lblStatusBar.setText("Cancel: " + auction.getItem().getItemName());
                 Stage stage = (Stage) rootBorderPane.getScene().getWindow();
                 ToastNotification.show(stage, "Success", "Auction cancelled successfully: " + auction.getItem().getItemName(), ToastNotification.Type.SUCCESS);
-                
-                // Auto-hide status bar after 3 seconds
-                new java.util.Timer().schedule(new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        Platform.runLater(() -> {
-                            lblStatusBar.setText("");
-                        });
-                    }
-                }, 3000);
             }
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        lblStatusBar.setText("");
+                    });
+                }
+            }, 3000);
             loadAuctions();
         });
     }
@@ -512,21 +447,6 @@ public class AdminDashboardController implements Initializable {
         btnNavAuctions.setStyle(STYLE_NAV_NORMAL);
         active.setStyle(STYLE_NAV_ACTIVE);
     }
-
-    private VBox buildEmptyState(String icon, String title, String hint) {
-        VBox box = new VBox(10);
-        box.setAlignment(Pos.CENTER);
-        box.setPadding(new Insets(50));
-        Label iconLabel = new Label(icon);
-        iconLabel.setStyle("-fx-font-size: 38px;");
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 15));
-        Label hintLabel = new Label(hint);
-        hintLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 12px;");
-        box.getChildren().addAll(iconLabel, titleLabel, hintLabel);
-        return box;
-    }
-
     private Label buildRoleBadge(String role) {
         Label badge = new Label(role);
         String style = "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;";
@@ -555,59 +475,17 @@ public class AdminDashboardController implements Initializable {
         return badge;
     }
 
-    private Label buildAuctionStatusBadge(AuctionStatus status) {
-        Label badge = new Label();
-        switch (status) {
-            case RUNNING:
-                badge.setText("● Live");
-                badge.setStyle(
-                        "-fx-background-color: #e6f4ea; -fx-text-fill: #2d8a4e;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-                break;
-            case OPEN:
-                badge.setText("● Upcoming");
-                badge.setStyle(
-                        "-fx-background-color: #e8f0fe; -fx-text-fill: #1a56db;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-                break;
-            case FINISHED:
-                badge.setText("● Finished");
-                badge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #888;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-                break;
-            default:
-                badge.setText(status.toString());
-                badge.setStyle(
-                        "-fx-background-color: #f0f0f0; -fx-text-fill: #888;"
-                                + "-fx-background-radius: 10; -fx-padding: 2 8; -fx-font-size: 10px;");
-        }
-        return badge;
-    }
-
     private String formatPrice(double price) {
         return VND_FORMAT.format((long) price);
     }
 
-    private String getCategoryIcon(String category) {
-        if (category == null) {
-            return "📦";
-        }
-        switch (category.toLowerCase()) {
-            case "electronics": return "💻";
-            case "art":         return "🎨";
-            case "vehicle":     return "🚗";
-            case "other":       return "📦";
-            default:            return "📦";
-        }
-    }
 
     private String getRoleColor(String role) {
-        switch (role) {
-            case "Bidder": return "#1a56db";
-            case "Seller": return "#b45309";
-            case "Admin":  return "#722f37";
-            default:     return "#888";
-        }
+        return switch (role) {
+            case "Bidder" -> "#1a56db";
+            case "Seller" -> "#b45309";
+            case "Admin" -> "#722f37";
+            default -> "#888";
+        };
     }
 }
