@@ -236,7 +236,7 @@ mvn clean package -DskipTests
 
 ---
 
-## ✅ Danh sách chức năng đã hoàn thành
+## 7. Danh sách chức năng đã hoàn thành
 
 ### 🔐 Xác thực & Tài khoản
 -  Đăng ký tài khoản (Bidder / Seller)
@@ -288,7 +288,7 @@ mvn clean package -DskipTests
 
 ---
 
-## 7. Tài liệu & Demo
+## 8. Tài liệu & Demo
 
 | Loại | Link |
 |------|------|
@@ -297,7 +297,7 @@ mvn clean package -DskipTests
 
 ---
 
-## 8. Thành viên nhóm
+## 9. Thành viên nhóm
 
 | Họ tên | MSSV |
 |---|---|
